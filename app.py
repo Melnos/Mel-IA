@@ -780,6 +780,13 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
 async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
     """Streaming SSE : envoie les tokens en temps réel au client."""
     user = current_user(x_auth_token)
+    user_keys = get_user_keys(user)
+    keys = [k for k in user_keys if _key_usable(k)] or user_keys
+    if not keys:
+        raise HTTPException(
+            401,
+            "Session expirée ou non connecté : veuillez vous connecter ou créer un compte avec votre clé API Gemini.",
+        )
     uid = user["id"] if user else None
     text = body.message.strip()
     sid = body.session_id or "default"
@@ -969,6 +976,13 @@ async def chat_media(
 ):
     """Envoie un message avec image / vocal / vidéo / document. Le fichier est stocké et analysé par Gemini."""
     user = current_user(x_auth_token)
+    user_keys = get_user_keys(user)
+    keys = [k for k in user_keys if _key_usable(k)] or user_keys
+    if not keys:
+        raise HTTPException(
+            401,
+            "Session expirée ou non connecté : veuillez vous connecter ou créer un compte avec votre clé API Gemini.",
+        )
     uid = user["id"] if user else None
     text = (message or "").strip()
     sid = session_id or "default"

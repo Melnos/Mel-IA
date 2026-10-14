@@ -1026,8 +1026,15 @@ function doSendStream(text, existingWrap, isRegen) {
     signal: abortCtrl.signal
   })
   .then(function(res) {
+    if (res.status === 401) {
+      token = '';
+      localStorage.removeItem('mel_token');
+      showUserChip('');
+      openGate('login');
+      throw new Error('Session expirée ou serveur redémarré. Veuillez vous reconnecter ou créer votre compte.');
+    }
     if (!res.ok) {
-      return res.json().then(function(err) { throw new Error(err.detail || 'Erreur serveur'); });
+      return res.json().then(function(err) { throw new Error(err.detail || ('Erreur serveur (' + res.status + ')')); });
     }
     var reader = res.body.getReader();
     var decoder = new TextDecoder('utf-8');
@@ -1074,11 +1081,12 @@ function doSendStream(text, existingWrap, isRegen) {
 
     function finishStream() {
       setGenerating(false);
+      if (aiWrap.classList.contains('err')) {
+        return;
+      }
       if (!accumulated && !mediaUrl) {
-        if (!aiWrap.classList.contains('err')) {
-          aiWrap.classList.add('err');
-          msgEl.textContent = '⚠ Aucune réponse reçue de Gemini. Vérifiez votre clé API dans Paramètres.';
-        }
+        aiWrap.classList.add('err');
+        msgEl.textContent = '⚠ Aucune réponse reçue de Gemini. Vérifiez votre clé API dans Paramètres.';
         return;
       }
       paintReply(aiWrap, {
