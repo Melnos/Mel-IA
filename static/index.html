@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MEL-IA — Ton assistant personnel intelligent</title>
+<meta name="description" content="MEL-IA est ton assistant personnel alimenté par l'IA. Il te connaît, retient ce que tu lui demandes et t'aide au quotidien.">
+<meta name="theme-color" content="#0a0a1a">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/static/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f6f9;--bg2:#e9edf4;--fg:#17223b;--muted:#5d6a82;--line:rgba(23,34,59,.12);
+  --surface:#ffffff;--glass:rgba(255,255,255,.75);
+  --a1:#2f5fd6;--a2:#1e44b0;--a3:#f0a93a;--glow:rgba(47,95,214,.22);
+  --soft:#e7edfa;--on:#fff;--radius:20px;
+  color-scheme:light;
+}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{background:radial-gradient(900px 480px at 50% -140px,rgba(47,95,214,.10),transparent 70%),var(--bg);color:var(--fg);font:400 16px/1.7 Inter,system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
+h1,h2,.brand{font-family:"Source Serif 4",Georgia,serif;font-weight:600;letter-spacing:-.02em}
+h3{font-family:Inter,system-ui,sans-serif;letter-spacing:-.01em}
+
+/* Voile lumineux très subtil, esprit papier */
+.bg-glow{display:none}
+
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+
+/* Nav */
+nav{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;background:rgba(244,246,249,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);margin:0 -24px;padding:16px 24px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:23px;color:var(--fg);letter-spacing:-.01em}
+.brand .logo-dot{color:var(--a3)}
+.nav-links{display:flex;align-items:center;gap:22px}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:14.5px;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--fg)}
+.nav-cta{background:var(--a1);color:var(--on);border:0;border-radius:10px;padding:10px 20px;font:600 14px Inter,sans-serif;cursor:pointer;text-decoration:none;transition:background .2s,transform .15s,box-shadow .25s;box-shadow:0 1px 2px rgba(23,34,59,.12)}
+.nav-cta:hover{background:var(--a2);transform:translateY(-1px);box-shadow:0 6px 18px var(--glow)}
+
+/* Hero */
+.hero{text-align:center;padding:84px 0 56px;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-size:13.5px;color:var(--muted);margin-bottom:26px;box-shadow:0 1px 2px rgba(23,34,59,.06)}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--a3);animation:pulse 2.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+h1{font-size:clamp(38px,5.6vw,60px);line-height:1.14;font-weight:600;margin-bottom:22px;max-width:14em;margin-left:auto;margin-right:auto}
+h1 .grad{color:var(--a2);font-style:italic}
+.sub{color:var(--muted);max-width:36em;margin:0 auto 36px;font-size:18px;line-height:1.7;font-weight:400}
+.hero-buttons{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.btn{font:600 15px Inter,sans-serif;border-radius:10px;padding:14px 28px;border:1px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;min-height:52px;transition:transform .15s,box-shadow .25s,background .2s,border-color .2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(23,34,59,.08)}
+.btn:hover{background:#f8faff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(23,34,59,.12);border-color:rgba(23,34,59,.22)}
+.btn:focus-visible{outline:3px solid var(--a1);outline-offset:3px}
+.btn.primary{background:var(--a1);color:var(--on);border:0;box-shadow:0 4px 16px var(--glow)}
+.btn.primary:hover{background:var(--a2);box-shadow:0 8px 26px var(--glow);transform:translateY(-1px)}
+#hero-atom{width:min(150px,38vw);height:min(150px,38vw);display:block;margin:0 auto 6px}
+#note{min-height:24px;margin:18px auto 0;color:var(--muted);font-size:14px;max-width:30em}
+
+/* Stats */
+.stats{display:flex;justify-content:center;gap:0;margin:40px auto 20px;max-width:680px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat{flex:1;text-align:center;padding:22px 8px}
+.stat+.stat{border-left:1px solid var(--line)}
+.stat .num{font-family:"Source Serif 4",Georgia,serif;font-size:30px;font-weight:600;color:var(--fg)}
+.stat .num .lock{display:inline-flex;vertical-align:-3px}
+.stat .label{color:var(--muted);font-size:12px;margin-top:4px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
+/* Bento Grid */
+.section-title{text-align:center;margin:70px 0 40px}
+.section-title h2{font-size:clamp(28px,3.8vw,40px);margin-bottom:12px}
+.section-title p{color:var(--muted);font-size:17px;max-width:30em;margin:0 auto}
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;padding:0 0 80px}
+.card{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius);padding:32px;overflow:hidden;box-shadow:0 1px 3px rgba(23,34,59,.07);transition:transform .25s,border-color .25s,box-shadow .25s}
+.card:hover{transform:translateY(-3px);border-color:rgba(47,95,214,.4);box-shadow:0 14px 40px rgba(23,34,59,.10)}
+.c1{grid-column:span 4}.c2{grid-column:span 2}.c3,.c4{grid-column:span 3}
+.card-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;background:var(--soft);border:1px solid rgba(47,95,214,.22);color:var(--a2)}
+.card-icon svg{width:22px;height:22px}
+h3{font-size:21px;margin-bottom:10px;font-weight:600}
+.card p.d{margin:0;color:var(--muted);font-size:15px;line-height:1.6}
+
+/* Chat demo */
+.chat-demo{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:11px 17px;border-radius:18px;font-size:14.5px;opacity:0;animation:msgIn .5s forwards;line-height:1.55}
+.msg.me{margin-left:auto;background:#dfe8fa;color:var(--fg);border-bottom-right-radius:6px}
+.msg.ai{background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:6px}
+.m1{animation-delay:.6s}.m2{animation-delay:1.8s}.m3{animation-delay:3s}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* Wave viz */
+.wave{display:flex;align-items:center;gap:4px;height:60px;margin-top:20px;justify-content:center}
+.wave i{display:block;width:4px;border-radius:2px;background:var(--a1);animation:waveAnim 1.2s ease-in-out infinite}
+.wave i:nth-child(1){animation-delay:0s;height:14px}.wave i:nth-child(2){animation-delay:.1s;height:28px}
+.wave i:nth-child(3){animation-delay:.2s;height:44px}.wave i:nth-child(4){animation-delay:.3s;height:22px}
+.wave i:nth-child(5){animation-delay:.4s;height:36px}.wave i:nth-child(6){animation-delay:.5s;height:16px}
+.wave i:nth-child(7){animation-delay:.6s;height:30px}.wave i:nth-child(8){animation-delay:.7s;height:20px}
+@keyframes waveAnim{0%,100%{transform:scaleY(1);opacity:.5}50%{transform:scaleY(1.6);opacity:1}}
+
+/* Tags */
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.tags span{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 16px;font-size:13px;color:var(--muted);font-weight:500}
+
+/* CTA Section */
+.cta-section{text-align:center;padding:72px 24px;margin-bottom:60px;position:relative;background:var(--soft);border:1px solid rgba(47,95,214,.2);border-radius:28px}
+.cta-section h2{font-size:clamp(30px,4.6vw,46px);margin-bottom:14px}
+.cta-section p{color:var(--muted);margin-bottom:30px;font-size:17px}
+.cta-section .hero-buttons{margin-bottom:0}
+
+/* Footer */
+footer{text-align:center;padding:28px 0 40px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line)}
+footer .heart{color:var(--a1)}
+
+/* Responsive */
+@media (max-width:768px){
+  .c1,.c2,.c3,.c4{grid-column:span 6}
+  .card{padding:24px}
+  .stats{gap:30px}
+  .nav-links a:not(.nav-cta){display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .msg{animation:none;opacity:1}
+  .btn,.card{transition:none}
+  .bg-glow .orb{animation:none}
+  .wave i{animation:none}
+}
+#logo{display:inline-block;width:32px;height:32px;vertical-align:-7px;margin-right:2px}
+.brand .logo-dot{color:var(--a3)}
+</style>
+</head>
+<body>
+<div class="bg-glow"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
+
+<div class="wrap">
+<nav>
+  <span class="brand"><span id="logo"></span>MEL-IA<span class="logo-dot">.</span></span>
+  <div class="nav-links">
+    <a href="#fonctions">Fonctions</a>
+    <a class="nav-cta" href="/app">Ouvrir l'assistant</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-badge"><span class="dot"></span>Propulsé par Gemini AI</div>
+  <div id="hero-atom"></div>
+  <h1>Ton assistant <span class="grad">personnel</span>, toujours disponible.</h1>
+  <p class="sub">Parle-lui ou écris-lui en français. Il connaît tes projets, retient ce que tu lui demandes et t'aide dans tout ce que tu fais.</p>
+  <div class="hero-buttons">
+    <a class="btn primary" href="/app"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>Ouvrir l'assistant</a>
+    <button class="btn" id="install"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>Installer l'application</button>
+  </div>
+  <p id="note" role="status" aria-live="polite"></p>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="num">∞</div><div class="label">Conversations</div></div>
+  <div class="stat"><div class="num">24/7</div><div class="label">Disponible</div></div>
+  <div class="stat"><div class="num">FR</div><div class="label">Français natif</div></div>
+  <div class="stat"><div class="num"><span class="lock"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span></div><div class="label">100% privé</div></div>
+</div>
+
+<section id="fonctions">
+<div class="section-title">
+  <h2>Ce que MEL-IA sait faire</h2>
+  <p>Un assistant complet qui s'adapte à tes besoins.</p>
+</div>
+
+<div class="bento">
+  <div class="card c1">
+    <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1L3 20l1.1-4.3A8.5 8.5 0 1 1 21 11.5z"/></svg></div>
+    <h3>Chat naturel</h3>
+    <p class="d">Écris ou parle en français. MEL-IA comprend le contexte et répond de façon claire et directe.</p>
+    <div class="chat-demo">
+      <div class="msg me m1">Rappelle-moi de relancer le client demain à 9 h.</div>
+      <div class="msg ai m2">C'est noté : rappel demain à 9 h pour relancer le client.</div>
+      <div class="msg ai m3">Je prépare aussi un message de relance ?</div>
+    </div>
+  </div>
+
+  <div class="card c2">
+    <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/><path d="M19 15l.7 2.1 2.1.7-2.1.7L19 20.6l-.7-2.1-2.1-.7 2.1-.7z"/></svg></div>
+    <h3>Il te connaît</h3>
+    <p class="d">Dis-lui « retiens que… » et il gardera cette info en mémoire pour toutes tes futures conversations.</p>
+    <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div>
+
+  <div class="card c3">
+    <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 8-4 4 4 4"/><path d="m16 8 4 4-4 4"/><path d="m13 4-2 16"/></svg></div>
+    <h3>Multi-talents</h3>
+    <p class="d">Code, projets, rédaction, idées, organisation : MEL-IA t'aide sur tous les sujets.</p>
+    <div class="tags"><span>Python</span><span>Rédaction</span><span>Idées</span><span>Planning</span><span>Maths</span></div>
+  </div>
+
+  <div class="card c4">
+    <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg></div>
+    <h3>Partout avec toi</h3>
+    <p class="d">Installe MEL-IA comme une application sur ton téléphone. Fonctionne même hors ligne.</p>
+    <div class="tags"><span>iOS</span><span>Android</span><span>Desktop</span><span>PWA</span></div>
+  </div>
+</div>
+</section>
+
+<section class="cta-section">
+  <h2>Prêt à commencer ?</h2>
+  <p>Ouvre MEL-IA et pose ta première question.</p>
+  <div class="hero-buttons">
+    <a class="btn primary" href="/app"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>Ouvrir l'assistant</a>
+  </div>
+</section>
+
+<footer>
+  <p>MEL-IA — fait avec <span class="heart">♥</span> à Cotonou</p>
+</footer>
+</div>
+
+<script src="/static/atom.js"></script>
+<script>
+mountAtom('logo', 34); mountAtom('hero-atom');
+var dp = null;
+addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dp = e; });
+document.getElementById('install').addEventListener('click', function () {
+  var n = document.getElementById('note');
+  if (dp) { dp.prompt(); dp = null; return; }
+  n.textContent = /iphone|ipad|ipod/i.test(navigator.userAgent)
+    ? 'Sur iPhone : dans Safari, touche Partager puis « Sur l\u2019écran d\u2019accueil ».'
+    : 'Dans le menu de ton navigateur, choisis « Installer l\u2019application » ou « Ajouter à l\u2019écran d\u2019accueil ».';
+});
+</script>
+</body>
+</html>

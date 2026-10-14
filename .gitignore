@@ -1,0 +1,25 @@
+# Variables d'environnement sensibles
+.env
+
+# Données et journaux (base SQLite, clé de chiffrement, journaux)
+data/
+*.enc_key
+logs.txt
+
+# Fichiers Python générés
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Scripts temporaires créés pendant les réglages
+_apply_amber.ps1
+_dbg.py
+_migrate_colors.py
+_patch.py
+_patch2.py
+_patch3.py
+_patch5.py
+_patch6.py
+_patch_all.py
+_t2.py
+quick_sql.py
