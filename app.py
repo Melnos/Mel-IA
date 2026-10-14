@@ -441,17 +441,19 @@ def fetch_images(query: str) -> list[dict]:
 
 
 def get_model_candidates() -> list[str]:
-    """Retourne les modèles candidats ordonnés pour garantir une réponse sans erreur 503 ou 404."""
+    """Retourne les modèles candidats ordonnés pour garantir une réponse rapide et stable."""
     candidates = []
     if MODEL and MODEL != "auto":
         candidates.append(MODEL)
-    # Modèles officiels Google Gemini stables et performants
+    # Modèles actifs vérifiés dans l'API Gemini
     defaults = [
-        "gemini-2.5-flash",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-lite",
-        "gemini-1.5-flash",
-        "gemini-1.5-pro",
+        "gemini-flash-lite-latest",
+        "gemini-3-flash-preview",
+        "gemma-4-31b-it",
+        "gemini-flash-latest",
+        "gemini-3.8-flash",
+        "gemini-3.5-flash",
+        "gemini-pro-latest",
     ]
     for m in defaults:
         if m not in candidates:
@@ -551,31 +553,21 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
                     result["images"] = fetch_images(q)
                 return result
 
-            # Modèle indisponible (503), déprécié (404), saturé (429) -> clé suivante
-            if r.status_code in (503, 404, 500):
-                last_err = f"Modèle {model} ({r.status_code})"
-                _cooldown(key, 120)
-                break
-
-            if r.status_code == 429:
-                last_err = "Limite de quota temporaire"
-                _cooldown(key, 300)
-                break
-
-            if r.status_code in (400, 403):
-                last_err = "Clé Gemini invalide ou refusée"
+            # Si le modèle est indisponible (503), quota du modèle (429), déprécié (404), etc.
+            # On tente le MODÈLE SUIVANT ! On ne bloque pas les autres modèles !
+            last_err = f"Modèle {model} ({r.status_code})"
+            if r.status_code in (401, 403):
                 _cooldown(key, 3600)
                 break
-
-            last_err = f"Erreur {r.status_code}"
+            continue
 
     if last_err and "quota" in last_err:
-        raise HTTPException(429, "Limites gratuites atteintes sur toutes les clés. Réessaie dans quelques instants.")
+        raise HTTPException(429, "Limites gratuites atteintes sur vos modèles. Réessaie dans quelques instants.")
     raise HTTPException(502, f"Impossible de contacter Gemini ({last_err or 'tous les modèles ont échoué'}).")
 
 
 # ---------- Génération d'images (Gemini image generation) ----------
-IMAGE_MODELS = ["imagen-3.0-generate-002", "gemini-2.0-flash", "gemini-2.5-flash"]
+IMAGE_MODELS = ["gemini-2.5-flash-image", "gemini-3.1-flash-image", "gemini-3-pro-image", "imagen-3.0-generate-002"]
 
 
 def generate_image(prompt: str, user: dict | None = None) -> str:
@@ -882,12 +874,9 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                             json=req_body,
                         ) as r:
                             if r.status_code != 200:
-                                if r.status_code == 429:
-                                    _cooldown(key, 300)
+                                if r.status_code in (401, 403):
                                     break
-                                if r.status_code in (503, 404, 500):
-                                    continue
-                                break
+                                continue
                             used_model = model
                             _cache["model"] = model
                             async for line in r.aiter_lines():
@@ -914,8 +903,9 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                                         yield f"data: {json.dumps({'chunk': text_piece, 'done': False})}\n\n"
                                 except Exception:
                                     continue
-                            success = True
-                            break
+                            if full_reply:
+                                success = True
+                                break
                     except Exception:
                         continue
                 if success:

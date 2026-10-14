@@ -1049,7 +1049,12 @@ function doSendStream(text, existingWrap, isRegen) {
           var jsonStr = line.slice(5).trim();
           try {
             var data = JSON.parse(jsonStr);
-            if (data.error) throw new Error(data.error);
+            if (data.error) {
+              setGenerating(false);
+              aiWrap.classList.add('err');
+              msgEl.textContent = '⚠ ' + data.error;
+              return;
+            }
             if (data.chunk) {
               accumulated += data.chunk;
               msgEl.innerHTML = renderMarkdown(accumulated);
@@ -1060,7 +1065,7 @@ function doSendStream(text, existingWrap, isRegen) {
             if (data.model) modelUsed = data.model;
             if (data.session_id) currentSession = data.session_id;
           } catch(e) {
-            if (e.message && e.message !== 'Unexpected end of JSON input') console.error(e);
+            console.error('SSE parse error:', e);
           }
         }
         return readNext();
@@ -1069,6 +1074,13 @@ function doSendStream(text, existingWrap, isRegen) {
 
     function finishStream() {
       setGenerating(false);
+      if (!accumulated && !mediaUrl) {
+        if (!aiWrap.classList.contains('err')) {
+          aiWrap.classList.add('err');
+          msgEl.textContent = '⚠ Aucune réponse reçue de Gemini. Vérifiez votre clé API dans Paramètres.';
+        }
+        return;
+      }
       paintReply(aiWrap, {
         reply: accumulated,
         sources: sources,
