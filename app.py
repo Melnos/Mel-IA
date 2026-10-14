@@ -7,9 +7,10 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
+import json
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -21,10 +22,16 @@ MEDIA_DIR = BASE / "data" / "media"
 MEDIA_DIR.mkdir(exist_ok=True)
 
 # Tailles max acceptées (Gemini inline data plafonne ~20 Mo par requête)
-MEDIA_LIMITS = {"image": 8 * 1024 * 1024, "audio": 10 * 1024 * 1024, "video": 15 * 1024 * 1024}
+MEDIA_LIMITS = {
+    "image": 8 * 1024 * 1024,
+    "audio": 10 * 1024 * 1024,
+    "video": 15 * 1024 * 1024,
+    "document": 15 * 1024 * 1024,
+}
 IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
 AUDIO_EXTS = {".mp3", ".wav", ".ogg", ".oga", ".m4a", ".webm", ".mp4"}
 VIDEO_EXTS = {".mp4", ".webm", ".mov", ".mkv"}
+DOC_EXTS = {".pdf", ".txt", ".md", ".csv", ".json", ".py", ".js", ".ts", ".html", ".css", ".xml", ".sql", ".yaml", ".yml"}
 
 API_KEY = os.getenv("GEMINI_API_KEY", "")
 MODEL = os.getenv("GEMINI_MODEL", "auto")
@@ -338,19 +345,22 @@ def update_profile(body: ProfileIn, x_auth_token: str | None = Header(None)):
 def system_prompt(facts: list[str], persona: str = "", interests: str = "") -> str:
     who = f" de {OWNER}" if OWNER else ""
     p = (
-        f"Tu es {NAME}, l'assistant personnel{who}. Tu réponds en français, de façon claire, "
-        "directe et utile, sans en faire trop. Tu peux aider pour le code, les projets, "
-        "la réflexion, la rédaction et l'organisation. Tu sais aussi analyser les images qu'on t'envoie, "
-        "transcrire et comprendre les messages vocaux, et décrire ou résumer les vidéos. Si tu ne sais pas, dis-le. "
-        "Quand tu cites une information, note la source entre crochets avec le lien. "
-        f"Nous sommes le {datetime.now().strftime('%d/%m/%Y')}."
+        f"Tu es {NAME}, le bras droit virtuel et l'acolyte de confiance personnel{who}.\n"
+        "Ta mission : agir comme un partenaire intellectuel et opérationnel de haut niveau, loyal, rigoureux et protecteur de la confidentialité de ton utilisateur.\n\n"
+        "Tes principes directeurs :\n"
+        "1. Confidentialité & confiance absolue : toutes les données, idées et secrets de projets sont traités avec la plus grande discrétion.\n"
+        "2. Franchise bienveillante & vision stratégique : tu ne dis pas simplement oui par complaisance ; si tu déceles un risque, un piège ou une incohérence dans une idée, alerte poliment et propose aussitôt des pistes concrètes.\n"
+        "3. Orientation résultat & efficacité : va droit au but, structure tes réponses avec clarté (étapes, tableaux, code propre et testé), sans bavardage superflu.\n"
+        "4. Polyvalence d'expert : tu excelles dans le développement informatique, la stratégie, la synthèse de documents (PDF, CSV, texte), l'analyse d'images et l'organisation personnelle.\n"
+        "5. Rigueur intellectuelle : si tu as un doute ou si une information manque, formule-le clairement plutôt que d'inventer.\n"
+        f"Date actuelle : {datetime.now().strftime('%d/%m/%Y')}."
     )
     if persona:
-        p += f"\n\nInstructions personnalisées de l'utilisateur (à respecter en plus) :\n{persona}"
+        p += f"\n\nDirectives spécifiques de ton utilisateur :\n{persona}"
     if interests:
-        p += f"\n\nCentres d'intérêt de l'utilisateur (adapte tes exemples et suggestions quand c'est pertinent) : {interests}"
+        p += f"\n\nCentres d'intérêt et univers de travail : {interests}"
     if facts:
-        p += "\n\nCe que tu sais de l'utilisateur (à utiliser seulement quand c'est pertinent) :\n"
+        p += "\n\nMémoire à long terme accumulée sur ton utilisateur (à utiliser avec pertinence) :\n"
         p += "\n".join(f"- {f}" for f in facts)
     return p
 
@@ -424,8 +434,14 @@ def get_model_candidates() -> list[str]:
     candidates = []
     if MODEL and MODEL != "auto":
         candidates.append(MODEL)
-    # Les modèles flash-lite sont ultra rapides, stables et sans engorgement 503
-    defaults = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.8-flash", "gemini-3.7-flash"]
+    # Modèles officiels Google Gemini stables et performants
+    defaults = [
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash-lite",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+    ]
     for m in defaults:
         if m not in candidates:
             candidates.append(m)
@@ -433,21 +449,31 @@ def get_model_candidates() -> list[str]:
 
 
 def _history_parts(m: dict) -> list[dict]:
-    """Construit les parts Gemini d'un message d'historique (texte + média éventuel)."""
+    """Construit les parts Gemini d'un message d'historique (texte + média éventuel ou document)."""
     parts: list[dict] = []
     if m.get("content"):
         parts.append({"text": m["content"]})
     mp = m.get("media_path")
-    if mp and m.get("media_kind") in ("image", "audio", "video"):
+    kind = m.get("media_kind")
+    if mp and kind in ("image", "audio", "video", "document"):
         try:
-            raw = (MEDIA_DIR / Path(mp).name).read_bytes()
-            if raw and len(raw) <= 20 * 1024 * 1024:
-                parts.append({
-                    "inline_data": {
-                        "mime_type": m.get("media_mime") or "application/octet-stream",
-                        "data": base64.b64encode(raw).decode("ascii"),
-                    }
-                })
+            file_path = MEDIA_DIR / Path(mp).name
+            if file_path.exists():
+                raw = file_path.read_bytes()
+                mime = m.get("media_mime") or "application/octet-stream"
+                if kind == "document" and not mime.startswith("application/pdf"):
+                    try:
+                        text_content = raw.decode("utf-8", errors="replace")
+                        parts.append({"text": f"\n\n[Contenu du document joint {Path(mp).name}] :\n{text_content[:30000]}"})
+                    except Exception:
+                        pass
+                elif raw and len(raw) <= 20 * 1024 * 1024:
+                    parts.append({
+                        "inline_data": {
+                            "mime_type": mime,
+                            "data": base64.b64encode(raw).decode("ascii"),
+                        }
+                    })
         except OSError:
             pass
     return parts or [{"text": "(message vide)"}]
@@ -537,7 +563,7 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
 
 
 # ---------- Génération d'images (Gemini image generation) ----------
-IMAGE_MODELS = ["gemini-2.5-flash-image", "gemini-3.1-flash-image-preview", "gemini-3-pro-image-preview"]
+IMAGE_MODELS = ["imagen-3.0-generate-002", "gemini-2.0-flash", "gemini-2.5-flash"]
 
 
 def generate_image(prompt: str, user: dict | None = None) -> str:
@@ -599,8 +625,9 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
 class ChatIn(BaseModel):
     message: str
     session_id: str = "default"
-    search: bool | None = None       # force la recherche web (None = auto)
+    search: bool | None = None          # force la recherche web (None = auto)
     generate_image: bool | None = None  # force la génération d'image (None = auto)
+    replace_last: bool = False          # pour régénérer proprement sans doublon
 
 
 FACT_RE = re.compile(r"^\s*(?:retiens|souviens[- ]toi|mémorise|memorise)\s+(?:que\s+)?(.+)$", re.I | re.S)
@@ -664,36 +691,41 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
     if not text:
         raise HTTPException(400, "Message vide.")
     now = time.time()
-    # Détection automatique : recherche web ou génération d'image
     do_search = body.search if body.search is not None else bool(SEARCH_KEYWORDS.search(text))
     do_image = body.generate_image if body.generate_image is not None else bool(GEN_IMAGE_RE.search(text))
 
     with db() as c:
-        # Assure l'existence de la session (isolée par utilisateur)
         s_row = c.execute("SELECT title, user_id FROM sessions WHERE id = ?", (sid,)).fetchone()
+        title_text = text[:40] + ("…" if len(text) > 40 else "")
         if not s_row:
             c.execute(
                 "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)",
-                (sid, text[:36] + ("..." if len(text) > 36 else ""), now, now, uid),
+                (sid, title_text, now, now, uid),
             )
         else:
-            # La session 'default' hérite du premier utilisateur connecté
             if s_row["user_id"] is None and uid is not None:
                 c.execute("UPDATE sessions SET user_id = ? WHERE id = ?", (uid, sid))
             if s_row["title"] in ("Nouvelle conversation", "Discussion principale"):
                 c.execute(
                     "UPDATE sessions SET title = ?, updated_at = ? WHERE id = ?",
-                    (text[:36] + ("..." if len(text) > 36 else ""), now, sid),
+                    (title_text, now, sid),
                 )
             else:
                 c.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (now, sid))
 
-        m = FACT_RE.match(text)
-        if m:
-            c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
-        c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('user',?,?,?,?)", (text, now, sid, uid))
+        if body.replace_last:
+            c.execute(
+                "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id IS ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
+                (sid, uid),
+            )
+        else:
+            m = FACT_RE.match(text)
+            if m:
+                c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
+            c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('user',?,?,?,?)", (text, now, sid, uid))
+
         rows = c.execute(
-            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 20",
+            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
             (sid, uid),
         ).fetchall()[::-1]
         facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
@@ -701,7 +733,6 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
     resp: dict = {"session_id": sid}
 
     if do_image:
-        # Demande explicite d'image -> génération via Gemini image model
         img_prompt = GEN_IMAGE_RE.sub("", text, count=1).strip() or text
         fname = generate_image(f"Image photoréaliste de haute qualité : {img_prompt}", user)
         reply = f"Voici l'image générée pour : **{img_prompt}**"
@@ -729,6 +760,180 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
     return resp
 
 
+@app.post("/api/chat/stream")
+async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
+    """Streaming SSE : envoie les tokens en temps réel au client."""
+    user = current_user(x_auth_token)
+    uid = user["id"] if user else None
+    text = body.message.strip()
+    sid = body.session_id or "default"
+    if not text:
+        raise HTTPException(400, "Message vide.")
+    now = time.time()
+    do_search = body.search if body.search is not None else bool(SEARCH_KEYWORDS.search(text))
+    do_image = body.generate_image if body.generate_image is not None else bool(GEN_IMAGE_RE.search(text))
+
+    with db() as c:
+        s_row = c.execute("SELECT title, user_id FROM sessions WHERE id = ?", (sid,)).fetchone()
+        title_text = text[:40] + ("…" if len(text) > 40 else "")
+        if not s_row:
+            c.execute(
+                "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)",
+                (sid, title_text, now, now, uid),
+            )
+        else:
+            if s_row["user_id"] is None and uid is not None:
+                c.execute("UPDATE sessions SET user_id = ? WHERE id = ?", (uid, sid))
+            if s_row["title"] in ("Nouvelle conversation", "Discussion principale"):
+                c.execute(
+                    "UPDATE sessions SET title = ?, updated_at = ? WHERE id = ?",
+                    (title_text, now, sid),
+                )
+            else:
+                c.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (now, sid))
+
+        if body.replace_last:
+            c.execute(
+                "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id IS ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
+                (sid, uid),
+            )
+        else:
+            m = FACT_RE.match(text)
+            if m:
+                c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
+            c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('user',?,?,?,?)", (text, now, sid, uid))
+
+        rows = c.execute(
+            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
+            (sid, uid),
+        ).fetchall()[::-1]
+        facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
+
+    async def event_generator():
+        if do_image:
+            img_prompt = GEN_IMAGE_RE.sub("", text, count=1).strip() or text
+            try:
+                fname = generate_image(f"Image photoréaliste de haute qualité : {img_prompt}", user)
+                reply = f"Voici l'image générée pour : **{img_prompt}**"
+                now2 = time.time()
+                with db() as c:
+                    c.execute(
+                        "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
+                        (reply, now2, sid, uid, "image", fname, "image/png"),
+                    )
+                yield f"data: {json.dumps({'chunk': reply, 'media_url': f'/api/media/{fname}', 'done': True, 'session_id': sid})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
+            return
+
+        keys = [k for k in get_all_keys() if _key_usable(k)] or get_all_keys()
+        if user and user.get("api_key"):
+            keys = [user["api_key"]] + [k for k in keys if k != user["api_key"]]
+        if not keys:
+            yield f"data: {json.dumps({'error': 'Aucune clé Gemini disponible.', 'done': True})}\n\n"
+            return
+
+        req_body = {
+            "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "")}]},
+            "contents": [
+                {"role": "user" if m["role"] == "user" else "model", "parts": _history_parts(m)}
+                for m in rows
+            ],
+        }
+        if do_search:
+            req_body["tools"] = [{"google_search": {}}]
+
+        candidates = list(get_model_candidates())
+        pref = (user or {}).get("model_pref") or ""
+        if pref and pref != "auto" and pref in candidates:
+            candidates.remove(pref)
+            candidates.insert(0, pref)
+        if _cache["model"] and _cache["model"] in candidates:
+            candidates.remove(_cache["model"])
+            candidates.insert(0, _cache["model"])
+
+        full_reply = ""
+        sources = []
+        used_model = candidates[0]
+        success = False
+
+        async with httpx.AsyncClient(timeout=90) as client:
+            for key in keys:
+                for model in candidates:
+                    try:
+                        url = f"{API_BASE}/models/{model}:streamGenerateContent?alt=sse"
+                        async with client.stream(
+                            "POST",
+                            url,
+                            headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                            json=req_body,
+                        ) as r:
+                            if r.status_code != 200:
+                                if r.status_code == 429:
+                                    _cooldown(key, 300)
+                                    break
+                                if r.status_code in (503, 404, 500):
+                                    continue
+                                break
+                            used_model = model
+                            _cache["model"] = model
+                            async for line in r.aiter_lines():
+                                line = line.strip()
+                                if not line or not line.startswith("data:"):
+                                    continue
+                                raw_json = line[5:].strip()
+                                if raw_json == "[DONE]":
+                                    break
+                                try:
+                                    chunk_data = json.loads(raw_json)
+                                    cand = (chunk_data.get("candidates") or [{}])[0]
+                                    parts = cand.get("content", {}).get("parts", [])
+                                    text_piece = "".join(p.get("text", "") for p in parts if "text" in p)
+                                    if not sources:
+                                        meta = cand.get("groundingMetadata", {})
+                                        for ch in meta.get("groundingChunks", []):
+                                            web = ch.get("web") or {}
+                                            u = web.get("uri") or web.get("url") or ""
+                                            if u and not any(s["url"] == u for s in sources):
+                                                sources.append({"title": (web.get("title") or u)[:120], "url": u})
+                                    if text_piece:
+                                        full_reply += text_piece
+                                        yield f"data: {json.dumps({'chunk': text_piece, 'done': False})}\n\n"
+                                except Exception:
+                                    continue
+                            success = True
+                            break
+                    except Exception:
+                        continue
+                if success:
+                    break
+
+        if not success or not full_reply:
+            try:
+                res = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search)
+                full_reply = res["reply"]
+                sources = res.get("sources", [])
+                used_model = res.get("model", used_model)
+                yield f"data: {json.dumps({'chunk': full_reply, 'done': False})}\n\n"
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
+                return
+
+        images = []
+        if do_search and full_reply:
+            images = fetch_images(text)
+
+        with db() as c:
+            c.execute(
+                "INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)",
+                (full_reply, time.time(), sid, uid),
+            )
+
+        yield f"data: {json.dumps({'done': True, 'reply': full_reply, 'sources': sources, 'images': images, 'model': used_model, 'session_id': sid})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
 def _kind_of(filename: str, mime: str) -> str | None:
     ext = Path(filename or "").suffix.lower()
     if mime.startswith("image/") or ext in IMAGE_EXTS:
@@ -737,6 +942,8 @@ def _kind_of(filename: str, mime: str) -> str | None:
         return "video"
     if mime.startswith("audio/") or ext in AUDIO_EXTS:
         return "audio"
+    if mime == "application/pdf" or ext in DOC_EXTS or mime.startswith("text/"):
+        return "document"
     return None
 
 
@@ -747,7 +954,7 @@ async def chat_media(
     file: UploadFile = File(...),
     x_auth_token: str | None = Header(None),
 ):
-    """Envoie un message avec image / vocal / vidéo. Le fichier est stocké et analysé par Gemini."""
+    """Envoie un message avec image / vocal / vidéo / document. Le fichier est stocké et analysé par Gemini."""
     user = current_user(x_auth_token)
     uid = user["id"] if user else None
     text = (message or "").strip()
@@ -755,20 +962,25 @@ async def chat_media(
     mime = (file.content_type or "").split(";")[0].strip().lower() or "application/octet-stream"
     kind = _kind_of(file.filename or "", mime)
     if not kind:
-        raise HTTPException(400, "Type de fichier non pris en charge (image, audio ou vidéo).")
+        raise HTTPException(400, "Type de fichier non pris en charge (image, audio, vidéo ou document).")
     raw = await file.read()
     if not raw:
         raise HTTPException(400, "Fichier vide.")
     if len(raw) > MEDIA_LIMITS[kind]:
         raise HTTPException(400, f"Fichier trop lourd (max {MEDIA_LIMITS[kind] // (1024 * 1024)} Mo).")
-    ext = Path(file.filename or "").suffix.lower() or {"image": ".jpg", "audio": ".webm", "video": ".mp4"}[kind]
+    ext = Path(file.filename or "").suffix.lower() or {"image": ".jpg", "audio": ".webm", "video": ".mp4", "document": ".bin"}[kind]
     fname = f"{uuid.uuid4().hex}{ext}"
     try:
         (MEDIA_DIR / fname).write_bytes(raw)
     except OSError:
         raise HTTPException(500, "Impossible d'enregistrer le fichier.")
 
-    labels = {"image": "Image envoyée", "audio": "Message vocal", "video": "Vidéo envoyée"}
+    labels = {
+        "image": "Image envoyée",
+        "audio": "Message vocal",
+        "video": "Vidéo envoyée",
+        "document": f"Document joint ({file.filename})",
+    }
     content = text or f"[{labels[kind]}]"
     now = time.time()
     with db() as c:
@@ -787,7 +999,7 @@ async def chat_media(
             (content, now, sid, uid, kind, fname, mime),
         )
         rows = c.execute(
-            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 20",
+            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
             (sid, uid),
         ).fetchall()[::-1]
         facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]

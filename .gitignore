@@ -12,14 +12,7 @@ __pycache__/
 *.pyo
 
 # Scripts temporaires créés pendant les réglages
-_apply_amber.ps1
-_dbg.py
-_migrate_colors.py
-_patch.py
-_patch2.py
-_patch3.py
-_patch5.py
-_patch6.py
-_patch_all.py
-_t2.py
+scripts/archive/
+_*.py
+_*.ps1
 quick_sql.py
