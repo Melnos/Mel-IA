@@ -186,11 +186,21 @@ def _load_fernet():
         from cryptography.fernet import Fernet
     except ImportError:
         return None
+    env_k = os.getenv("SECRET_KEY", "").strip()
+    if env_k:
+        try:
+            stable_key = base64.urlsafe_b64encode(hashlib.sha256(env_k.encode()).digest())
+            return Fernet(stable_key)
+        except Exception:
+            pass
     if _ENC_FILE.exists():
         raw = _ENC_FILE.read_bytes()
     else:
         raw = Fernet.generate_key()
-        _ENC_FILE.write_bytes(raw)
+        try:
+            _ENC_FILE.write_bytes(raw)
+        except Exception:
+            pass
     try:
         return Fernet(raw)
     except Exception:
