@@ -53,29 +53,34 @@ _key_state: dict[str, dict] = {}  # key -> {"cool_until": ts}
 
 
 def get_user_keys(user: dict | None) -> list[str]:
-    """Retourne uniquement les clés API de l'utilisateur connecté.
-    Aucune clé par défaut / partagée : chaque utilisateur utilise sa propre clé API
-    renseignée lors de la connexion / inscription ou dans les paramètres."""
-    if not user:
-        return []
+    """Retourne les clés API applicables.
+    Priorité :
+    1. Clés de l'utilisateur connecté (clé de compte ou clés secondaires)
+    2. Fallback sur GEMINI_API_KEY du fichier .env (pour le mode invité ou en local)
+    """
     keys: list[str] = []
-    user_key = (user.get("api_key") or "").strip()
-    if user_key and user_key not in keys:
-        keys.append(user_key)
-    uid = user.get("id")
-    if uid:
-        try:
-            with db() as c:
-                rows = c.execute(
-                    "SELECT api_key FROM api_keys WHERE user_id = ? ORDER BY id",
-                    (uid,),
-                ).fetchall()
-                for r in rows:
-                    k = (r["api_key"] or "").strip()
-                    if k and k not in keys:
-                        keys.append(k)
-        except Exception:
-            pass
+    if user:
+        user_key = (user.get("api_key") or "").strip()
+        if user_key and user_key not in keys:
+            keys.append(user_key)
+        uid = user.get("id")
+        if uid:
+            try:
+                with db() as c:
+                    rows = c.execute(
+                        "SELECT api_key FROM api_keys WHERE user_id = ? ORDER BY id",
+                        (uid,),
+                    ).fetchall()
+                    for r in rows:
+                        k = (r["api_key"] or "").strip()
+                        if k and k not in keys:
+                            keys.append(k)
+            except Exception:
+                pass
+    # Clé d'environnement .env (fallback serveur utile pour le mode invité ou dev local)
+    env_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if env_key and env_key not in keys:
+        keys.append(env_key)
     return keys
 
 
@@ -458,11 +463,9 @@ def get_model_candidates() -> list[str]:
     # Modèles actifs vérifiés dans l'API Gemini
     defaults = [
         "gemini-flash-lite-latest",
-        "gemini-3-flash-preview",
+        "gemini-3.8-flash",
         "gemma-4-31b-it",
         "gemini-flash-latest",
-        "gemini-3.8-flash",
-        "gemini-3.5-flash",
         "gemini-pro-latest",
     ]
     for m in defaults:
@@ -473,6 +476,11 @@ def get_model_candidates() -> list[str]:
 
 def _history_parts(m: dict) -> list[dict]:
     """Construit les parts Gemini d'un message d'historique (texte + média éventuel ou document)."""
+    if not isinstance(m, dict):
+        try:
+            m = dict(m)
+        except Exception:
+            pass
     parts: list[dict] = []
     if m.get("content"):
         parts.append({"text": m["content"]})
@@ -624,17 +632,16 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
                 last_err = "Aucune image dans la réponse"
                 continue
             if r.status_code in (503, 404, 500):
-                _cooldown(key, 60)
-                break
+                continue
             if r.status_code == 429:
                 last_err = "Limite de quota temporaire"
-                _cooldown(key, 300)
-                break
+                continue
             if r.status_code in (400, 403):
                 _cooldown(key, 3600)
                 break
             last_err = f"Erreur {r.status_code}"
-    raise HTTPException(502, f"Impossible de générer l'image ({last_err}).")
+            continue
+    raise HTTPException(502, f"Impossible de générer l'image ({last_err or 'tous les modèles ont échoué'}).")
 
 
 # ---------- API ----------
@@ -826,10 +833,13 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                 c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
             c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('user',?,?,?,?)", (text, now, sid, uid))
 
-        rows = c.execute(
-            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
-            (sid, uid),
-        ).fetchall()[::-1]
+        rows = [
+            dict(r)
+            for r in c.execute(
+                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
+                (sid, uid),
+            ).fetchall()[::-1]
+        ]
         facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
 
     async def event_generator():
