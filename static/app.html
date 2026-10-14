@@ -311,6 +311,7 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
     <form class="gate-form" id="glf">
       <input id="li-name" type="text" autocomplete="username" placeholder="Identifiant" aria-label="Identifiant" required>
       <input id="li-pass" type="password" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe" required>
+      <input id="li-key" type="password" autocomplete="off" placeholder="Clé API Gemini (laisser vide si déjà enregistrée)" aria-label="Clé API Gemini">
       <div class="form-err" id="li-err"></div>
       <button class="dialog-btn" type="submit">Se connecter</button>
     </form>
@@ -325,8 +326,8 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
 
     <!-- Inscription étape 2 -->
     <form class="gate-form" id="gsf2" hidden>
-      <span class="label-mini">Clé API Gemini (gratuite & sécurisée)</span>
-      <input id="su-key" type="password" autocomplete="off" placeholder="AIza…" aria-label="Clé API Gemini" required>
+      <span class="label-mini">Clé API Gemini (gratuite sur aistudio.google.com)</span>
+      <input id="su-key" type="password" autocomplete="off" placeholder="AIzaSy…" aria-label="Clé API Gemini" required>
       <span class="label-mini">Centres d'intérêt (optionnel)</span>
       <div class="gate-chips" id="int-chips">
         <button type="button" class="gchip">Technologie</button>
@@ -343,8 +344,6 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
       <button class="dialog-btn" type="submit">Créer mon compte</button>
       <button class="dialog-btn secondary" type="button" id="su-back">← Retour</button>
     </form>
-
-    <p class="gate-guest"><a id="guest-link">Continuer en invité →</a></p>
   </div>
 </div>
 
@@ -1287,7 +1286,12 @@ function afterAuth(j) {
 $('glf').addEventListener('submit', function(e) {
   e.preventDefault();
   $('li-err').textContent = '';
-  api('/api/auth/login', {method: 'POST', body: JSON.stringify({username: $('li-name').value, password: $('li-pass').value})})
+  var body = {
+    username: $('li-name').value.trim(),
+    password: $('li-pass').value,
+    api_key: ($('li-key') ? $('li-key').value.trim() : '')
+  };
+  api('/api/auth/login', {method: 'POST', body: JSON.stringify(body)})
     .then(afterAuth)
     .catch(function(err) { $('li-err').textContent = err.message; });
 });
@@ -1325,11 +1329,12 @@ document.querySelectorAll('#int-chips .gchip').forEach(function(c) {
   c.addEventListener('click', function() { c.classList.toggle('on'); });
 });
 
-$('guest-link').addEventListener('click', function() {
-  localStorage.setItem('mel_guest', '1');
-  closeGate();
-  showUserChip('');
-});
+if ($('guest-link')) {
+  $('guest-link').addEventListener('click', function() {
+    closeGate();
+    showUserChip('');
+  });
+}
 
 $('account').addEventListener('click', function() { closeSidebar(); openGate('login'); });
 
@@ -1357,7 +1362,7 @@ function loadKeys() {
         '<button type="button" class="kdel">Supprimer</button></div>';
     });
     $('key-list').innerHTML = html || '<p style="color:var(--muted);font-size:13px;padding:8px 0">Aucune clé ajoutée.</p>';
-    $('keys-note').textContent = (j.env_keys || 0) + ' clé(s) dans .env · ' + (j.keys || []).length + ' clé(s) enregistrée(s)';
+    $('keys-note').textContent = (j.keys || []).length + ' clé(s) enregistrée(s) pour votre compte';
     document.querySelectorAll('.kdel').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var id = btn.closest('.key-row').dataset.id;
@@ -1405,10 +1410,9 @@ if (token) {
     if (j.logged_in) showUserChip(j.username);
     else { token = ''; localStorage.removeItem('mel_token'); showUserChip(''); openGate('login'); }
   }).catch(function() { openGate('login'); });
-} else if (localStorage.getItem('mel_guest') !== '1') {
-  openGate('login');
 } else {
   showUserChip('');
+  openGate('login');
 }
 </script>
 </body>

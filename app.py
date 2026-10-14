@@ -33,7 +33,6 @@ AUDIO_EXTS = {".mp3", ".wav", ".ogg", ".oga", ".m4a", ".webm", ".mp4"}
 VIDEO_EXTS = {".mp4", ".webm", ".mov", ".mkv"}
 DOC_EXTS = {".pdf", ".txt", ".md", ".csv", ".json", ".py", ".js", ".ts", ".html", ".css", ".xml", ".sql", ".yaml", ".yml"}
 
-API_KEY = os.getenv("GEMINI_API_KEY", "")
 MODEL = os.getenv("GEMINI_MODEL", "auto")
 API_BASE = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta")
 NAME = os.getenv("ASSISTANT_NAME", "MEL-IA")
@@ -49,25 +48,34 @@ def db():
     return c
 
 
-# ---------- Clés API (multi-clés avec rotation auto) ----------
-# Clés lues depuis : 1) table SQLite `api_keys` (menu Paramètres), 2) .env GEMINI_API_KEY (+ GEMINI_API_KEYS séparées par virgule)
+# ---------- Clés API (spécifiques à chaque utilisateur) ----------
 _key_state: dict[str, dict] = {}  # key -> {"cool_until": ts}
 
 
-def get_all_keys() -> list[str]:
+def get_user_keys(user: dict | None) -> list[str]:
+    """Retourne uniquement les clés API de l'utilisateur connecté.
+    Aucune clé par défaut / partagée : chaque utilisateur utilise sa propre clé API
+    renseignée lors de la connexion / inscription ou dans les paramètres."""
+    if not user:
+        return []
     keys: list[str] = []
-    try:
-        with db() as c:
-            cols = [r["name"] for r in c.execute("PRAGMA table_info(api_keys)").fetchall()]
-            if "api_key" in cols:
-                keys += [r["api_key"] for r in c.execute("SELECT api_key FROM api_keys ORDER BY id").fetchall()]
-    except Exception:
-        pass
-    for raw in (os.getenv("GEMINI_API_KEYS", ""), API_KEY):
-        for k in (raw or "").split(","):
-            k = k.strip()
-            if k and not k.startswith("colle_") and k not in keys:
-                keys.append(k)
+    user_key = (user.get("api_key") or "").strip()
+    if user_key and user_key not in keys:
+        keys.append(user_key)
+    uid = user.get("id")
+    if uid:
+        try:
+            with db() as c:
+                rows = c.execute(
+                    "SELECT api_key FROM api_keys WHERE user_id = ? ORDER BY id",
+                    (uid,),
+                ).fetchall()
+                for r in rows:
+                    k = (r["api_key"] or "").strip()
+                    if k and k not in keys:
+                        keys.append(k)
+        except Exception:
+            pass
     return keys
 
 
@@ -280,9 +288,18 @@ def login(body: Credentials):
     if not secrets.compare_digest(_hash_pw(body.password, row["salt"]), row["pass_hash"]):
         raise HTTPException(401, "Mot de passe incorrect.")
     token = secrets.token_hex(24)
+    key_input = (body.api_key or "").strip()
+    saved_key = _dec_key(row["api_key"] or "")
+
     with db() as c:
+        if key_input:
+            saved_key = key_input
+            c.execute("UPDATE users SET api_key = ? WHERE id = ?", (_enc_key(key_input), row["id"]))
+        elif not saved_key:
+            raise HTTPException(400, "Aucune clé API Gemini enregistrée. Veuillez saisir votre clé API Gemini pour vous connecter.")
         c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, row["id"], time.time()))
-    return {"token": token, "username": username, "api_key": _mask_key(_dec_key(row["api_key"] or ""))}
+
+    return {"token": token, "username": username, "api_key": _mask_key(saved_key)}
 
 
 @app.post("/api/auth/logout")
@@ -481,13 +498,14 @@ def _history_parts(m: dict) -> list[dict]:
 
 def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = None,
                search: bool = False) -> dict:
-    """Interroge Gemini. Retourne {reply, sources, images, model}."""
-    keys = [k for k in get_all_keys() if _key_usable(k)] or get_all_keys()
-    # Clé personnelle de l'utilisateur connecté en priorité
-    if user and user.get("api_key"):
-        keys = [user["api_key"]] + [k for k in keys if k != user["api_key"]]
+    """Interroge Gemini avec la clé personnelle de l'utilisateur connecté."""
+    user_keys = get_user_keys(user)
+    keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
-        raise HTTPException(503, "Aucune clé Gemini : ajoute une clé dans Paramètres ou renseigne GEMINI_API_KEY dans le fichier .env.")
+        raise HTTPException(
+            401,
+            "Aucune clé API Gemini : veuillez vous connecter avec votre compte ou renseigner votre clé API sur la page de connexion.",
+        )
     body = {
         "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "")}]},
         "contents": [
@@ -567,12 +585,14 @@ IMAGE_MODELS = ["imagen-3.0-generate-002", "gemini-2.0-flash", "gemini-2.5-flash
 
 
 def generate_image(prompt: str, user: dict | None = None) -> str:
-    """Génère une image avec Gemini et la sauvegarde dans data/media. Retourne le nom de fichier."""
-    keys = [k for k in get_all_keys() if _key_usable(k)] or get_all_keys()
-    if user and user.get("api_key"):
-        keys = [user["api_key"]] + [k for k in keys if k != user["api_key"]]
+    """Génère une image avec Gemini en utilisant la clé de l'utilisateur."""
+    user_keys = get_user_keys(user)
+    keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
-        raise HTTPException(503, "Aucune clé Gemini disponible pour générer une image.")
+        raise HTTPException(
+            401,
+            "Aucune clé API Gemini disponible : connectez-vous avec votre compte ou ajoutez une clé.",
+        )
     body = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
@@ -826,11 +846,10 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                 yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
             return
 
-        keys = [k for k in get_all_keys() if _key_usable(k)] or get_all_keys()
-        if user and user.get("api_key"):
-            keys = [user["api_key"]] + [k for k in keys if k != user["api_key"]]
+        user_keys = get_user_keys(user)
+        keys = [k for k in user_keys if _key_usable(k)] or user_keys
         if not keys:
-            yield f"data: {json.dumps({'error': 'Aucune clé Gemini disponible.', 'done': True})}\n\n"
+            yield f"data: {json.dumps({'error': 'Aucune clé API Gemini : veuillez vous connecter avec votre compte ou renseigner votre clé API sur la page de connexion.', 'done': True})}\n\n"
             return
 
         req_body = {
@@ -1038,28 +1057,40 @@ class KeyIn(BaseModel):
 @app.get("/api/keys")
 def list_keys(x_auth_token: str | None = Header(None)):
     user = current_user(x_auth_token)
-    uid = user["id"] if user else None
+    if not user:
+        return {"keys": []}
+    uid = user["id"]
+    out = []
+    # Clé principale du compte (fournie à la connexion / inscription)
+    if user.get("api_key"):
+        mk = user["api_key"]
+        out.append({
+            "id": 0,
+            "label": "Clé du compte (connexion)",
+            "masked": (mk[:6] + "…" + mk[-4:]) if len(mk) > 12 else "••••",
+            "active": _key_usable(mk),
+        })
     with db() as c:
         rows = c.execute(
-            "SELECT id, label, api_key, created_at FROM api_keys WHERE user_id IS NULL OR user_id IS ? ORDER BY id",
+            "SELECT id, label, api_key, created_at FROM api_keys WHERE user_id = ? ORDER BY id",
             (uid,),
         ).fetchall()
-    out = []
     for r in rows:
         k = r["api_key"]
         out.append({
             "id": r["id"],
-            "label": r["label"] or "",
+            "label": r["label"] or "Clé secondaire",
             "masked": (k[:6] + "…" + k[-4:]) if len(k) > 12 else "••••",
             "active": _key_usable(k),
         })
-    env_count = len([k for k in ((os.getenv("GEMINI_API_KEYS", "") or "") + "," + (API_KEY or "")).split(",") if k.strip()])
-    return {"keys": out, "env_keys": env_count}
+    return {"keys": out}
 
 
 @app.post("/api/keys")
 def add_key(body: KeyIn, x_auth_token: str | None = Header(None)):
     user = current_user(x_auth_token)
+    if not user:
+        raise HTTPException(401, "Veuillez vous connecter pour enregistrer une clé.")
     key = (body.api_key or "").strip()
     if len(key) < 10:
         raise HTTPException(400, "Clé invalide.")
@@ -1067,19 +1098,25 @@ def add_key(body: KeyIn, x_auth_token: str | None = Header(None)):
         try:
             c.execute(
                 "INSERT INTO api_keys(label, api_key, created_at, user_id) VALUES(?,?,?,?)",
-                ((body.label or "").strip()[:60], key, time.time(), user["id"] if user else None),
+                ((body.label or "").strip()[:60], key, time.time(), user["id"]),
             )
         except sqlite3.IntegrityError:
-            raise HTTPException(400, "Cette clé existe déjà.")
+            raise HTTPException(400, "Cette clé existe déjà pour votre compte.")
     return {"ok": True}
 
 
 @app.delete("/api/keys/{kid}")
 def del_key(kid: int, x_auth_token: str | None = Header(None)):
     user = current_user(x_auth_token)
-    uid = user["id"] if user else None
+    if not user:
+        raise HTTPException(401, "Veuillez vous connecter pour gérer vos clés.")
+    if kid == 0:
+        with db() as c:
+            c.execute("UPDATE users SET api_key = '' WHERE id = ?", (user["id"],))
+        return {"ok": True}
+    uid = user["id"]
     with db() as c:
-        c.execute("DELETE FROM api_keys WHERE id=? AND (user_id IS NULL OR user_id IS ?)", (kid, uid))
+        c.execute("DELETE FROM api_keys WHERE id=? AND user_id = ?", (kid, uid))
     return {"ok": True}
 
 
