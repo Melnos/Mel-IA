@@ -2,6 +2,7 @@ services:
   - type: web
     name: mel-ia
     runtime: python
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -11,7 +12,3 @@ services:
         value: auto
       - key: ASSISTANT_NAME
         value: MEL-IA
-    disk:
-      name: mel-data
-      mountPath: /opt/render/project/src/data
-      sizeGB: 1
