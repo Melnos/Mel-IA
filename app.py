@@ -288,15 +288,9 @@ def login(body: Credentials):
     if not secrets.compare_digest(_hash_pw(body.password, row["salt"]), row["pass_hash"]):
         raise HTTPException(401, "Mot de passe incorrect.")
     token = secrets.token_hex(24)
-    key_input = (body.api_key or "").strip()
     saved_key = _dec_key(row["api_key"] or "")
 
     with db() as c:
-        if key_input:
-            saved_key = key_input
-            c.execute("UPDATE users SET api_key = ? WHERE id = ?", (_enc_key(key_input), row["id"]))
-        elif not saved_key:
-            raise HTTPException(400, "Aucune clé API Gemini enregistrée. Veuillez saisir votre clé API Gemini pour vous connecter.")
         c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, row["id"], time.time()))
 
     return {"token": token, "username": username, "api_key": _mask_key(saved_key)}

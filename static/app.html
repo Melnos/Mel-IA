@@ -311,7 +311,6 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
     <form class="gate-form" id="glf">
       <input id="li-name" type="text" autocomplete="username" placeholder="Identifiant" aria-label="Identifiant" required>
       <input id="li-pass" type="password" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe" required>
-      <input id="li-key" type="password" autocomplete="off" placeholder="Clé API Gemini (laisser vide si déjà enregistrée)" aria-label="Clé API Gemini">
       <div class="form-err" id="li-err"></div>
       <button class="dialog-btn" type="submit">Se connecter</button>
     </form>
@@ -1288,8 +1287,7 @@ $('glf').addEventListener('submit', function(e) {
   $('li-err').textContent = '';
   var body = {
     username: $('li-name').value.trim(),
-    password: $('li-pass').value,
-    api_key: ($('li-key') ? $('li-key').value.trim() : '')
+    password: $('li-pass').value
   };
   api('/api/auth/login', {method: 'POST', body: JSON.stringify(body)})
     .then(afterAuth)
