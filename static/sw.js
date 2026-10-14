@@ -1,4 +1,4 @@
-const CACHE = "mel-ia-v3";
+const CACHE = "mel-ia-v4";
 const STATIC_ASSETS = ["/", "/app", "/static/atom.js", "/manifest.json"];
 
 self.addEventListener("install", (e) => {
