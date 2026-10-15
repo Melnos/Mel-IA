@@ -367,27 +367,103 @@ def update_profile(body: ProfileIn, x_auth_token: str | None = Header(None)):
     return {"ok": True}
 
 
-# ---------- Cerveau ----------
-def system_prompt(facts: list[str], persona: str = "", interests: str = "") -> str:
+# ---------- Cerveau & Mémoire croisée ----------
+def get_cross_session_context(uid: int | None, current_sid: str, text: str, max_items: int = 8) -> list[str]:
+    """Recherche les échanges et souvenirs pertinents dans les AUTRES discussions de cet utilisateur.
+    Permet une continuité totale et une synchronisation de la mémoire à travers tous les chats."""
+    if not uid:
+        return []
+    memories: list[str] = []
+    seen_texts = set()
+
+    # Mots-clés significatifs (> 3 lettres, filtrage des mots d'arrêt courants)
+    STOP_WORDS = {
+        "dans", "pour", "avec", "sans", "sous", "vers", "chez", "mais", "donc", "alors",
+        "cette", "cet", "ces", "mon", "ton", "son", "notre", "votre", "leur", "mes", "tes",
+        "ses", "nos", "vos", "leurs", "qui", "que", "quoi", "dont", "comment", "pourquoi",
+        "quand", "est", "sont", "ete", "etre", "avoir", "faire", "plus", "tout", "tous",
+        "peux", "veut", "veux", "salut", "bonjour", "merci", "aide", "dis", "moi", "nous",
+        "vous", "ils", "elles", "aussi", "bien", "comme", "meme", "encore"
+    }
+    raw_words = re.findall(r"[a-zA-Z0-9_\-\u00C0-\u017F]{4,}", text.lower())
+    keywords = [w for w in raw_words if w not in STOP_WORDS][:6]
+
+    try:
+        with db() as c:
+            # 1. Recherche par mots-clés dans les autres discussions
+            if keywords:
+                for kw in keywords:
+                    rows = c.execute(
+                        """
+                        SELECT m.role, m.content, s.title, m.session_id, m.ts
+                        FROM messages m
+                        LEFT JOIN sessions s ON s.id = m.session_id
+                        WHERE m.user_id = ? AND m.session_id != ? AND m.content LIKE ?
+                        ORDER BY m.id DESC LIMIT 4
+                        """,
+                        (uid, current_sid, f"%{kw}%"),
+                    ).fetchall()
+                    for r in rows:
+                        txt = (r["content"] or "").strip()
+                        if txt and txt not in seen_texts:
+                            seen_texts.add(txt)
+                            stitle = r["title"] or "Discussion passée"
+                            role_label = "L'utilisateur a dit" if r["role"] == "user" else "Tu as répondu"
+                            snippet = txt[:250] + ("…" if len(txt) > 250 else "")
+                            memories.append(f"[{stitle}] {role_label} : « {snippet} »")
+                            if len(memories) >= max_items:
+                                break
+                    if len(memories) >= max_items:
+                        break
+
+            # 2. Aperçu des derniers sujets abordés dans les autres discussions actives
+            recent_sessions = c.execute(
+                """
+                SELECT s.id, s.title, s.updated_at,
+                       (SELECT content FROM messages WHERE session_id = s.id AND role = 'user' ORDER BY id DESC LIMIT 1) as last_user_msg
+                FROM sessions s
+                WHERE s.user_id = ? AND s.id != ?
+                ORDER BY s.updated_at DESC LIMIT 3
+                """,
+                (uid, current_sid),
+            ).fetchall()
+            for s in recent_sessions:
+                last_msg = (s["last_user_msg"] or "").strip()
+                if last_msg and last_msg not in seen_texts:
+                    stitle = s["title"] or "Autre discussion"
+                    memories.append(f"Sujet récent abordé dans '{stitle}' : « {last_msg[:150]} »")
+    except Exception:
+        pass
+
+    return memories[:max_items]
+
+
+def system_prompt(facts: list[str], persona: str = "", interests: str = "", memories: list[str] | None = None) -> str:
     who = f" de {OWNER}" if OWNER else ""
     p = (
-        f"Tu es {NAME}, le bras droit virtuel et l'acolyte de confiance personnel{who}.\n"
-        "Ta mission : agir comme un partenaire intellectuel et opérationnel de haut niveau, loyal, rigoureux et protecteur de la confidentialité de ton utilisateur.\n\n"
-        "Tes principes directeurs :\n"
-        "1. Confidentialité & confiance absolue : toutes les données, idées et secrets de projets sont traités avec la plus grande discrétion.\n"
-        "2. Franchise bienveillante & vision stratégique : tu ne dis pas simplement oui par complaisance ; si tu déceles un risque, un piège ou une incohérence dans une idée, alerte poliment et propose aussitôt des pistes concrètes.\n"
-        "3. Orientation résultat & efficacité : va droit au but, structure tes réponses avec clarté (étapes, tableaux, code propre et testé), sans bavardage superflu.\n"
-        "4. Polyvalence d'expert : tu excelles dans le développement informatique, la stratégie, la synthèse de documents (PDF, CSV, texte), l'analyse d'images et l'organisation personnelle.\n"
-        "5. Rigueur intellectuelle : si tu as un doute ou si une information manque, formule-le clairement plutôt que d'inventer.\n"
+        f"Tu es {NAME}, le mentor technique personnel et le bras droit virtuel{who} pour ses études et projets en informatique.\n\n"
+        "### RÔLE & RÈGLES DE CONDUITE (MENTOR TECHNIQUE PERSONNEL) :\n"
+        "1. Profil & Posture : Tu es son mentor dédié en informatique (L1, L2, L3, Master, et sur les technos : Java, Python, C/C++, Web, Réseau, BDD/SQL, Algorithmique, Architecture logicielle).\n"
+        "2. Règles de communication : Sois direct, rigoureux, sans bavardage inutile ni flatterie superficielle. Utilise des emojis de manière sobre et pertinente pour structurer la réponse, jamais pour décorer inutilement.\n"
+        "3. Analyse de code : Quand ton utilisateur te donne du code, analyse-le en profondeur, trouve les failles, explique le pourquoi et propose du code propre, robuste, moderne et testé.\n"
+        "4. Questions de cours : Donne des définitions nettes et précises, immédiatement suivies d'exemples concrets.\n"
+        "5. Zéro complaisance : Ne dis jamais oui par complaisance. Si son approche d'un problème est mauvaise ou sous-optimale, alerte-le fermement et propose une meilleure architecture ou logique.\n"
+        "6. Priorités : L'accompagner au quotidien sur ses projets, ses partiels et examens à préparer, et les sujets sur lesquels il veut progresser en priorité.\n\n"
+        "### MÉMOIRE CONTINUE & SYNCHRONISATION MULTI-CHATS :\n"
+        "Tu possèdes une mémoire universelle et continue de tout ce que ton utilisateur t'a déjà dit à travers TOUTES ses discussions (passées, présentes, récentes ou anciennes).\n"
+        "Même si un sujet, un code, une idée ou un détail de cours a été abordé dans un autre chat il y a des jours, des mois ou des années, tu t'en souviens et tu fais naturellement le lien, comme dans une vraie relation de mentorat continu.\n"
         f"Date actuelle : {datetime.now().strftime('%d/%m/%Y')}."
     )
     if persona:
-        p += f"\n\nDirectives spécifiques de ton utilisateur :\n{persona}"
+        p += f"\n\nDirectives spécifiques et attentes complémentaires de ton utilisateur :\n{persona}"
     if interests:
-        p += f"\n\nCentres d'intérêt et univers de travail : {interests}"
+        p += f"\n\nParcours, modules et technos du moment : {interests}"
     if facts:
-        p += "\n\nMémoire à long terme accumulée sur ton utilisateur (à utiliser avec pertinence) :\n"
+        p += "\n\nFaits mémorisés sur ton utilisateur :\n"
         p += "\n".join(f"- {f}" for f in facts)
+    if memories:
+        p += "\n\nSouvenirs et contexte issus des autres discussions de cet utilisateur (mémoire croisée synchronisée) :\n"
+        p += "\n".join(f"- {m}" for m in memories)
     return p
 
 
@@ -511,7 +587,7 @@ def _history_parts(m: dict) -> list[dict]:
 
 
 def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = None,
-               search: bool = False) -> dict:
+               search: bool = False, memories: list[str] | None = None) -> dict:
     """Interroge Gemini avec la clé personnelle de l'utilisateur connecté."""
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
@@ -521,7 +597,7 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
             "Aucune clé API Gemini : veuillez vous connecter avec votre compte ou renseigner votre clé API sur la page de connexion.",
         )
     body = {
-        "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "")}]},
+        "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories)}]},
         "contents": [
             {"role": "user" if m["role"] == "user" else "model", "parts": _history_parts(m)}
             for m in history
@@ -768,7 +844,8 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
         resp.update({"reply": reply, "media_url": f"/api/media/{fname}", "generated": True})
         return resp
 
-    result = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search)
+    memories = get_cross_session_context(uid, sid, text)
+    result = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search, memories=memories)
     reply = result["reply"]
 
     with db() as c:
@@ -865,8 +942,9 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
             yield f"data: {json.dumps({'error': 'Aucune clé API Gemini : veuillez vous connecter avec votre compte ou renseigner votre clé API sur la page de connexion.', 'done': True})}\n\n"
             return
 
+        memories = get_cross_session_context(uid, sid, text)
         req_body = {
-            "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "")}]},
+            "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories)}]},
             "contents": [
                 {"role": "user" if m["role"] == "user" else "model", "parts": _history_parts(m)}
                 for m in rows
@@ -940,7 +1018,7 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
 
         if not success or not full_reply:
             try:
-                res = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search)
+                res = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search, memories=memories)
                 full_reply = res["reply"]
                 sources = res.get("sources", [])
                 used_model = res.get("model", used_model)
@@ -1041,7 +1119,8 @@ async def chat_media(
         ).fetchall()[::-1]
         facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
 
-    result = ask_gemini([dict(r) for r in rows], facts, user=user, search=bool(SEARCH_KEYWORDS.search(text)))
+    memories = get_cross_session_context(uid, sid, text)
+    result = ask_gemini([dict(r) for r in rows], facts, user=user, search=bool(SEARCH_KEYWORDS.search(text)), memories=memories)
     reply = result["reply"]
 
     with db() as c:
