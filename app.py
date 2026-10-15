@@ -1,7 +1,7 @@
 """MEL-IA : backend FastAPI. Chat multi-sessions + mémoire (SQLite) + cerveau Gemini (texte, image, audio, vidéo)."""
 import base64
 import hashlib
-import os, re, secrets, sqlite3, time
+import os, re, secrets, time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +13,8 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+from database import db, init_db, DBIntegrityError, IS_POSTGRES
 
 load_dotenv()
 BASE = Path(__file__).parent
@@ -41,11 +43,8 @@ OWNER = os.getenv("OWNER_NAME", "")
 app = FastAPI(title=NAME)
 
 
-# ---------- Base de données (mémoire locale du serveur) ----------
-def db():
-    c = sqlite3.connect(DB_PATH)
-    c.row_factory = sqlite3.Row
-    return c
+# ---------- Base de données (PostgreSQL Neon / SQLite local) ----------
+# db() et init_db() sont importés depuis database.py
 
 
 # ---------- Clés API (spécifiques à chaque utilisateur) ----------
@@ -90,88 +89,6 @@ def _key_usable(k: str) -> bool:
 
 def _cooldown(k: str, seconds: int):
     _key_state[k] = {"cool_until": time.time() + seconds}
-
-
-def init_db():
-    with db() as c:
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS sessions (
-                id TEXT PRIMARY KEY,
-                title TEXT,
-                created_at REAL,
-                updated_at REAL
-            )
-        """)
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS messages (
-                id INTEGER PRIMARY KEY,
-                role TEXT,
-                content TEXT,
-                ts REAL,
-                session_id TEXT DEFAULT 'default'
-            )
-        """)
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS facts (
-                id INTEGER PRIMARY KEY,
-                text TEXT,
-                ts REAL
-            )
-        """)
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS api_keys (
-                id INTEGER PRIMARY KEY,
-                label TEXT,
-                api_key TEXT UNIQUE,
-                created_at REAL
-            )
-        """)
-        # Migration automatique si session_id est manquant
-        cols = [r["name"] for r in c.execute("PRAGMA table_info(messages)").fetchall()]
-        if "session_id" not in cols:
-            c.execute("ALTER TABLE messages ADD COLUMN session_id TEXT DEFAULT 'default'")
-        # Migration médias (images, vocaux, vidéos)
-        cols = [r["name"] for r in c.execute("PRAGMA table_info(messages)").fetchall()]
-        for col in ("media_kind TEXT", "media_path TEXT", "media_mime TEXT"):
-            if col.split()[0] not in cols:
-                c.execute(f"ALTER TABLE messages ADD COLUMN {col}")
-
-        # Session par défaut
-        c.execute(
-            "INSERT OR IGNORE INTO sessions(id, title, created_at, updated_at) VALUES('default', 'Discussion principale', ?, ?)",
-            (time.time(), time.time())
-        )
-
-        # ---------- Comptes utilisateurs ----------
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY,
-                username TEXT UNIQUE,
-                pass_hash TEXT,
-                salt TEXT,
-                api_key TEXT,
-                model_pref TEXT,
-                persona TEXT,
-                interests TEXT,
-                created_at REAL
-            )
-        """)
-        # Migration : centres d'intérêt
-        ucols = [r["name"] for r in c.execute("PRAGMA table_info(users)").fetchall()]
-        if "interests" not in ucols:
-            c.execute("ALTER TABLE users ADD COLUMN interests TEXT")
-        c.execute("""
-            CREATE TABLE IF NOT EXISTS auth_tokens (
-                token TEXT PRIMARY KEY,
-                user_id INTEGER,
-                created_at REAL
-            )
-        """)
-        # Migration : isolation des données par utilisateur
-        for table in ("sessions", "messages", "facts", "api_keys"):
-            tcols = [r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()]
-            if "user_id" not in tcols:
-                c.execute(f"ALTER TABLE {table} ADD COLUMN user_id INTEGER")
 
 
 init_db()
@@ -285,7 +202,7 @@ def register(body: Credentials):
                 "INSERT INTO users(username, pass_hash, salt, api_key, model_pref, persona, interests, created_at) VALUES(?,?,?,?,?,?,?,?)",
                 (username, _hash_pw(body.password, salt), salt, _enc_key(key), "auto", "", interests, time.time()),
             )
-        except sqlite3.IntegrityError:
+        except DBIntegrityError:
             raise HTTPException(400, "Cet identifiant est déjà pris.")
         uid = cur.lastrowid
         # Chaque utilisateur hérite des clés globales en lecture seule ; il peut ajouter la sienne
@@ -1242,7 +1159,7 @@ def add_key(body: KeyIn, x_auth_token: str | None = Header(None)):
                 "INSERT INTO api_keys(label, api_key, created_at, user_id) VALUES(?,?,?,?)",
                 ((body.label or "").strip()[:60], key, time.time(), user["id"]),
             )
-        except sqlite3.IntegrityError:
+        except DBIntegrityError:
             raise HTTPException(400, "Cette clé existe déjà pour votre compte.")
     return {"ok": True}
 

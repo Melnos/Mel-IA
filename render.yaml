@@ -14,3 +14,5 @@ services:
         value: auto
       - key: ASSISTANT_NAME
         value: MEL-IA
+      - key: DATABASE_URL
+        sync: false
