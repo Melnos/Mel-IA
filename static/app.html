@@ -929,7 +929,11 @@ function fallbackMd(p) {
     .replace(/^# (.+)$/gm, '<h2 style="margin:16px 0 10px;font-size:19px">$1</h2>')
     .replace(/^> (.+)$/gm, '<blockquote>$1</blockquote>')
     .replace(/^[•\-] (.+)$/gm, '<li>$1</li>')
-    .replace(/(<l// ---- Rendu des Cartes d'Artefacts (Style Claude) ----
+    .replace(/(<li>.*<\/li>)/gs, '<ul style="margin:6px 0;padding-left:20px">$1</ul>')
+    .replace(/\n/g, '<br>');
+}
+
+// ---- Rendu des Cartes d'Artefacts (Style Claude) ----
 function renderClaudeProjectCard(files, projectTitle) {
   var fileNames = files.map(function(f){ return esc(f.path || f.name); }).join(' · ');
   return '<div class="artifact-card project-card">' +
