@@ -1517,9 +1517,9 @@ function renderClaudePreview() {
     if (jsFiles.length && combinedHtml.indexOf('<script') === -1) {
       var allJs = jsFiles.map(function(j){ return j.content; }).join('\n');
       if (combinedHtml.indexOf('</body>') !== -1) {
-        combinedHtml = combinedHtml.replace('</body>', '<script>\n' + allJs + '\n</script></body>');
+        combinedHtml = combinedHtml.replace('</body>', '<script>\n' + allJs + '\n<' + '/script></body>');
       } else {
-        combinedHtml += '<script>\n' + allJs + '\n</script>';
+        combinedHtml += '<script>\n' + allJs + '\n<' + '/script>';
       }
     }
     doc.write(combinedHtml);
@@ -1528,7 +1528,7 @@ function renderClaudePreview() {
     if (cur.lang === 'css') {
       doc.write('<style>' + cur.content + '</style><div style="padding:30px;font-family:sans-serif"><h2>Aperçu CSS</h2><p>Paragraphe de test avec styles appliqués.</p><button style="padding:10px 18px;border-radius:8px">Bouton test</button></div>');
     } else if (cur.lang === 'js' || cur.lang === 'javascript') {
-      doc.write('<script>' + cur.content + '<\/script><div style="padding:30px;font-family:sans-serif"><h2>Aperçu JavaScript</h2><div id="app"></div></div>');
+      doc.write('<script>' + cur.content + '<' + '/script><div style="padding:30px;font-family:sans-serif"><h2>Aperçu JavaScript</h2><div id="app"></div></div>');
     } else {
       doc.write('<div style="padding:24px;font-family:monospace;white-space:pre-wrap;color:#1e293b">' + esc(cur.content) + '</div>');
     }
