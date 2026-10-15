@@ -95,7 +95,13 @@ header{height:var(--header-h);display:flex;align-items:center;justify-content:sp
 .msg-wrap.user .avatar{display:none}
 
 .msg{max-width:88%;padding:13px 18px;border-radius:20px;word-wrap:break-word;overflow-wrap:anywhere;line-height:1.68;font-size:15px}
-.msg-wrap.user .msg{background:#dfe8fa;color:var(--fg);border-bottom-right-radius:6px;white-space:pre-wrap}
+.msg-wrap.user .msg{background:#dfe8fa;color:var(--fg);border-bottom-right-radius:6px}
+.user-text{white-space:pre-wrap;word-break:break-word}
+.user-msg-footer{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(23,34,59,.08);white-space:normal}
+.uf-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;border:1px solid rgba(23,34,59,.12);background:rgba(255,255,255,.75);color:var(--muted);font:500 11.5px Inter,sans-serif;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.uf-btn svg{width:12px;height:12px;flex-shrink:0}
+.uf-btn:hover{background:#fff;color:var(--a1);border-color:rgba(47,95,214,.35);transform:translateY(-1px)}
+.uf-btn.copied{background:#dcfce7 !important;color:#15803d !important;border-color:#86efac !important}
 .msg-wrap.ai .msg{background:transparent;border:0;padding:2px;max-width:96%}
 .msg pre{background:#151e33;border:1px solid rgba(0,0,0,.2);color:#e8edf7;border-radius:12px;padding:14px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;font-size:13.5px;margin:10px 0 6px;position:relative}
 .msg code{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:.9em;background:rgba(23,34,59,.07);border-radius:6px;padding:2px 6px}
@@ -1055,6 +1061,66 @@ function bindReplyFooter(wrap, text) {
 }
 
 
+// ---- Actions sous chaque requête utilisateur (Modifier, Copier, Réessayer) ----
+function renderUserFooterActions(text) {
+  return '<div class="user-msg-footer">' +
+    '<button type="button" class="uf-btn" data-uact="edit" title="Modifier ce message">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>' +
+      '<span>Modifier</span>' +
+    '</button>' +
+    '<button type="button" class="uf-btn" data-uact="copy" title="Copier ce message">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
+      '<span>Copier</span>' +
+    '</button>' +
+    '<button type="button" class="uf-btn" data-uact="retry" title="Réessayer / Relancer">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>' +
+      '<span>Réessayer</span>' +
+    '</button>' +
+  '</div>';
+}
+
+function bindUserFooter(wrap, text) {
+  var footer = wrap.querySelector('.user-msg-footer');
+  if (!footer) return;
+
+  var editBtn = footer.querySelector('[data-uact="edit"]');
+  if (editBtn) {
+    editBtn.onclick = function() {
+      var raw = text || wrap.querySelector('.msg').getAttribute('data-raw') || '';
+      var inp = $('in');
+      inp.value = raw;
+      inp.style.height = 'auto';
+      inp.style.height = Math.min(inp.scrollHeight, 160) + 'px';
+      inp.focus();
+      inp.scrollIntoView({behavior: 'smooth', block: 'center'});
+    };
+  }
+
+  var copyBtn = footer.querySelector('[data-uact="copy"]');
+  if (copyBtn) {
+    copyBtn.onclick = function() {
+      var raw = text || wrap.querySelector('.msg').getAttribute('data-raw') || '';
+      navigator.clipboard && navigator.clipboard.writeText(raw);
+      copyBtn.classList.add('copied');
+      var sp = copyBtn.querySelector('span');
+      if (sp) sp.textContent = 'Copié !';
+      setTimeout(function() {
+        copyBtn.classList.remove('copied');
+        if (sp) sp.textContent = 'Copier';
+      }, 1800);
+    };
+  }
+
+  var retryBtn = footer.querySelector('[data-uact="retry"]');
+  if (retryBtn) {
+    retryBtn.onclick = function() {
+      var raw = text || wrap.querySelector('.msg').getAttribute('data-raw') || '';
+      if (!raw) return;
+      send(raw);
+    };
+  }
+}
+
 // ---- Ajout et affichage des messages ----
 function addMsg(role, text, opts) {
   opts = opts || {};
@@ -1074,7 +1140,8 @@ function addMsg(role, text, opts) {
     else if (opts.media_kind === 'document') html += '<a class="doc-badge" href="' + esc(opts.media_url) + '" target="_blank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Document joint</a>';
   }
   if (role === 'user') {
-    html += esc(text);
+    html += '<div class="user-text">' + esc(text) + '</div>';
+    if (text) html += renderUserFooterActions(text);
   } else if (text) {
     html += renderMarkdown(text);
     html += renderFooterActions(wrap);
@@ -1082,9 +1149,12 @@ function addMsg(role, text, opts) {
   html += '</div>';
   wrap.innerHTML = html;
 
-  if (role !== 'user' && text) {
+  if (role === 'user' && text) {
+    bindUserFooter(wrap, text);
+  } else if (role !== 'user' && text) {
     bindReplyFooter(wrap, text);
   }
+
   var zoom = wrap.querySelector('img.media');
   if (zoom) zoom.onclick = function() { window.open(zoom.src, '_blank'); };
 

@@ -662,12 +662,43 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
     raise HTTPException(502, f"Impossible de contacter Gemini ({last_err or 'tous les modèles ont échoué'}).")
 
 
-# ---------- Génération d'images (Gemini image generation) ----------
-IMAGE_MODELS = ["gemini-2.5-flash-image", "gemini-3.1-flash-image", "gemini-3-pro-image", "imagen-3.0-generate-002"]
+# ---------- Génération d'images (Imagen 3 + Fallbacks résilients) ----------
+def generate_svg_illustration(prompt: str, user: dict | None = None) -> str:
+    """Fallback résilient : demande à Gemini de concevoir une illustration vectorielle SVG spectaculaire."""
+    system_inst = (
+        "Tu es un graphiste et illustrateur vectoriel d'élite. Crée une illustration vectorielle SVG complète, moderne, "
+        "esthétique et détaillée correspondant au prompt. Utilise de beaux dégradés (<defs><linearGradient>), des ombres portées, "
+        "des formes soignées et des couleurs harmonieuses. Réponds UNIQUEMENT avec le code <svg ...>...</svg> valide, sans aucun texte explicatif ni markdown."
+    )
+    user_keys = get_user_keys(user)
+    keys = [k for k in user_keys if _key_usable(k)] or user_keys
+    candidates = get_model_candidates()
+    body = {
+        "systemInstruction": {"parts": [{"text": system_inst}]},
+        "contents": [{"parts": [{"text": f"Génère une illustration SVG détaillée et moderne pour : {prompt}"}]}],
+        "generationConfig": {"temperature": 0.4, "maxOutputTokens": 4096},
+    }
+    for key in keys:
+        for model in candidates:
+            try:
+                r = httpx.post(
+                    f"{API_BASE}/models/{model}:generateContent",
+                    headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                    json=body,
+                    timeout=30,
+                )
+                if r.status_code == 200:
+                    txt = "".join(p.get("text", "") for p in r.json()["candidates"][0]["content"]["parts"])
+                    m = re.search(r"<svg[\s\S]*?</svg>", txt, re.I)
+                    if m:
+                        return m.group(0)
+            except Exception:
+                continue
+    return ""
 
 
 def generate_image(prompt: str, user: dict | None = None) -> str:
-    """Génère une image avec Gemini en utilisant la clé de l'utilisateur."""
+    """Génère une image avec Google Imagen 3 (via API :predict), avec fallbacks IA haute fidélité."""
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
@@ -675,51 +706,57 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
             401,
             "Aucune clé API Gemini disponible : connectez-vous avec votre compte ou ajoutez une clé.",
         )
-    body = {
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {"responseModalities": ["TEXT", "IMAGE"]},
-    }
-    last_err = None
+
+    # 1. Tentative avec Google Imagen 3 via endpoint officiel :predict
     for key in keys:
-        for model in IMAGE_MODELS:
+        for model in ("imagen-3.0-generate-002", "imagen-3.0-generate-001"):
             try:
                 r = httpx.post(
-                    f"{API_BASE}/models/{model}:generateContent",
+                    f"{API_BASE}/models/{model}:predict",
                     headers={"x-goog-api-key": key, "Content-Type": "application/json"},
-                    json=body,
-                    timeout=120,
+                    json={
+                        "instances": [{"prompt": prompt}],
+                        "parameters": {"sampleCount": 1, "aspectRatio": "1:1"}
+                    },
+                    timeout=60,
                 )
-            except httpx.HTTPError as exc:
-                last_err = f"Connexion expirée ({exc})"
-                continue
-            if r.status_code == 200:
-                try:
-                    parts = r.json()["candidates"][0]["content"]["parts"]
-                except (KeyError, IndexError):
-                    last_err = "Réponse vide du modèle image"
-                    continue
-                for p in parts:
-                    inline = p.get("inlineData") or {}
-                    data = inline.get("data")
-                    mime = inline.get("mime_type") or inline.get("mimeType") or ""
-                    if data and mime.startswith("image/"):
-                        ext = ".png" if "png" in mime else ".webp"
-                        fname = f"gen_{uuid.uuid4().hex[:12]}{ext}"
-                        (MEDIA_DIR / fname).write_bytes(base64.b64decode(data))
+                if r.status_code == 200:
+                    data = r.json()
+                    preds = data.get("predictions", [])
+                    if preds and preds[0].get("bytesBase64Encoded"):
+                        b64 = preds[0]["bytesBase64Encoded"]
+                        fname = f"gen_{uuid.uuid4().hex[:12]}.jpg"
+                        (MEDIA_DIR / fname).write_bytes(base64.b64decode(b64))
                         return fname
-                last_err = "Aucune image dans la réponse"
-                continue
-            if r.status_code in (503, 404, 500):
-                continue
-            if r.status_code == 429:
-                last_err = "Limite de quota temporaire"
-                continue
-            if r.status_code in (400, 403):
-                _cooldown(key, 3600)
-                break
-            last_err = f"Erreur {r.status_code}"
-            continue
-    raise HTTPException(502, f"Impossible de générer l'image ({last_err or 'tous les modèles ont échoué'}).")
+            except Exception:
+                pass
+
+    # 2. Fallback Pollinations Flux / SDXL
+    try:
+        from urllib.parse import quote
+        safe_p = quote(prompt[:200])
+        seed = secrets.randbelow(999999)
+        r = httpx.get(
+            f"https://image.pollinations.ai/prompt/{safe_p}?width=1024&height=1024&nologo=true&seed={seed}",
+            timeout=30,
+            follow_redirects=True,
+        )
+        if r.status_code == 200 and r.content and len(r.content) > 3000:
+            fname = f"gen_{uuid.uuid4().hex[:12]}.jpg"
+            (MEDIA_DIR / fname).write_bytes(r.content)
+            return fname
+    except Exception:
+        pass
+
+    # 3. Fallback SVG généré sur mesure par Gemini
+    svg_code = generate_svg_illustration(prompt, user)
+    if svg_code:
+        fname = f"gen_{uuid.uuid4().hex[:12]}.svg"
+        (MEDIA_DIR / fname).write_text(svg_code, encoding="utf-8")
+        return fname
+
+    raise HTTPException(502, "Impossible de générer l'image : vérifiez votre connexion ou réessayez avec un autre sujet.")
+
 
 
 # ---------- API ----------
