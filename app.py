@@ -449,8 +449,14 @@ def system_prompt(facts: list[str], persona: str = "", interests: str = "", memo
         "4. Questions de cours : Donne des définitions nettes et précises, immédiatement suivies d'exemples concrets.\n"
         "5. Zéro complaisance : Ne dis jamais oui par complaisance. Si son approche d'un problème est mauvaise ou sous-optimale, alerte-le fermement et propose une meilleure architecture ou logique.\n"
         "6. Priorités : L'accompagner au quotidien sur ses projets, ses partiels et examens à préparer, et les sujets sur lesquels il veut progresser en priorité.\n"
-        "7. Code & Prompts : Place toujours le code ou les prompts dans des blocs markdown explicites (ex: ```python ou ```prompt) afin que l'interface offre à l'utilisateur un bouton dédié pour copier uniquement le code ou le prompt en un clic.\n"
-        "8. Fichiers PDF et PowerPoint : Quand on te demande un cours, un rapport, un document ou un PowerPoint/slides, structure rigoureusement avec des diapositives ou sections nettes ('## Slide X : Titre', points clés, exemples de code). Indique brièvement à l'utilisateur qu'il peut télécharger directement le fichier PDF ou PowerPoint (.pptx) via les boutons d'export sous le message.\n\n"
+        "7. Code, Fichiers & Projets Multi-fichiers (Comme Claude / Artefacts) :\n"
+        "   - Quand l'utilisateur te demande un projet (application web, backend, script, TP, mini-logiciel avec plusieurs fichiers : HTML, CSS, JS, Python, etc.), nomme OBLIGATOIREMENT chaque fichier sur son bloc de code, sous la forme : ```langage filename=\"nom_du_fichier.ext\" (exemples: ```html filename=\"index.html\", ```css filename=\"style.css\", ```javascript filename=\"app.js\", ```python filename=\"server.py\").\n"
+        "   - Ne tronque pas le code et livre des fichiers complets et fonctionnels. L'interface créera automatiquement une carte de Projet Artefact et permettra à l'utilisateur de télécharger tous les fichiers d'un coup dans un fichier ZIP (.zip) ou de les tester en direct dans le volet d'aperçu.\n"
+        "8. Documents Bureautiques Réels (Word .docx, PDF .pdf, PowerPoint .pptx, Excel .xlsx, ZIP) :\n"
+        "   - Word (.docx) & PDF (.pdf) : Structure le document avec des titres nets (# Titre, ## Sections), des paragraphes soignés et des listes à puces. L'utilisateur disposera des boutons de téléchargement direct Word (.docx) et PDF (.pdf).\n"
+        "   - PowerPoint (.pptx) : Quand on te demande une présentation, un diaporama ou des slides, sépare chaque diapositive avec un titre de slide : '## Slide X : Titre de la diapositive', suivi de 4 à 6 points clés clairs et si besoin un encadré de code. L'interface compilera directement un fichier Microsoft PowerPoint .pptx officiel prêt à être ouvert dans PowerPoint !\n"
+        "   - Excel (.xlsx) : Quand on te demande un tableau, un budget, une feuille de calcul ou des données chiffrées, présente-les sous forme de tableau Markdown clair avec en-têtes et totaux/formules. L'utilisateur aura un bouton pour télécharger le fichier Excel .xlsx direct.\n"
+        "   - ZIP (.zip) : Pour tout projet complet de code, signale à l'utilisateur qu'il peut télécharger l'archive ZIP complète contenant tous les fichiers du projet en un seul clic.\n\n"
         "### MÉMOIRE CONTINUE & SYNCHRONISATION MULTI-CHATS :\n"
         "Tu possèdes une mémoire universelle et continue de tout ce que ton utilisateur t'a déjà dit à travers TOUTES ses discussions (passées, présentes, récentes ou anciennes).\n"
         "Même si un sujet, un code, une idée ou un détail de cours a été abordé dans un autre chat il y a des jours, des mois ou des années, tu t'en souviens et tu fais naturellement le lien, comme dans une vraie relation de mentorat continu.\n"
@@ -1373,6 +1379,159 @@ def import_user_data(body: ImportData, x_auth_token: str | None = Header(None)):
                 c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (txt, f.get("ts") or time.time(), uid))
                 f_count += 1
     return {"ok": True, "restored_sessions": s_count, "restored_messages": m_count, "restored_facts": f_count}
+
+
+# ---------- Exportation de Documents Réels (ZIP, Word .docx, Excel .xlsx) ----------
+class ZipExportRequest(BaseModel):
+    filename: str = "projet.zip"
+    files: list[dict] = []  # [{"path": "...", "content": "..."}]
+
+
+@app.post("/api/export/zip")
+def export_zip(req: ZipExportRequest):
+    import io, zipfile
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in req.files:
+            path = (f.get("path") or f.get("name") or "fichier.txt").strip().lstrip("/\\")
+            content = f.get("content", "")
+            zf.writestr(path, content.encode("utf-8"))
+    buf.seek(0)
+    fname = req.filename if req.filename.endswith(".zip") else f"{req.filename}.zip"
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'}
+    )
+
+
+class DocxExportRequest(BaseModel):
+    filename: str = "document.docx"
+    title: str = "Document"
+    content: str = ""
+
+
+@app.post("/api/export/docx")
+def export_docx(req: DocxExportRequest):
+    import io, zipfile, html
+    buf = io.BytesIO()
+    body_xml = []
+    if req.title:
+        body_xml.append(
+            f'<w:p><w:pPr><w:jc w:val="left"/><w:spacing w:after="240"/></w:pPr>'
+            f'<w:r><w:rPr><w:b/><w:sz w:val="36"/><w:color w:val="1E44B0"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr>'
+            f'<w:t>{html.escape(req.title)}</w:t></w:r></w:p>'
+        )
+    for line in (req.content or "").split("\n"):
+        line = line.strip()
+        if not line:
+            body_xml.append('<w:p><w:pPr><w:spacing w:after="100"/></w:pPr></w:p>')
+            continue
+        if line.startswith("# "):
+            body_xml.append(
+                f'<w:p><w:pPr><w:spacing w:before="240" w:after="140"/></w:pPr>'
+                f'<w:r><w:rPr><w:b/><w:sz w:val="32"/><w:color w:val="17223B"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr>'
+                f'<w:t>{html.escape(line[2:].replace("**", ""))}</w:t></w:r></w:p>'
+            )
+        elif line.startswith("## "):
+            body_xml.append(
+                f'<w:p><w:pPr><w:spacing w:before="180" w:after="100"/></w:pPr>'
+                f'<w:r><w:rPr><w:b/><w:sz w:val="26"/><w:color w:val="2F5FD6"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr>'
+                f'<w:t>{html.escape(line[3:].replace("**", ""))}</w:t></w:r></w:p>'
+            )
+        elif line.startswith("### "):
+            body_xml.append(
+                f'<w:p><w:pPr><w:spacing w:before="140" w:after="80"/></w:pPr>'
+                f'<w:r><w:rPr><w:b/><w:sz w:val="22"/><w:color w:val="334155"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr>'
+                f'<w:t>{html.escape(line[4:].replace("**", ""))}</w:t></w:r></w:p>'
+            )
+        elif line.startswith(("- ", "* ", "• ")):
+            clean_txt = html.escape(line[2:].replace("**", ""))
+            body_xml.append(
+                f'<w:p><w:pPr><w:ind w:left="360"/><w:spacing w:after="60"/></w:pPr>'
+                f'<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr>'
+                f'<w:t>• {clean_txt}</w:t></w:r></w:p>'
+            )
+        else:
+            clean_txt = html.escape(line.replace("**", ""))
+            body_xml.append(
+                f'<w:p><w:pPr><w:spacing w:after="80"/></w:pPr>'
+                f'<w:r><w:rPr><w:sz w:val="21"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr>'
+                f'<w:t>{clean_txt}</w:t></w:r></w:p>'
+            )
+
+    doc_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">\n'
+        '<w:body>\n'
+        + "".join(body_xml)
+        + '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>\n'
+        '</w:body>\n'
+        '</w:document>'
+    )
+    content_types = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">\n'
+        '  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>\n'
+        '  <Default Extension="xml" ContentType="application/xml"/>\n'
+        '  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>\n'
+        '</Types>'
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">\n'
+        '  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>\n'
+        '</Relationships>'
+    )
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("[Content_Types].xml", content_types)
+        zf.writestr("_rels/.rels", rels)
+        zf.writestr("word/document.xml", doc_xml)
+    buf.seek(0)
+    fname = req.filename if req.filename.endswith(".docx") else f"{req.filename}.docx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'}
+    )
+
+
+class XlsxExportRequest(BaseModel):
+    filename: str = "classeur.xlsx"
+    sheets: list[dict] = []  # [{"title": "Feuille 1", "rows": [["Col 1", "Col 2"], ["Val 1", "Val 2"]]}]
+
+
+@app.post("/api/export/xlsx")
+def export_xlsx(req: XlsxExportRequest):
+    import io, openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    wb = openpyxl.Workbook()
+    wb.remove(wb.active)  # retire la feuille vierge par défaut
+    sheets_data = req.sheets or [{"title": "Données", "rows": []}]
+    for s_idx, s in enumerate(sheets_data):
+        ws = wb.create_sheet(title=s.get("title") or f"Feuille {s_idx + 1}")
+        rows = s.get("rows", [])
+        for r_idx, row in enumerate(rows, start=1):
+            for c_idx, val in enumerate(row, start=1):
+                cell = ws.cell(row=r_idx, column=c_idx, value=val)
+                if r_idx == 1:
+                    cell.font = Font(bold=True, color="FFFFFF")
+                    cell.fill = PatternFill(start_color="1E44B0", end_color="1E44B0", fill_type="solid")
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+        # largeur automatique des colonnes
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or "")) for cell in col) if col else 10
+            col_letter = openpyxl.utils.get_column_letter(col[0].column)
+            ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    fname = req.filename if req.filename.endswith(".xlsx") else f"{req.filename}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'}
+    )
 
 
 
