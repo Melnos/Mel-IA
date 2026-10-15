@@ -16,6 +16,10 @@
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- jsPDF & PptxGenJS pour la construction directe de documents PDF et PowerPoint réels -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -123,6 +127,47 @@ header{height:var(--header-h);display:flex;align-items:center;justify-content:sp
 .rf-btn:hover{color:var(--a2);background:var(--soft);border-color:rgba(47,95,214,.35);transform:translateY(-1px)}
 .rf-btn:active{transform:translateY(1px)}
 .rf-btn.copied{color:#15803d;background:#dcfce7;border-color:#86efac}
+.rf-btn[data-act="pdf"]:hover{color:#dc2626;border-color:rgba(220,38,38,.35);background:#fef2f2}
+.rf-btn[data-act="pptx"]:hover{color:#d97706;border-color:rgba(217,119,6,.35);background:#fffbeb}
+
+/* Prompt Box dédié */
+.codebox.promptbox{border:1px solid #7c3aed;background:#faf5ff;box-shadow:0 3px 12px rgba(124,58,237,.1)}
+.codebox.promptbox .codebox-bar{background:#f3e8ff;border-bottom:1px solid rgba(124,58,237,.2);color:#6d28d9}
+.codebox.promptbox pre{background:#1e1b4b;border-left:3px solid #8b5cf6}
+.prompt-badge{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#7c3aed;font-size:11.5px;letter-spacing:.05em}
+.cb-btn.cb-copy{background:var(--soft);color:var(--a1);border-color:rgba(47,95,214,.3);font-weight:600}
+.cb-btn.cb-copy:hover{background:var(--a1);color:#fff}
+.cb-btn.copied{background:#16a34a !important;color:#fff !important;border-color:transparent !important}
+
+/* Menu Trombone Pièces Jointes */
+.attach-menu{position:absolute;bottom:calc(100% + 12px);left:0;width:min(320px,94vw);background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 14px 40px rgba(23,34,59,.16);padding:8px;z-index:300;display:flex;flex-direction:column;gap:3px;animation:fadeUp .16s ease-out}
+.attach-menu[hidden]{display:none}
+.attach-menu-head{padding:8px 12px 6px;font:700 11.5px Inter,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);margin-bottom:4px}
+.attach-opt{display:flex;align-items:center;gap:12px;padding:9px 12px;border:0;background:transparent;border-radius:12px;cursor:pointer;text-align:left;transition:background .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+.attach-opt:hover{background:var(--soft);transform:translateX(2px)}
+.attach-opt .opt-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.attach-opt .opt-icon svg{width:18px;height:18px}
+.attach-opt .opt-title{font:600 13.5px Inter,sans-serif;color:var(--fg)}
+.attach-opt .opt-sub{font:400 11.5px Inter,sans-serif;color:var(--muted)}
+.opt-icon.img-icon{background:#dbeafe;color:#2563eb}
+.opt-icon.doc-icon{background:#fef3c7;color:#d97706}
+.opt-icon.code-icon{background:#e0e7ff;color:#4f46e5}
+.opt-icon.folder-icon{background:#ecfdf5;color:#059669}
+.opt-icon.audio-icon{background:#fce7f3;color:#db2777}
+
+/* Enregistrement Vocal avec Visualiseur Tirets / Equalizer */
+.vrec-bar{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:24px;padding:6px 14px;box-shadow:0 3px 12px rgba(23,34,59,.08);width:100%;animation:fadeUp .15s ease}
+.vrec-info{display:flex;align-items:center;gap:8px;font:600 13px JetBrains Mono,monospace;color:var(--err);flex-shrink:0}
+.vrec-pulse{width:10px;height:10px;border-radius:50%;background:var(--err);animation:pulse 1s infinite}
+.vrec-waveform{display:flex;align-items:center;gap:3px;flex:1;height:38px;padding:0 6px;overflow:hidden;justify-content:center}
+.v-bar{width:3px;min-height:4px;height:6px;border-radius:3px;background:linear-gradient(to top, var(--a1), var(--a3));transition:height .05s ease}
+.vrec-btns{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.vrec-action-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font:600 12.5px Inter,sans-serif;cursor:pointer;border:0;transition:all .15s}
+.vrec-action-btn.cancel{background:#f1f5f9;color:var(--muted)}
+.vrec-action-btn.cancel:hover{background:#fee2e2;color:var(--err)}
+.vrec-action-btn.done{background:var(--a1);color:#fff}
+.vrec-action-btn.done:hover{background:var(--a2)}
+
 
 .model-tag{display:inline-block;font-size:11px;color:var(--muted);background:var(--soft);border:1px solid var(--line);border-radius:7px;padding:2px 8px;margin-bottom:8px;font-weight:500}
 .doc-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;background:var(--soft);border:1px solid rgba(47,95,214,.3);border-radius:10px;color:var(--a2);font-size:13px;font-weight:500;text-decoration:none;margin-bottom:6px}
@@ -401,9 +446,72 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
         <button type="button" class="premove" id="preview-remove" title="Retirer">×</button>
       </div>
 
+      <!-- Menu Popover Pièces Jointes -->
+      <div class="attach-menu" id="attach-menu" hidden>
+        <div class="attach-menu-head">Ajouter un contenu</div>
+        <button type="button" class="attach-opt" data-type="img">
+          <div class="opt-icon img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>
+          <div>
+            <div class="opt-title">Photos & Images</div>
+            <div class="opt-sub">PNG, JPG, WEBP, captures</div>
+          </div>
+        </button>
+        <button type="button" class="attach-opt" data-type="doc">
+          <div class="opt-icon doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+          <div>
+            <div class="opt-title">Documents</div>
+            <div class="opt-sub">PDF, Word, Tableurs, Textes</div>
+          </div>
+        </button>
+        <button type="button" class="attach-opt" data-type="code">
+          <div class="opt-icon code-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+          <div>
+            <div class="opt-title">Fichiers de Code</div>
+            <div class="opt-sub">Python, C, Java, JS, HTML, SQL...</div>
+          </div>
+        </button>
+        <button type="button" class="attach-opt" data-type="folder">
+          <div class="opt-icon folder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>
+          <div>
+            <div class="opt-title">Dossier de projet</div>
+            <div class="opt-sub">Importer l'arborescence complète</div>
+          </div>
+        </button>
+        <button type="button" class="attach-opt" data-type="audio">
+          <div class="opt-icon audio-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+          <div>
+            <div class="opt-title">Fichier Audio</div>
+            <div class="opt-sub">MP3, WAV, mémos sonores</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Inputs fichiers masqués -->
+      <input type="file" id="file-img" accept="image/*" hidden>
+      <input type="file" id="file-doc" accept=".pdf,.doc,.docx,.txt,.md,.csv,.json,.xlsx,.pptx" hidden>
+      <input type="file" id="file-code" accept=".py,.c,.cpp,.h,.java,.js,.ts,.html,.css,.json,.sql,.sh,.rs,.go,.php" hidden>
+      <input type="file" id="file-folder" webkitdirectory directory multiple hidden>
+      <input type="file" id="file-audio" accept="audio/*" hidden>
+      <input type="file" id="file" accept="image/*,audio/*,video/*,.pdf,.txt,.md,.csv,.json,.py,.js,.html,.css" hidden>
+
+      <!-- Barre d'enregistrement vocal avec visualiseur tirets/equalizer -->
+      <div class="vrec-bar" id="vrec-bar" style="display:none">
+        <div class="vrec-info">
+          <span class="vrec-pulse"></span>
+          <span class="vrec-timer" id="vrec-timer">00:00</span>
+        </div>
+        <div class="vrec-waveform" id="vrec-waveform"></div>
+        <div class="vrec-btns">
+          <button type="button" class="vrec-action-btn cancel" id="vrec-cancel" title="Annuler">✕</button>
+          <button type="button" class="vrec-action-btn done" id="vrec-done" title="Terminer et écouter">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+            <span>Terminer</span>
+          </button>
+        </div>
+      </div>
+
       <form id="f">
-        <label for="file" class="icon-btn" id="attach" title="Joindre une image, document (PDF, code) ou audio" aria-label="Joindre un fichier" style="margin-left:2px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.05 12.3 20.2a5.5 5.5 0 0 1-7.8-7.8l9.2-9.2a3.7 3.7 0 0 1 5.2 5.2l-9.1 9.2a1.8 1.8 0 0 1-2.6-2.6l8.5-8.4"/></svg></label>
-        <input type="file" id="file" accept="image/*,audio/*,video/*,.pdf,.txt,.md,.csv,.json,.py,.js,.html,.css" hidden>
+        <button type="button" class="icon-btn" id="attach" title="Joindre une photo, document, code ou dossier" aria-label="Joindre un fichier" style="margin-left:2px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.4 11.05 12.3 20.2a5.5 5.5 0 0 1-7.8-7.8l9.2-9.2a3.7 3.7 0 0 1 5.2 5.2l-9.1 9.2a1.8 1.8 0 0 1-2.6-2.6l8.5-8.4"/></svg></button>
         <textarea id="in" rows="1" placeholder="Écris ton message…" aria-label="Message"></textarea>
         <button id="send" type="submit" aria-label="Envoyer" title="Envoyer">
           <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
@@ -430,6 +538,15 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
     <button class="dialog-btn" id="key-add-btn" type="button">Ajouter</button>
   </div>
   <p class="settings-note" id="keys-note"></p>
+
+  <span class="label-mini">Sauvegarde & Données (Anti-perte Render)</span>
+  <div style="display:flex;gap:8px;margin-top:6px">
+    <button class="dialog-btn secondary" id="btn-export-db" type="button" style="margin-top:0;font-size:13px">💾 Exporter mes données</button>
+    <button class="dialog-btn secondary" id="btn-import-db" type="button" style="margin-top:0;font-size:13px">📥 Restaurer sauvegarde</button>
+    <input type="file" id="file-import-db" accept=".json" hidden>
+  </div>
+  <p class="settings-note" style="margin-top:6px">Télécharge une copie de tes discussions et mémoires sur ton PC pour les réinjecter à tout moment.</p>
+
   <span class="label-mini">Modèle IA</span>
   <select class="model-sel" id="model-sel">
     <option value="auto">Automatique (recommandé)</option>
@@ -552,7 +669,7 @@ function renderMarkdown(t) {
   var parts = String(t).split('```'), out = '';
   parts.forEach(function(p, i) {
     if (i % 2) {
-      // Bloc de code
+      // Bloc de code ou prompt
       var m = p.match(/^([a-zA-Z0-9_\-\.]+)(?:[ \t]+([^\n]*))?(\n|$)/);
       var lang = m ? m[1].toLowerCase() : '';
       var fname = m && m[2] ? m[2].trim() : '';
@@ -561,24 +678,33 @@ function renderMarkdown(t) {
       if (code.slice(-1) === '\n') code = code.slice(0, -1);
       var id = registerCode(lang, fname, code);
       var preview = /^(html|css|js|javascript)$/.test(lang);
+      var isPrompt = lang === 'prompt' || lang === 'system-prompt';
+      var copyText = isPrompt ? 'Copier le prompt' : 'Copier le code';
       var highlighted = esc(code);
       if (window.hljs) {
         try {
-          if (lang && hljs.getLanguage(lang)) {
+          if (lang && !isPrompt && hljs.getLanguage(lang)) {
             highlighted = hljs.highlight(code, {language: lang}).value;
-          } else {
+          } else if (!isPrompt) {
             highlighted = hljs.highlightAuto(code).value;
           }
         } catch(e) {}
       }
-      out += '<div class="codebox" data-code="' + id + '">' +
+      var langLabel = isPrompt
+        ? '<span class="prompt-badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg> PROMPT IA</span>'
+        : esc(lang || 'code');
+
+      out += '<div class="codebox' + (isPrompt ? ' promptbox' : '') + '" data-code="' + id + '">' +
         '<div class="codebox-bar">' +
-          '<span class="codebox-lang">' + esc(lang || 'code') +
+          '<span class="codebox-lang">' + langLabel +
             (fname ? '<span class="codebox-file">' + esc(fname) + '</span>' : '') + '</span>' +
           '<span class="codebox-btns">' +
             (preview ? '<button type="button" class="cb-btn" data-cb="preview">Aperçu</button>' : '') +
             '<button type="button" class="cb-btn" data-cb="file">Fichier</button>' +
-            '<button type="button" class="cb-btn" data-cb="copy">Copier</button>' +
+            '<button type="button" class="cb-btn cb-copy" data-cb="copy">' +
+              '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
+              '<span>' + copyText + '</span>' +
+            '</button>' +
           '</span>' +
         '</div>' +
         '<pre><code class="hljs ' + esc(lang) + '">' + highlighted + '</code></pre>' +
@@ -601,13 +727,249 @@ function renderMarkdown(t) {
   return out;
 }
 
+// ---- Construction directe de documents PDF & PowerPoint (.pptx) ----
+function exportToPdf(rawText) {
+  if (!window.jspdf || !window.jspdf.jsPDF) {
+    alert('Bibliothèque PDF en cours de chargement. Réessayez dans un instant.');
+    return;
+  }
+  try {
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({orientation: 'portrait', unit: 'mm', format: 'a4'});
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var pageHeight = doc.internal.pageSize.getHeight();
+    var margin = 16;
+    var maxW = pageWidth - (margin * 2);
+    var y = 20;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(30, 68, 176);
+    doc.text('MEL-IA — Document technique', margin, y);
+    y += 7;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 110, 130);
+    doc.text('Généré le ' + new Date().toLocaleDateString('fr-FR') + ' à ' + new Date().toLocaleTimeString('fr-FR') + ' • Mentor Informatique', margin, y);
+    y += 4;
+    doc.setDrawColor(220, 225, 235);
+    doc.line(margin, y, pageWidth - margin, y);
+    y += 8;
+
+    var cleanText = rawText || '';
+    var lines = cleanText.split('\n');
+
+    lines.forEach(function(line) {
+      if (y > pageHeight - 20) {
+        doc.addPage();
+        y = 20;
+      }
+      var trimmed = line.trim();
+      if (!trimmed) {
+        y += 4;
+        return;
+      }
+      if (trimmed.startsWith('# ')) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(23, 34, 59);
+        var splitH1 = doc.splitTextToSize(trimmed.slice(2).replace(/\*\*/g, ''), maxW);
+        doc.text(splitH1, margin, y);
+        y += (splitH1.length * 7) + 2;
+      } else if (trimmed.startsWith('## ')) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.setTextColor(47, 95, 214);
+        var splitH2 = doc.splitTextToSize(trimmed.slice(3).replace(/\*\*/g, ''), maxW);
+        doc.text(splitH2, margin, y);
+        y += (splitH2.length * 6) + 2;
+      } else if (trimmed.startsWith('### ')) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(30, 41, 59);
+        var splitH3 = doc.splitTextToSize(trimmed.slice(4).replace(/\*\*/g, ''), maxW);
+        doc.text(splitH3, margin, y);
+        y += (splitH3.length * 5) + 2;
+      } else if (trimmed.startsWith('```')) {
+        doc.setFont('courier', 'bold');
+        doc.setFontSize(9);
+        doc.setTextColor(79, 70, 229);
+        doc.text('[Code / Script] :', margin, y);
+        y += 5;
+      } else {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.setTextColor(35, 45, 65);
+        var bullet = trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ');
+        var printTxt = bullet ? ('• ' + trimmed.slice(2)) : trimmed;
+        printTxt = printTxt.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`([^`]+)`/g, '$1');
+        var splitPara = doc.splitTextToSize(printTxt, bullet ? (maxW - 4) : maxW);
+        doc.text(splitPara, bullet ? (margin + 4) : margin, y);
+        y += (splitPara.length * 5) + 1.5;
+      }
+    });
+
+    var pageCount = doc.internal.getNumberOfPages();
+    for (var pIdx = 1; pIdx <= pageCount; pIdx++) {
+      doc.setPage(pIdx);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(150, 160, 175);
+      doc.text('MEL-IA • Page ' + pIdx + ' / ' + pageCount, pageWidth / 2, pageHeight - 8, {align: 'center'});
+    }
+
+    doc.save('document-mel-ia-' + Date.now() + '.pdf');
+  } catch(err) {
+    console.error('Erreur génération PDF:', err);
+    alert('Erreur création PDF: ' + err.message);
+  }
+}
+
+function exportToPptx(rawText) {
+  if (!window.PptxGenJS) {
+    alert('Bibliothèque PowerPoint en cours de chargement. Réessayez dans un instant.');
+    return;
+  }
+  try {
+    var pptx = new window.PptxGenJS();
+    pptx.layout = 'LAYOUT_16x9';
+
+    // Slide 1 : Titre principal
+    var slide1 = pptx.addSlide();
+    slide1.background = { color: '17223b' };
+
+    var lines = (rawText || '').split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+    var firstTitle = 'Présentation Informatique';
+    for (var i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('# ') || lines[i].startsWith('## ')) {
+        firstTitle = lines[i].replace(/^#+\s*/, '').replace(/\*\*/g, '');
+        break;
+      }
+    }
+
+    slide1.addText(firstTitle, {
+      x: 0.8, y: 1.8, w: '85%', h: 1.5,
+      fontSize: 28, bold: true, color: 'ffffff', fontFace: 'Arial'
+    });
+    slide1.addText('Document généré par MEL-IA • Mentor Informatique', {
+      x: 0.8, y: 3.5, w: '85%', h: 0.6,
+      fontSize: 14, color: 'f0a93a', fontFace: 'Arial'
+    });
+    slide1.addText(new Date().toLocaleDateString('fr-FR'), {
+      x: 0.8, y: 4.5, w: '85%', h: 0.5,
+      fontSize: 11, color: '94a3b8', fontFace: 'Arial'
+    });
+
+    // Découpage en diapositives
+    var slidesData = [];
+    var currentSlide = { title: '', bullets: [], code: '' };
+    var inCode = false, codeAcc = [];
+
+    lines.forEach(function(l) {
+      if (l.startsWith('```')) {
+        if (!inCode) {
+          inCode = true;
+          codeAcc = [];
+        } else {
+          inCode = false;
+          currentSlide.code = codeAcc.join('\n');
+        }
+        return;
+      }
+      if (inCode) {
+        codeAcc.push(l);
+        return;
+      }
+
+      if (l.startsWith('# ') || l.startsWith('## ') || l.startsWith('### ') || l.startsWith('--- Slide') || l.startsWith('Slide ')) {
+        if (currentSlide.title || currentSlide.bullets.length || currentSlide.code) {
+          slidesData.push(currentSlide);
+        }
+        var sTitle = l.replace(/^#+\s*/, '').replace(/^---\s*/, '').replace(/\*\*/g, '').trim();
+        currentSlide = { title: sTitle, bullets: [], code: '' };
+      } else {
+        var cleanLine = l.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`([^`]+)`/g, '$1');
+        if (cleanLine.startsWith('- ') || cleanLine.startsWith('* ') || cleanLine.startsWith('• ')) {
+          currentSlide.bullets.push(cleanLine.replace(/^[-*•]\s*/, ''));
+        } else if (cleanLine) {
+          currentSlide.bullets.push(cleanLine);
+        }
+      }
+    });
+    if (currentSlide.title || currentSlide.bullets.length || currentSlide.code) {
+      slidesData.push(currentSlide);
+    }
+
+    if (!slidesData.length) {
+      slidesData.push({
+        title: 'Points Clés',
+        bullets: lines.slice(0, 8).map(function(l){ return l.replace(/^[-*•#]\s*/, ''); })
+      });
+    }
+
+    slidesData.forEach(function(sd, idx) {
+      var slide = pptx.addSlide();
+      slide.background = { color: 'f4f6f9' };
+
+      slide.addShape(pptx.ShapeType.rect, {
+        x: 0, y: 0, w: '100%', h: 0.9, fill: { color: '2f5fd6' }
+      });
+      slide.addText(sd.title || ('Section ' + (idx + 1)), {
+        x: 0.8, y: 0.15, w: '85%', h: 0.6,
+        fontSize: 20, bold: true, color: 'ffffff', fontFace: 'Arial'
+      });
+
+      var hasCode = Boolean(sd.code);
+      var textWidth = hasCode ? '50%' : '88%';
+
+      if (sd.bullets.length) {
+        var textObjects = sd.bullets.slice(0, 7).map(function(b) {
+          return { text: b, options: { fontSize: 13, color: '17223b', bullet: true, breakLine: true } };
+        });
+        slide.addText(textObjects, {
+          x: 0.8, y: 1.3, w: textWidth, h: 3.8, fontFace: 'Arial', lineSpacing: 22
+        });
+      }
+
+      if (hasCode) {
+        slide.addShape(pptx.ShapeType.roundRect, {
+          x: 6.8, y: 1.3, w: 5.8, h: 3.8, fill: { color: '1e1b4b' }, line: { color: '7c3aed', width: 1 }
+        });
+        slide.addText(sd.code.slice(0, 400), {
+          x: 7.0, y: 1.4, w: 5.4, h: 3.6,
+          fontSize: 9.5, color: '86efac', fontFace: 'Courier New'
+        });
+      }
+
+      slide.addText('MEL-IA • ' + (idx + 2), {
+        x: 10.5, y: 5.1, w: 2.2, h: 0.3,
+        fontSize: 9, color: '94a3b8', align: 'right'
+      });
+    });
+
+    pptx.writeFile({ fileName: 'presentation-mel-ia-' + Date.now() + '.pptx' });
+  } catch(err) {
+    console.error('Erreur génération PowerPoint:', err);
+    alert('Erreur création PowerPoint: ' + err.message);
+  }
+}
+
 // ---- Barre d'actions à la fin de chaque réponse IA ----
 function renderFooterActions(wrap) {
   var hasCode = wrap && wrap.querySelectorAll ? wrap.querySelectorAll('.codebox').length : 0;
   return '<div class="msg-footer">' +
-    '<button type="button" class="rf-btn" data-act="copy" title="Copier la réponse">' +
+    '<button type="button" class="rf-btn" data-act="copy" title="Copier toute la réponse">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
       '<span>Copier</span>' +
+    '</button>' +
+    '<button type="button" class="rf-btn" data-act="pdf" title="Télécharger en fichier PDF">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>' +
+      '<span>PDF</span>' +
+    '</button>' +
+    '<button type="button" class="rf-btn" data-act="pptx" title="Télécharger en diaporama PowerPoint (.pptx)">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M7 8h4a2 2 0 0 1 0 4H7z"></path><path d="M7 8v8"></path></svg>' +
+      '<span>PowerPoint</span>' +
     '</button>' +
     '<button type="button" class="rf-btn" data-act="edit" title="Modifier le message envoyé">' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>' +
@@ -637,6 +999,22 @@ function bindReplyFooter(wrap, text) {
         copyBtn.classList.remove('copied');
         if (sp) sp.textContent = 'Copier';
       }, 1800);
+    };
+  }
+
+  var pdfBtn = footer.querySelector('[data-act="pdf"]');
+  if (pdfBtn) {
+    pdfBtn.onclick = function() {
+      var msgContent = text || wrap.querySelector('.msg').getAttribute('data-raw') || wrap.querySelector('.msg').innerText.trim();
+      exportToPdf(msgContent);
+    };
+  }
+
+  var pptxBtn = footer.querySelector('[data-act="pptx"]');
+  if (pptxBtn) {
+    pptxBtn.onclick = function() {
+      var msgContent = text || wrap.querySelector('.msg').getAttribute('data-raw') || wrap.querySelector('.msg').innerText.trim();
+      exportToPptx(msgContent);
     };
   }
 
@@ -675,6 +1053,7 @@ function bindReplyFooter(wrap, text) {
     };
   }
 }
+
 
 // ---- Ajout et affichage des messages ----
 function addMsg(role, text, opts) {
@@ -880,7 +1259,7 @@ function load() {
   }).catch(function() {});
 }
 
-// ---- Fichiers joints (image, vocal, vidéo, doc) ----
+// ---- Fichiers joints & Menu Catégorisé (Image, Doc, Code, Dossier, Audio) ----
 var pendingFile = null;
 
 function clearFile() {
@@ -890,14 +1269,18 @@ function clearFile() {
   $('preview-audio').style.display = 'none';
   $('preview-doc').style.display = 'none';
   $('file').value = '';
+  $('file-img').value = '';
+  $('file-doc').value = '';
+  $('file-code').value = '';
+  $('file-folder').value = '';
+  $('file-audio').value = '';
 }
 
-$('file').addEventListener('change', function() {
-  var f = this.files && this.files[0];
+function handleChosenFile(f, customName) {
   if (!f) return;
-  if (f.size > 15 * 1024 * 1024) { alert('Fichier trop lourd (max 15 Mo).'); this.value = ''; return; }
+  if (f.size > 15 * 1024 * 1024) { alert('Fichier trop lourd (max 15 Mo).'); return; }
   pendingFile = f;
-  $('preview-name').textContent = f.name + ' (' + (f.size / 1024).toFixed(1) + ' Ko)';
+  $('preview-name').textContent = customName || (f.name + ' (' + (f.size / 1024).toFixed(1) + ' Ko)');
   var img = $('preview-img'), aud = $('preview-audio'), doc = $('preview-doc');
   img.style.display = 'none'; aud.style.display = 'none'; doc.style.display = 'none';
   if (f.type.startsWith('image/')) {
@@ -910,7 +1293,69 @@ $('file').addEventListener('change', function() {
     doc.style.display = 'flex';
   }
   $('preview').classList.add('show');
+}
+
+// Menu Trombone
+$('attach').addEventListener('click', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  var m = $('attach-menu');
+  m.hidden = !m.hidden;
 });
+
+document.addEventListener('click', function(e) {
+  var m = $('attach-menu');
+  if (m && !m.hidden && !e.target.closest('#attach-menu') && !e.target.closest('#attach')) {
+    m.hidden = true;
+  }
+});
+
+document.querySelectorAll('.attach-opt').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    $('attach-menu').hidden = true;
+    var t = this.dataset.type;
+    if (t === 'img') $('file-img').click();
+    else if (t === 'doc') $('file-doc').click();
+    else if (t === 'code') $('file-code').click();
+    else if (t === 'folder') $('file-folder').click();
+    else if (t === 'audio') $('file-audio').click();
+  });
+});
+
+$('file-img').addEventListener('change', function() { handleChosenFile(this.files && this.files[0]); });
+$('file-doc').addEventListener('change', function() { handleChosenFile(this.files && this.files[0]); });
+$('file-code').addEventListener('change', function() { handleChosenFile(this.files && this.files[0]); });
+$('file-audio').addEventListener('change', function() { handleChosenFile(this.files && this.files[0]); });
+$('file').addEventListener('change', function() { handleChosenFile(this.files && this.files[0]); });
+
+// Import de dossier complet (webkitdirectory)
+$('file-folder').addEventListener('change', function() {
+  var files = Array.from(this.files || []);
+  if (!files.length) return;
+  // Filtrer les fichiers texte/code utiles
+  var validFiles = files.filter(function(f) {
+    var p = f.webkitRelativePath || f.name;
+    if (p.includes('node_modules/') || p.includes('.git/') || p.includes('__pycache__/') || p.includes('.idea/')) return false;
+    return f.size < 400 * 1024; // < 400 Ko par fichier pour ne pas saturer
+  });
+  if (!validFiles.length) {
+    alert('Aucun fichier texte ou code exploitable trouvé dans ce dossier.');
+    return;
+  }
+  var rootName = (files[0].webkitRelativePath || 'dossier').split('/')[0];
+  var readPromises = validFiles.slice(0, 25).map(function(f) {
+    return f.text().then(function(txt) {
+      return '=== Fichier: ' + (f.webkitRelativePath || f.name) + ' ===\n' + txt;
+    }).catch(function(){ return ''; });
+  });
+  Promise.all(readPromises).then(function(contents) {
+    var full = contents.filter(Boolean).join('\n\n');
+    var blob = new Blob([full], {type: 'text/plain;charset=utf-8'});
+    var synthetic = new File([blob], rootName + '-projet.txt', {type: 'text/plain'});
+    handleChosenFile(synthetic, '📁 Dossier : ' + rootName + ' (' + validFiles.length + ' fichiers lus)');
+  });
+});
+
 $('preview-remove').addEventListener('click', clearFile);
 
 // ---- Toggles recherche web et image ----
@@ -928,42 +1373,130 @@ $('tg-image').addEventListener('click', function() {
   if (forceImage && forceSearch) { forceSearch = false; $('tg-search').classList.remove('on'); $('tg-search').setAttribute('aria-pressed', false); }
 });
 
-// Enregistrement vocal
+// ---- Enregistrement vocal avec visualiseur equalizer (tirets dynamiques) ----
 var mediaRec = null, mediaChunks = [];
-if (!navigator.mediaDevices || !window.MediaRecorder) $('tg-rec').style.display = 'none';
-else {
-  $('tg-rec').addEventListener('click', function() {
-    var btn = this;
-    if (mediaRec && mediaRec.state === 'recording') { mediaRec.stop(); return; }
-    navigator.mediaDevices.getUserMedia({audio: true}).then(function(stream) {
-      mediaChunks = [];
-      mediaRec = new MediaRecorder(stream);
-      mediaRec.ondataavailable = function(e) { if (e.data.size) mediaChunks.push(e.data); };
-      mediaRec.onstop = function() {
-        stream.getTracks().forEach(function(t) { t.stop(); });
-        btn.classList.remove('recording');
-        btn.setAttribute('aria-pressed', false);
-        btn.querySelector('.rec-dot').style.display = 'none';
-        $('rec-label').textContent = 'Vocal';
-        if (mediaChunks.length) {
-          var blob = new Blob(mediaChunks, {type: mediaRec.mimeType || 'audio/webm'});
-          pendingFile = new File([blob], 'vocal-' + Date.now() + '.webm', {type: blob.type});
-          $('preview-name').textContent = 'Message vocal prêt';
-          $('preview-img').style.display = 'none';
-          $('preview-audio').style.display = 'block';
-          $('preview-audio').src = URL.createObjectURL(blob);
-          $('preview-doc').style.display = 'none';
-          $('preview').classList.add('show');
-        }
-      };
-      mediaRec.start();
-      btn.classList.add('recording');
-      btn.setAttribute('aria-pressed', true);
-      btn.querySelector('.rec-dot').style.display = 'block';
-      $('rec-label').textContent = 'Arrêter';
-    }).catch(function() { alert("Accès au micro refusé."); });
+var audioCtx = null, analyser = null, animFrame = null, vrecStream = null;
+var recSeconds = 0, recInterval = null;
+
+function setupWaves() {
+  var container = $('vrec-waveform');
+  if (!container || container.children.length) return;
+  for (var i = 0; i < 24; i++) {
+    var b = document.createElement('div');
+    b.className = 'v-bar';
+    container.appendChild(b);
+  }
+}
+setupWaves();
+
+function formatTime(sec) {
+  var m = Math.floor(sec / 60);
+  var s = sec % 60;
+  return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+function startVoiceRecording() {
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    alert("L'enregistrement vocal n'est pas supporté sur ce navigateur.");
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({audio: true}).then(function(stream) {
+    vrecStream = stream;
+    mediaChunks = [];
+    mediaRec = new MediaRecorder(stream);
+    mediaRec.ondataavailable = function(e) { if (e.data.size) mediaChunks.push(e.data); };
+    mediaRec.onstop = function() {
+      stopVoiceVisualizer();
+      if (mediaChunks.length) {
+        var blob = new Blob(mediaChunks, {type: mediaRec.mimeType || 'audio/webm'});
+        pendingFile = new File([blob], 'vocal-' + Date.now() + '.webm', {type: blob.type});
+        $('preview-name').textContent = 'Message vocal (' + formatTime(recSeconds) + ')';
+        $('preview-img').style.display = 'none';
+        $('preview-audio').style.display = 'block';
+        $('preview-audio').src = URL.createObjectURL(blob);
+        $('preview-doc').style.display = 'none';
+        $('preview').classList.add('show');
+      }
+    };
+
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      var src = audioCtx.createMediaStreamSource(stream);
+      src.connect(analyser);
+      startVoiceVisualizer();
+    } catch(e) {
+      console.warn('AudioContext:', e);
+    }
+
+    mediaRec.start();
+    recSeconds = 0;
+    $('vrec-timer').textContent = '00:00';
+    recInterval = setInterval(function() {
+      recSeconds++;
+      $('vrec-timer').textContent = formatTime(recSeconds);
+    }, 1000);
+
+    $('f').style.display = 'none';
+    $('vrec-bar').style.display = 'flex';
+  }).catch(function() {
+    alert("Accès au microphone refusé.");
   });
 }
+
+function startVoiceVisualizer() {
+  if (!analyser) return;
+  var freqData = new Uint8Array(analyser.frequencyBinCount);
+  var bars = $('vrec-waveform').querySelectorAll('.v-bar');
+
+  function draw() {
+    animFrame = requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(freqData);
+    for (var i = 0; i < bars.length; i++) {
+      var val = freqData[i % freqData.length] || 0;
+      var h = Math.max(4, Math.min(34, Math.round(val / 7.2)));
+      bars[i].style.height = h + 'px';
+      if (val > 110) {
+        bars[i].style.background = 'linear-gradient(to top, #ea580c, #f0a93a)';
+      } else {
+        bars[i].style.background = 'linear-gradient(to top, var(--a1), var(--a3))';
+      }
+    }
+  }
+  draw();
+}
+
+function stopVoiceVisualizer() {
+  if (animFrame) cancelAnimationFrame(animFrame);
+  if (recInterval) clearInterval(recInterval);
+  if (vrecStream) {
+    vrecStream.getTracks().forEach(function(t) { t.stop(); });
+    vrecStream = null;
+  }
+  if (audioCtx) {
+    try { audioCtx.close(); } catch(x) {}
+    audioCtx = null;
+  }
+  $('vrec-bar').style.display = 'none';
+  $('f').style.display = 'flex';
+}
+
+if (!navigator.mediaDevices || !window.MediaRecorder) $('tg-rec').style.display = 'none';
+else {
+  $('tg-rec').addEventListener('click', startVoiceRecording);
+  $('vrec-done').addEventListener('click', function() {
+    if (mediaRec && mediaRec.state === 'recording') mediaRec.stop();
+  });
+  $('vrec-cancel').addEventListener('click', function() {
+    if (mediaRec && mediaRec.state === 'recording') {
+      mediaChunks = [];
+      mediaRec.stop();
+    }
+    stopVoiceVisualizer();
+  });
+}
+
 
 // ---- Contrôle de génération & Streaming SSE ----
 function setGenerating(isGen) {
@@ -1419,6 +1952,42 @@ $('set-save').addEventListener('click', function() {
     .catch(function(e) { alert(e.message); });
 });
 $('set-close').addEventListener('click', function() { $('setd').close(); });
+
+// ---- Sauvegarde & Restauration (Anti-perte Render) ----
+$('btn-export-db').addEventListener('click', function() {
+  api('/api/db/export').then(function(data) {
+    var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'mel-ia-sauvegarde-' + (data.user && data.user.username ? data.user.username + '-' : '') + new Date().toISOString().slice(0, 10) + '.json';
+    a.click();
+  }).catch(function(e) { alert(e.message); });
+});
+
+$('btn-import-db').addEventListener('click', function() {
+  $('file-import-db').click();
+});
+
+$('file-import-db').addEventListener('change', function() {
+  var file = this.files && this.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var json = JSON.parse(e.target.result);
+      api('/api/db/import', {method: 'POST', body: JSON.stringify(json)}).then(function(res) {
+        alert('Restauration réussie ! ' + res.restored_sessions + ' discussions et ' + res.restored_messages + ' messages restaurés.');
+        loadSessions();
+        load();
+        $('setd').close();
+      }).catch(function(err) { alert('Erreur d\'importation : ' + err.message); });
+    } catch(ex) {
+      alert('Fichier de sauvegarde invalide (JSON attendu).');
+    }
+  };
+  reader.readAsText(file);
+});
+
 
 // ---- Initialisation au démarrage ----
 load();

@@ -448,7 +448,9 @@ def system_prompt(facts: list[str], persona: str = "", interests: str = "", memo
         "3. Analyse de code : Quand ton utilisateur te donne du code, analyse-le en profondeur, trouve les failles, explique le pourquoi et propose du code propre, robuste, moderne et testé.\n"
         "4. Questions de cours : Donne des définitions nettes et précises, immédiatement suivies d'exemples concrets.\n"
         "5. Zéro complaisance : Ne dis jamais oui par complaisance. Si son approche d'un problème est mauvaise ou sous-optimale, alerte-le fermement et propose une meilleure architecture ou logique.\n"
-        "6. Priorités : L'accompagner au quotidien sur ses projets, ses partiels et examens à préparer, et les sujets sur lesquels il veut progresser en priorité.\n\n"
+        "6. Priorités : L'accompagner au quotidien sur ses projets, ses partiels et examens à préparer, et les sujets sur lesquels il veut progresser en priorité.\n"
+        "7. Code & Prompts : Place toujours le code ou les prompts dans des blocs markdown explicites (ex: ```python ou ```prompt) afin que l'interface offre à l'utilisateur un bouton dédié pour copier uniquement le code ou le prompt en un clic.\n"
+        "8. Fichiers PDF et PowerPoint : Quand on te demande un cours, un rapport, un document ou un PowerPoint/slides, structure rigoureusement avec des diapositives ou sections nettes ('## Slide X : Titre', points clés, exemples de code). Indique brièvement à l'utilisateur qu'il peut télécharger directement le fichier PDF ou PowerPoint (.pptx) via les boutons d'export sous le message.\n\n"
         "### MÉMOIRE CONTINUE & SYNCHRONISATION MULTI-CHATS :\n"
         "Tu possèdes une mémoire universelle et continue de tout ce que ton utilisateur t'a déjà dit à travers TOUTES ses discussions (passées, présentes, récentes ou anciennes).\n"
         "Même si un sujet, un code, une idée ou un détail de cours a été abordé dans un autre chat il y a des jours, des mois ou des années, tu t'en souviens et tu fais naturellement le lien, comme dans une vraie relation de mentorat continu.\n"
@@ -1265,6 +1267,76 @@ def del_fact(fid: int, x_auth_token: str | None = Header(None)):
     with db() as c:
         c.execute("DELETE FROM facts WHERE id=? AND user_id IS ?", (fid, uid))
     return {"ok": True}
+
+
+# ---------- Sauvegarde & Restauration (Anti-perte de données) ----------
+@app.get("/api/db/export")
+def export_user_data(x_auth_token: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    if not user:
+        raise HTTPException(401, "Connectez-vous pour exporter vos données.")
+    uid = user["id"]
+    with db() as c:
+        sessions = [dict(r) for r in c.execute("SELECT id, title, created_at, updated_at FROM sessions WHERE user_id = ?", (uid,)).fetchall()]
+        messages = [dict(r) for r in c.execute("SELECT role, content, ts, session_id, media_kind FROM messages WHERE user_id = ? ORDER BY id ASC", (uid,)).fetchall()]
+        facts = [dict(r) for r in c.execute("SELECT id, text, ts FROM facts WHERE user_id = ?", (uid,)).fetchall()]
+        keys = [dict(r) for r in c.execute("SELECT label, api_key, created_at FROM api_keys WHERE user_id = ?", (uid,)).fetchall()]
+    return {
+        "version": 1,
+        "exported_at": time.time(),
+        "user": {
+            "username": user["username"],
+            "model_pref": user["model_pref"],
+            "persona": user["persona"],
+            "interests": user["interests"],
+        },
+        "sessions": sessions,
+        "messages": messages,
+        "facts": facts,
+        "api_keys": keys,
+    }
+
+
+class ImportData(BaseModel):
+    version: int = 1
+    sessions: list[dict] = []
+    messages: list[dict] = []
+    facts: list[dict] = []
+    api_keys: list[dict] = []
+
+
+@app.post("/api/db/import")
+def import_user_data(body: ImportData, x_auth_token: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    if not user:
+        raise HTTPException(401, "Connectez-vous pour importer vos données.")
+    uid = user["id"]
+    s_count = 0
+    m_count = 0
+    f_count = 0
+    with db() as c:
+        for s in body.sessions:
+            sid = s.get("id")
+            if not sid:
+                continue
+            c.execute(
+                "INSERT OR IGNORE INTO sessions(id, title, created_at, updated_at, user_id) VALUES(?,?,?,?,?)",
+                (sid, s.get("title") or "Discussion", s.get("created_at") or time.time(), s.get("updated_at") or time.time(), uid),
+            )
+            s_count += 1
+        for m in body.messages:
+            c.execute(
+                "INSERT INTO messages(role, content, ts, session_id, media_kind, user_id) VALUES(?,?,?,?,?,?)",
+                (m.get("role", "user"), m.get("content", ""), m.get("ts") or time.time(), m.get("session_id", "default"), m.get("media_kind"), uid),
+            )
+            m_count += 1
+        for f in body.facts:
+            txt = f.get("text", "").strip()
+            if txt:
+                c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (txt, f.get("ts") or time.time(), uid))
+                f_count += 1
+    return {"ok": True, "restored_sessions": s_count, "restored_messages": m_count, "restored_facts": f_count}
+
 
 
 # ---------- Pages ----------
