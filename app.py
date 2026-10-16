@@ -481,12 +481,16 @@ def get_model_candidates() -> list[str]:
     candidates = []
     if MODEL and MODEL != "auto":
         candidates.append(MODEL)
-    # Modèles actifs vérifiés dans l'API Gemini
+    # Modèles actifs vérifiés dans l'API Gemini (ordre de fiabilité et rapidité)
     defaults = [
         "gemini-flash-lite-latest",
-        "gemini-3.8-flash",
-        "gemma-4-31b-it",
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-3.6-flash",
         "gemini-flash-latest",
+        "gemini-3-flash-preview",
+        "gemma-4-26b-a4b-it",
+        "gemini-3.8-flash",
         "gemini-pro-latest",
     ]
     for m in defaults:
@@ -503,8 +507,9 @@ def _history_parts(m: dict) -> list[dict]:
         except Exception:
             pass
     parts: list[dict] = []
-    if m.get("content"):
-        parts.append({"text": m["content"]})
+    txt = (m.get("content") or "").strip()
+    if txt:
+        parts.append({"text": txt})
     mp = m.get("media_path")
     kind = m.get("media_kind")
     if mp and kind in ("image", "audio", "video", "document"):
@@ -521,14 +526,14 @@ def _history_parts(m: dict) -> list[dict]:
                         pass
                 elif raw and len(raw) <= 20 * 1024 * 1024:
                     parts.append({
-                        "inline_data": {
-                            "mime_type": mime,
+                        "inlineData": {
+                            "mimeType": mime,
                             "data": base64.b64encode(raw).decode("ascii"),
                         }
                     })
         except OSError:
             pass
-    return parts or [{"text": "(message vide)"}]
+    return parts or [{"text": "..."}]
 
 
 def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = None,
@@ -541,12 +546,20 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
             400,
             "Aucune clé API Gemini : veuillez renseigner votre clé API dans Paramètres ou vous connecter avec un compte valide.",
         )
+    clean_contents = []
+    for m in history:
+        pts = _history_parts(m)
+        if pts:
+            role = "user" if m.get("role") == "user" else "model"
+            clean_contents.append({"role": role, "parts": pts})
+    if not clean_contents:
+        clean_contents = [{"role": "user", "parts": [{"text": "Bonjour"}]}]
+    if clean_contents[0]["role"] != "user":
+        clean_contents.insert(0, {"role": "user", "parts": [{"text": "Bonjour"}]})
+
     body = {
         "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories)}]},
-        "contents": [
-            {"role": "user" if m["role"] == "user" else "model", "parts": _history_parts(m)}
-            for m in history
-        ],
+        "contents": clean_contents,
     }
     # Recherche web : grounding Google Search (citations + actualités)
     if search:
@@ -571,11 +584,27 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
                     f"{API_BASE}/models/{model}:generateContent",
                     headers={"x-goog-api-key": key, "Content-Type": "application/json"},
                     json=body,
-                    timeout=90,
+                    timeout=25,
                 )
             except httpx.HTTPError as exc:
                 last_err = f"Connexion expirée ({exc})"
                 continue
+
+            # Fallback immédiat si tools (Google Search) échoue par quota 429 ou 400
+            if r.status_code in (400, 429) and "tools" in body:
+                try:
+                    no_tool_body = {k: v for k, v in body.items() if k != "tools"}
+                    r2 = httpx.post(
+                        f"{API_BASE}/models/{model}:generateContent",
+                        headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                        json=no_tool_body,
+                        timeout=25,
+                    )
+                    if r2.status_code == 200:
+                        r = r2
+                        search = False
+                except Exception:
+                    pass
 
             if r.status_code == 200:
                 _cache["model"] = model
@@ -927,12 +956,20 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
             return
 
         memories = get_cross_session_context(uid, sid, text)
+        clean_rows = []
+        for m in rows:
+            pts = _history_parts(dict(m))
+            if pts:
+                role = "user" if m["role"] == "user" else "model"
+                clean_rows.append({"role": role, "parts": pts})
+        if not clean_rows:
+            clean_rows = [{"role": "user", "parts": [{"text": "Bonjour"}]}]
+        if clean_rows[0]["role"] != "user":
+            clean_rows.insert(0, {"role": "user", "parts": [{"text": "Bonjour"}]})
+
         req_body = {
             "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories)}]},
-            "contents": [
-                {"role": "user" if m["role"] == "user" else "model", "parts": _history_parts(m)}
-                for m in rows
-            ],
+            "contents": clean_rows,
         }
         if do_search:
             req_body["tools"] = [{"google_search": {}}]
@@ -951,21 +988,41 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
         used_model = candidates[0]
         success = False
 
-        async with httpx.AsyncClient(timeout=90) as client:
+        async with httpx.AsyncClient(timeout=35) as client:
             for key in keys:
                 for model in candidates:
                     try:
                         url = f"{API_BASE}/models/{model}:streamGenerateContent?alt=sse"
-                        async with client.stream(
-                            "POST",
-                            url,
-                            headers={"x-goog-api-key": key, "Content-Type": "application/json"},
-                            json=req_body,
-                        ) as r:
-                            if r.status_code != 200:
-                                if r.status_code in (401, 403):
-                                    break
-                                continue
+                        # Tentative avec le body préparé
+                        target_body = req_body
+                        r = await client.send(
+                            client.build_request(
+                                "POST",
+                                url,
+                                headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                                json=target_body,
+                            ),
+                            stream=True,
+                        )
+                        # Si échec sur tools (400 ou 429), retenter immédiatement sans tools
+                        if r.status_code in (400, 429) and "tools" in target_body:
+                            await r.aclose()
+                            target_body = {k: v for k, v in target_body.items() if k != "tools"}
+                            r = await client.send(
+                                client.build_request(
+                                    "POST",
+                                    url,
+                                    headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                                    json=target_body,
+                                ),
+                                stream=True,
+                            )
+                        if r.status_code != 200:
+                            await r.aclose()
+                            if r.status_code in (401, 403):
+                                break
+                            continue
+
                             used_model = model
                             _cache["model"] = model
                             async for line in r.aiter_lines():

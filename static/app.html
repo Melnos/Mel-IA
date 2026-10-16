@@ -307,7 +307,7 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
 .chip-user .u-avatar{width:24px;height:24px;border-radius:50%;background:var(--a1);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;text-transform:uppercase}
 .chip-user .u-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* RESPONSIVE SMARTPHONE (Écrans mobiles <= 768px) */
+/* RESPONSIVE DESIGN (Tablettes et Mobiles <= 768px & <= 480px) */
 @media (max-width: 768px) {
   :root{
     --header-h: 56px;
@@ -326,21 +326,137 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
     z-index:1000;
   }
   .sidebar.open{transform:translateX(0)}
-  header{padding:0 12px}
-  #list{padding:14px 10px 8px}
+  header{padding:0 12px;gap:8px}
+  .header-title{font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .header-tools{gap:4px;flex-shrink:0}
+  .icon-btn{width:36px;height:36px}
+  #list{padding:12px 10px 6px}
   .col{padding:0 2px}
-  .msg-wrap{margin-bottom:16px;gap:8px}
-  .msg{max-width:94%;font-size:14.5px;padding:10px 14px}
+  .msg-wrap{margin-bottom:14px;gap:8px}
+  .msg-wrap .avatar{width:28px;height:28px}
+  .msg-wrap .avatar svg{width:16px;height:16px}
+  .msg{max-width:92%;font-size:14px;padding:10px 14px}
   .msg-wrap.user .msg{max-width:88%}
-  .input-area{padding:8px 10px max(12px, env(safe-area-inset-bottom))}
-  #in{font-size:16px;padding:6px 10px} /* 16px évite le zoom auto Safari iOS */
+  .input-area{padding:6px 10px max(10px, env(safe-area-inset-bottom))}
+  .input-wrap{width:100%}
+  #f{padding:4px 6px 4px 6px;gap:6px;border-radius:20px}
+  #in{font-size:16px;padding:6px 8px;min-height:24px} /* 16px évite le zoom auto sur iOS */
+  #send{width:36px;height:36px}
+  #send svg{width:16px;height:16px}
+  #attach{width:34px;height:34px}
   .chips{gap:8px}
-  .chip{padding:10px 14px;font-size:13px}
-  .mode-toggles{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .chip{padding:9px 13px;font-size:12.5px}
+  .mode-toggles{gap:6px;padding:4px 0 2px;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .mode-toggles::-webkit-scrollbar{display:none}
-  .rf-btn{padding:5px 10px;font-size:12px}
-  .empty-state{padding:30px 14px}
-  .empty-state h2{font-size:26px}
+  .mode-toggle{padding:5px 10px;font-size:11.5px;flex-shrink:0}
+  .input-hint{display:none}
+  .attach-menu{left:8px;right:8px;width:auto;max-width:none;bottom:calc(100% + 8px)}
+  .rf-btn{padding:5px 10px;font-size:11.5px}
+  .user-msg-footer{gap:4px}
+  .uf-btn{padding:3px 8px;font-size:11px}
+  .empty-state{padding:24px 12px}
+  .empty-state h2{font-size:24px}
+  .empty-state .atom-wrap{width:72px;height:72px;margin-bottom:12px}
+
+  /* Cartes Artefacts Claude adaptatives sur mobile */
+  .artifact-card{
+    flex-direction:column;
+    align-items:stretch;
+    padding:12px 14px;
+    gap:10px;
+  }
+  .artifact-info{width:100%}
+  .artifact-actions{
+    width:100%;
+    display:flex;
+    gap:8px;
+    margin-top:2px;
+  }
+  .art-btn{
+    flex:1;
+    justify-content:center;
+    padding:7px 10px;
+    font-size:12px;
+  }
+
+  /* Volet Artefacts Claude plein écran sur mobile */
+  .claude-drawer{
+    width:100vw !important;
+    max-width:100vw !important;
+    border-left:none;
+  }
+  .drawer-head{
+    padding:10px 12px;
+    gap:6px;
+    flex-wrap:nowrap;
+  }
+  .drawer-title{
+    font-size:13.5px;
+    max-width:160px;
+  }
+  .drawer-actions{
+    gap:4px;
+  }
+  .drawer-nav{
+    padding:5px 10px;
+    gap:6px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .d-tab{
+    padding:5px 10px;
+    font-size:11.5px;
+  }
+  .drawer-code-wrap{
+    padding:12px;
+  }
+  .drawer-code-wrap pre{
+    font-size:12px;
+  }
+
+  /* Tableaux & Blocs de code */
+  .codebox{margin:8px 0;border-radius:10px}
+  .codebox-bar{padding:6px 10px;gap:6px}
+  .codebox-file{max-width:120px;font-size:10px}
+  .cb-btn{padding:3px 7px;font-size:11px}
+  .codebox pre, .msg pre{font-size:12px;padding:10px 12px}
+  .table-wrap{margin:8px 0}
+  .msg table{font-size:12.5px}
+  .msg th, .msg td{padding:6px 9px}
+
+  /* Modale Paramètres */
+  dialog{
+    width:94%;
+    max-width:440px;
+    padding:20px 16px;
+    border-radius:18px;
+    max-height:88vh;
+  }
+  .key-add{gap:6px}
+  .key-add input{font-size:13px;padding:8px 10px}
+  .key-add button{font-size:12.5px;padding:8px 12px}
+}
+
+@media (max-width: 480px) {
+  header{padding:0 8px}
+  .header-title{font-size:15px}
+  .icon-btn{width:34px;height:34px}
+  .icon-btn svg{width:16px;height:16px}
+  .msg{max-width:96%;padding:9px 12px;font-size:13.5px}
+  .msg-wrap.user .msg{max-width:92%}
+  .input-area{padding:4px 8px max(8px, env(safe-area-inset-bottom))}
+  #f{padding:3px 5px}
+  #in{font-size:16px;padding:5px 6px}
+  .mode-toggle{padding:4px 8px;font-size:11px}
+  .gate-card{padding:22px 14px 16px;border-radius:18px}
+  .gate-card h1{font-size:26px}
+  .gate-badge{font-size:11.5px;padding:4px 10px}
+  .tab{padding:7px;font-size:12.5px}
+  .gate-form input{padding:10px 12px;font-size:14px}
+  .dialog-btn{padding:10px;font-size:13px}
+  .vrec-bar{padding:5px 8px;gap:6px}
+  .vrec-info{font-size:11.5px}
+  .vrec-action-btn{padding:5px 9px;font-size:11px}
 }
 
 /* ---- Claude Artifacts System ---- */
