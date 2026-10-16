@@ -486,12 +486,7 @@ def get_model_candidates() -> list[str]:
         "gemini-flash-lite-latest",
         "gemini-3.5-flash-lite",
         "gemini-3.5-flash",
-        "gemini-3.6-flash",
-        "gemini-flash-latest",
         "gemini-3-flash-preview",
-        "gemma-4-26b-a4b-it",
-        "gemini-3.8-flash",
-        "gemini-pro-latest",
     ]
     for m in defaults:
         if m not in candidates:
@@ -734,7 +729,7 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
 # ---------- API ----------
 class ChatIn(BaseModel):
     message: str
-    session_id: str = "default"
+    session_id: str | None = "default"
     search: bool | None = None          # force la recherche web (None = auto)
     generate_image: bool | None = None  # force la génération d'image (None = auto)
     replace_last: bool = False          # pour régénérer proprement sans doublon
@@ -762,7 +757,10 @@ def get_sessions(x_auth_token: str | None = Header(None)):
             "SELECT id, title, created_at, updated_at FROM sessions WHERE user_id IS ? ORDER BY updated_at DESC",
             (uid,),
         ).fetchall()
-        return {"sessions": [dict(r) for r in rows]}
+        res = [dict(r) for r in rows]
+        if not res:
+            res = [{"id": "default", "title": "Discussion principale", "created_at": time.time(), "updated_at": time.time()}]
+        return {"sessions": res}
 
 
 @app.post("/api/sessions")
@@ -872,6 +870,7 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
 
 
 @app.post("/api/chat/stream")
+@app.post("/api/chat-stream")
 async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
     """Streaming SSE : envoie les tokens en temps réel au client."""
     user = current_user(x_auth_token)
@@ -1023,35 +1022,36 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                                 break
                             continue
 
-                            used_model = model
-                            _cache["model"] = model
-                            async for line in r.aiter_lines():
-                                line = line.strip()
-                                if not line or not line.startswith("data:"):
-                                    continue
-                                raw_json = line[5:].strip()
-                                if raw_json == "[DONE]":
-                                    break
-                                try:
-                                    chunk_data = json.loads(raw_json)
-                                    cand = (chunk_data.get("candidates") or [{}])[0]
-                                    parts = cand.get("content", {}).get("parts", [])
-                                    text_piece = "".join(p.get("text", "") for p in parts if "text" in p)
-                                    if not sources:
-                                        meta = cand.get("groundingMetadata", {})
-                                        for ch in meta.get("groundingChunks", []):
-                                            web = ch.get("web") or {}
-                                            u = web.get("uri") or web.get("url") or ""
-                                            if u and not any(s["url"] == u for s in sources):
-                                                sources.append({"title": (web.get("title") or u)[:120], "url": u})
-                                    if text_piece:
-                                        full_reply += text_piece
-                                        yield f"data: {json.dumps({'chunk': text_piece, 'done': False})}\n\n"
-                                except Exception:
-                                    continue
-                            if full_reply:
-                                success = True
+                        used_model = model
+                        _cache["model"] = model
+                        async for line in r.aiter_lines():
+                            line = line.strip()
+                            if not line or not line.startswith("data:"):
+                                continue
+                            raw_json = line[5:].strip()
+                            if raw_json == "[DONE]":
                                 break
+                            try:
+                                chunk_data = json.loads(raw_json)
+                                cand = (chunk_data.get("candidates") or [{}])[0]
+                                parts = cand.get("content", {}).get("parts", [])
+                                text_piece = "".join(p.get("text", "") for p in parts if "text" in p)
+                                if not sources:
+                                    meta = cand.get("groundingMetadata", {})
+                                    for ch in meta.get("groundingChunks", []):
+                                        web = ch.get("web") or {}
+                                        u = web.get("uri") or web.get("url") or ""
+                                        if u and not any(s["url"] == u for s in sources):
+                                            sources.append({"title": (web.get("title") or u)[:120], "url": u})
+                                if text_piece:
+                                    full_reply += text_piece
+                                    yield f"data: {json.dumps({'chunk': text_piece, 'done': False})}\n\n"
+                            except Exception:
+                                continue
+                        await r.aclose()
+                        if full_reply:
+                            success = True
+                            break
                     except Exception:
                         continue
                 if success:
@@ -1099,7 +1099,7 @@ def _kind_of(filename: str, mime: str) -> str | None:
 @app.post("/api/chat-media")
 async def chat_media(
     message: str = Form(""),
-    session_id: str = Form("default"),
+    session_id: str | None = Form("default"),
     file: UploadFile = File(...),
     x_auth_token: str | None = Header(None),
 ):
