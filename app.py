@@ -8,7 +8,12 @@ from pathlib import Path
 
 import httpx
 import json
+from pathlib import Path
 from dotenv import load_dotenv
+
+BASE = Path(__file__).parent
+load_dotenv(BASE / ".env")
+
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,8 +21,6 @@ from pydantic import BaseModel
 
 from database import db, init_db, DBIntegrityError, IS_POSTGRES
 
-load_dotenv()
-BASE = Path(__file__).parent
 DB_PATH = BASE / "data" / "mel_ia.db"
 DB_PATH.parent.mkdir(exist_ok=True)
 MEDIA_DIR = BASE / "data" / "media"
@@ -105,28 +108,45 @@ _ENC_FILE = BASE / "data" / ".enc_key"
 
 def _load_fernet():
     try:
-        from cryptography.fernet import Fernet
+        from cryptography.fernet import Fernet, MultiFernet
     except ImportError:
         return None
+    fernets = []
+    if _ENC_FILE.exists():
+        try:
+            raw = _ENC_FILE.read_bytes().strip()
+            if raw:
+                fernets.append(Fernet(raw))
+        except Exception:
+            pass
     env_k = os.getenv("SECRET_KEY", "").strip()
     if env_k:
         try:
-            stable_key = base64.urlsafe_b64encode(hashlib.sha256(env_k.encode()).digest())
-            return Fernet(stable_key)
+            fernets.append(Fernet(env_k.encode()))
         except Exception:
-            pass
-    if _ENC_FILE.exists():
-        raw = _ENC_FILE.read_bytes()
-    else:
+            try:
+                stable_key = base64.urlsafe_b64encode(hashlib.sha256(env_k.encode()).digest())
+                fernets.append(Fernet(stable_key))
+            except Exception:
+                pass
+    fallback_seed = "mel-ia-stable-encryption-key-seed-2026"
+    fallback_key = base64.urlsafe_b64encode(hashlib.sha256(fallback_seed.encode()).digest())
+    try:
+        fernets.append(Fernet(fallback_key))
+    except Exception:
+        pass
+    if not _ENC_FILE.exists() and not fernets:
         raw = Fernet.generate_key()
         try:
             _ENC_FILE.write_bytes(raw)
+            fernets.insert(0, Fernet(raw))
         except Exception:
             pass
-    try:
-        return Fernet(raw)
-    except Exception:
+    if not fernets:
         return None
+    if len(fernets) == 1:
+        return fernets[0]
+    return MultiFernet(fernets)
 
 
 _FERNET = _load_fernet()
@@ -518,8 +538,8 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
         raise HTTPException(
-            401,
-            "Aucune clé API Gemini : veuillez vous connecter avec votre compte ou renseigner votre clé API sur la page de connexion.",
+            400,
+            "Aucune clé API Gemini : veuillez renseigner votre clé API dans Paramètres ou vous connecter avec un compte valide.",
         )
     body = {
         "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories)}]},
@@ -626,8 +646,8 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
         raise HTTPException(
-            401,
-            "Aucune clé API Gemini disponible : connectez-vous avec votre compte ou ajoutez une clé.",
+            400,
+            "Aucune clé API Gemini disponible : connectez-vous avec votre compte ou ajoutez une clé dans Paramètres.",
         )
 
     # 1. Tentative avec Google Imagen 3 via endpoint officiel :predict
@@ -826,12 +846,14 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
 async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
     """Streaming SSE : envoie les tokens en temps réel au client."""
     user = current_user(x_auth_token)
+    if x_auth_token and not user:
+        raise HTTPException(401, "Session expirée. Veuillez vous reconnecter.")
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
         raise HTTPException(
-            401,
-            "Session expirée ou non connecté : veuillez vous connecter ou créer un compte avec votre clé API Gemini.",
+            400,
+            "Aucune clé API Gemini disponible : veuillez renseigner votre clé API dans Paramètres.",
         )
     uid = user["id"] if user else None
     text = body.message.strip()
@@ -1026,12 +1048,14 @@ async def chat_media(
 ):
     """Envoie un message avec image / vocal / vidéo / document. Le fichier est stocké et analysé par Gemini."""
     user = current_user(x_auth_token)
+    if x_auth_token and not user:
+        raise HTTPException(401, "Session expirée. Veuillez vous reconnecter.")
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
         raise HTTPException(
-            401,
-            "Session expirée ou non connecté : veuillez vous connecter ou créer un compte avec votre clé API Gemini.",
+            400,
+            "Aucune clé API Gemini disponible : veuillez renseigner votre clé API dans Paramètres.",
         )
     uid = user["id"] if user else None
     text = (message or "").strip()

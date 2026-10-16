@@ -1560,8 +1560,9 @@ function renderClaudeCode() {
 
 // ---- Barre d'actions à la fin de chaque réponse IA ----
 function renderFooterActions(wrap, text) {
-  var raw = text || (wrap && wrap.querySelector ? (wrap.querySelector('.msg').getAttribute('data-raw') || wrap.querySelector('.msg').innerText.trim()) : '');
-  var hasCode = wrap && wrap.querySelectorAll ? wrap.querySelectorAll('.codebox').length : 0;
+  var msgNode = (wrap && wrap.querySelector) ? wrap.querySelector('.msg') : null;
+  var raw = text || (msgNode ? (msgNode.getAttribute('data-raw') || msgNode.innerText.trim()) : '');
+  var hasCode = (wrap && wrap.querySelectorAll) ? wrap.querySelectorAll('.codebox').length : 0;
   if (!hasCode && raw) hasCode = (raw.indexOf('```') !== -1);
   var hasTable = raw && (raw.indexOf('|') !== -1 && raw.indexOf('---') !== -1);
   var hasSlides = raw && (raw.indexOf('## Slide') !== -1 || raw.indexOf('Slide ') !== -1 || raw.indexOf('# ') !== -1);
@@ -1589,10 +1590,11 @@ function renderFooterActions(wrap, text) {
 }
 
 function bindReplyFooter(wrap, text) {
-  var footer = wrap.querySelector('.msg-footer');
+  var footer = wrap ? wrap.querySelector('.msg-footer') : null;
   if (!footer) return;
 
-  var msgContent = text || wrap.querySelector('.msg').getAttribute('data-raw') || wrap.querySelector('.msg').innerText.trim();
+  var msgNode = wrap.querySelector ? wrap.querySelector('.msg') : null;
+  var msgContent = text || (msgNode ? (msgNode.getAttribute('data-raw') || msgNode.innerText.trim()) : '');
 
   var copyBtn = footer.querySelector('[data-act="copy"]');
   if (copyBtn) {
@@ -1642,13 +1644,15 @@ function bindReplyFooter(wrap, text) {
       }
       if (prev) {
         var userMsgEl = prev.querySelector('.msg');
-        var uText = userMsgEl.getAttribute('data-raw') || userMsgEl.innerText.trim();
-        var inp = $('in');
-        inp.value = uText;
-        inp.style.height = 'auto';
-        inp.style.height = Math.min(inp.scrollHeight, 160) + 'px';
-        inp.focus();
-        inp.scrollIntoView({behavior: 'smooth', block: 'center'});
+        var uText = userMsgEl ? (userMsgEl.getAttribute('data-raw') || userMsgEl.innerText.trim()) : '';
+        if (uText) {
+          var inp = $('in');
+          inp.value = uText;
+          inp.style.height = 'auto';
+          inp.style.height = Math.min(inp.scrollHeight, 160) + 'px';
+          inp.focus();
+          inp.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
       }
     };
   }
@@ -1661,14 +1665,14 @@ function bindReplyFooter(wrap, text) {
         prev = prev.previousElementSibling;
       }
       if (!prev) return;
+      var userMsgEl = prev.querySelector('.msg');
+      if (!userMsgEl) return;
       var uText = userMsgEl.getAttribute('data-raw') || userMsgEl.innerText.trim();
       if (!uText) return;
       doSendStream(uText, wrap, true);
     };
   }
 }
-
-
 
 // ---- Actions sous chaque requête utilisateur (Modifier, Copier, Réessayer) ----
 function renderUserFooterActions(text) {
@@ -1689,13 +1693,15 @@ function renderUserFooterActions(text) {
 }
 
 function bindUserFooter(wrap, text) {
-  var footer = wrap.querySelector('.user-msg-footer');
+  var footer = wrap ? wrap.querySelector('.user-msg-footer') : null;
   if (!footer) return;
+
+  var msgNode = wrap.querySelector ? wrap.querySelector('.msg') : null;
+  var raw = text || (msgNode ? (msgNode.getAttribute('data-raw') || msgNode.innerText.trim()) : '') || '';
 
   var editBtn = footer.querySelector('[data-uact="edit"]');
   if (editBtn) {
     editBtn.onclick = function() {
-      var raw = text || wrap.querySelector('.msg').getAttribute('data-raw') || '';
       var inp = $('in');
       inp.value = raw;
       inp.style.height = 'auto';
@@ -1708,7 +1714,6 @@ function bindUserFooter(wrap, text) {
   var copyBtn = footer.querySelector('[data-uact="copy"]');
   if (copyBtn) {
     copyBtn.onclick = function() {
-      var raw = text || wrap.querySelector('.msg').getAttribute('data-raw') || '';
       navigator.clipboard && navigator.clipboard.writeText(raw);
       copyBtn.classList.add('copied');
       var sp = copyBtn.querySelector('span');
@@ -1723,7 +1728,6 @@ function bindUserFooter(wrap, text) {
   var retryBtn = footer.querySelector('[data-uact="retry"]');
   if (retryBtn) {
     retryBtn.onclick = function() {
-      var raw = text || wrap.querySelector('.msg').getAttribute('data-raw') || '';
       if (!raw) return;
       send(raw);
     };
@@ -1753,7 +1757,7 @@ function addMsg(role, text, opts) {
     if (text) html += renderUserFooterActions(text);
   } else if (text) {
     html += renderMarkdown(text);
-    html += renderFooterActions(wrap);
+    html += renderFooterActions(wrap, text);
   }
   html += '</div>';
   wrap.innerHTML = html;
@@ -1794,7 +1798,7 @@ function paintReply(wrap, j) {
           '<span class="s-title">' + esc(s.title) + '</span><span class="s-host">' + esc(host) + '</span></a>';
       }).join('') + '</div>';
   }
-  html += renderFooterActions(wrap);
+  html += renderFooterActions(wrap, j.reply || '');
   msg.innerHTML = html;
   bindReplyFooter(wrap, j.reply || '');
   var zoom = msg.querySelector('img.media');

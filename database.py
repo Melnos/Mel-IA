@@ -22,7 +22,10 @@ except ImportError:
 # Exception unifiée pour les contraintes d'intégrité (ex: nom d'utilisateur déjà pris)
 DBIntegrityError = (sqlite3.IntegrityError, PG_IntegrityError)
 
+from dotenv import load_dotenv
+
 BASE = Path(__file__).parent
+load_dotenv(BASE / ".env")
 SQLITE_PATH = BASE / "data" / "mel_ia.db"
 SQLITE_PATH.parent.mkdir(exist_ok=True)
 
@@ -37,25 +40,36 @@ if DATABASE_URL and HAS_PG:
     dsn = DATABASE_URL
     if dsn.startswith("postgres://"):
         dsn = dsn.replace("postgres://", "postgresql://", 1)
+    # Nettoyer channel_binding si présent (peut bloquer le handshake SSL sous Windows libpq)
+    dsn = re.sub(r"[&?]channel_binding=[^&]*", "", dsn)
     # Assurer sslmode=require si c'est Neon ou un hôte distant sans paramètre ssl
     if "sslmode=" not in dsn and ("neon.tech" in dsn or not dsn.startswith("postgresql://localhost")):
         sep = "&" if "?" in dsn else "?"
         dsn = f"{dsn}{sep}sslmode=require"
     PG_DSN = dsn
-    try:
-        # Test immédiat de la connexion pour valider le DSN
-        test_conn = psycopg2.connect(PG_DSN, connect_timeout=5)
-        test_conn.close()
-        _pg_pool = psycopg2.pool.ThreadedConnectionPool(
-            minconn=1,
-            maxconn=10,
-            dsn=PG_DSN,
-        )
-        IS_POSTGRES = True
-        logger.info("Connecté avec succès à la base de données PostgreSQL (Neon).")
-    except Exception as e:
-        logger.warning(f"Impossible de se connecter à PostgreSQL/Neon ({e}). Fallback sur SQLite local.")
-        IS_POSTGRES = False
+
+    # Boucle de tentative : Neon suspend ses instances gratuites, le réveil peut prendre ~10-15s
+    for attempt in range(1, 4):
+        try:
+            logger.info(f"Connexion à Neon PostgreSQL en cours... (essai {attempt}/3)")
+            test_conn = psycopg2.connect(PG_DSN, connect_timeout=25)
+            test_conn.close()
+            _pg_pool = psycopg2.pool.ThreadedConnectionPool(
+                minconn=1,
+                maxconn=10,
+                dsn=PG_DSN,
+                connect_timeout=25,
+            )
+            IS_POSTGRES = True
+            logger.info("Connecté avec succès à la base de données PostgreSQL (Neon).")
+            break
+        except Exception as e:
+            if attempt < 3:
+                time.sleep(2)
+            else:
+                logger.warning(f"Impossible de se connecter à PostgreSQL/Neon ({e}). Fallback sur SQLite local.")
+                IS_POSTGRES = False
+
 
 
 class SQLiteRowWrapper:
@@ -158,21 +172,27 @@ def db():
     S'assure du commit automatique et de la libération des ressources."""
     if IS_POSTGRES and _pg_pool:
         conn = None
+        is_from_pool = False
         try:
             conn = _pg_pool.getconn()
+            is_from_pool = True
             # Vérification de la vivacité (Neon auto-suspend après inactivité)
+            is_dead = False
             if conn.closed:
-                conn = psycopg2.connect(PG_DSN)
+                is_dead = True
             else:
                 try:
                     with conn.cursor() as test_cur:
                         test_cur.execute("SELECT 1")
-                except (psycopg2.OperationalError, psycopg2.InterfaceError):
-                    try:
-                        _pg_pool.putconn(conn, close=True)
-                    except Exception:
-                        pass
-                    conn = psycopg2.connect(PG_DSN)
+                except Exception:
+                    is_dead = True
+            if is_dead:
+                try:
+                    _pg_pool.putconn(conn, close=True)
+                except Exception:
+                    pass
+                conn = _pg_pool.getconn()
+                is_from_pool = True
             wrapper = PostgresConnectionWrapper(conn)
             yield wrapper
             wrapper.commit()
@@ -184,11 +204,17 @@ def db():
                     pass
             raise
         finally:
-            if conn and _pg_pool:
-                try:
-                    _pg_pool.putconn(conn)
-                except Exception:
-                    pass
+            if conn:
+                if is_from_pool and _pg_pool:
+                    try:
+                        _pg_pool.putconn(conn)
+                    except Exception:
+                        pass
+                else:
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
     else:
         conn = sqlite3.connect(SQLITE_PATH)
         conn.row_factory = sqlite3.Row
