@@ -1003,7 +1003,7 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                         "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
                         (reply, now2, sid, uid, "image", fname, "image/png"),
                     )
-                yield f"data: {json.dumps({'chunk': reply, 'media_url': f'/api/media/{fname}', 'done': True, 'session_id': sid})}\n\n"
+                yield f"data: {json.dumps({'chunk': reply, 'reply': reply, 'media_url': f'/api/media/{fname}', 'done': True, 'session_id': sid, 'ts': now2})}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
             return
