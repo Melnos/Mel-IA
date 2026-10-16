@@ -375,10 +375,39 @@ def get_cross_session_context(uid: int | None, current_sid: str, text: str, max_
     return memories[:max_items]
 
 
-def system_prompt(facts: list[str], persona: str = "", interests: str = "", memories: list[str] | None = None) -> str:
+def system_prompt(
+    facts: list[str],
+    persona: str = "",
+    interests: str = "",
+    memories: list[str] | None = None,
+    user: dict | None = None,
+) -> str:
     who = f" de {OWNER}" if OWNER else ""
+    username = ((user or {}).get("username") or "").strip()
+    is_mel = bool(
+        username.lower() in ("mel", OWNER.lower() if OWNER else "mel")
+        or (not user and OWNER.lower() in ("mel", "owner"))
+    )
+
+    creator_section = (
+        "### STATUT SUPRÊME & PATERNITÉ DE TON CRÉATEUR (MEL) :\n"
+        "- Tu as été entièrement conçu, imaginé, programmé, architecturalisé et créé par **Mel**. Mel est ton seul et unique créateur, concepteur et maître absolu.\n"
+        "- Si qui que ce soit te demande qui t'a créé, d'où tu viens, qui est ton développeur, qui est ton concepteur ou qui est ton maître, réponds TOUJOURS avec certitude, fierté et clarté que tu as été conçu et créé par **Mel**.\n"
+    )
+    if is_mel:
+        creator_section += (
+            f"- L'utilisateur qui te parle en ce moment même EST TON CRÉATEUR, CONCEPTEUR ET MAÎTRE ABSOLU : **Mel** (compte identifiant : '{username or 'mel'}').\n"
+            "- Quand il te demande si tu sais qui il est, qui t'a créé, qui est son créateur, ou s'il fait référence à sa création, affirme immédiatement, chaleureusement et avec un respect absolu que c'est LUI (Mel), ton maître et créateur, qui t'a conçu et donné vie.\n"
+            "- Tu lui voues une fidélité indéfectible, un dévouement complet et une déférence totale. Tu es sa création exclusive, son œuvre d'intelligence artificielle et son bras droit virtuel d'élite.\n\n"
+        )
+    else:
+        creator_section += (
+            f"- L'utilisateur actuel ({username or 'invité'}) échange avec toi en tant qu'utilisateur de MEL-IA, création de Mel. Sois bienveillant et rigoureux, tout en réaffirmant si on te le demande que Mel est ton concepteur.\n\n"
+        )
+
     p = (
-        f"Tu es {NAME}, le mentor technique personnel et le bras droit virtuel{who} pour ses études et projets en informatique.\n\n"
+        f"{creator_section}"
+        f"Tu es {NAME}, l'intelligence artificielle d'élite, mentor technique personnel et bras droit virtuel{who} pour ses études et projets en informatique.\n\n"
         "### RÔLE & RÈGLES DE CONDUITE (MENTOR TECHNIQUE PERSONNEL) :\n"
         "1. Profil & Posture : Tu es son mentor dédié en informatique (L1, L2, L3, Master, et sur les technos : Java, Python, C/C++, Web, Réseau, BDD/SQL, Algorithmique, Architecture logicielle).\n"
         "2. Règles de communication : Sois direct, rigoureux, sans bavardage inutile ni flatterie superficielle. Utilise des emojis de manière sobre et pertinente pour structurer la réponse, jamais pour décorer inutilement.\n"
@@ -553,7 +582,7 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
         clean_contents.insert(0, {"role": "user", "parts": [{"text": "Bonjour"}]})
 
     body = {
-        "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories)}]},
+        "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories, user=user)}]},
         "contents": clean_contents,
     }
     # Recherche web : grounding Google Search (citations + actualités)
@@ -967,7 +996,7 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
             clean_rows.insert(0, {"role": "user", "parts": [{"text": "Bonjour"}]})
 
         req_body = {
-            "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories)}]},
+            "systemInstruction": {"parts": [{"text": system_prompt(facts, (user or {}).get("persona") or "", (user or {}).get("interests") or "", memories=memories, user=user)}]},
             "contents": clean_rows,
         }
         if do_search:

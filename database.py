@@ -177,22 +177,31 @@ def db():
             conn = _pg_pool.getconn()
             is_from_pool = True
             # Vérification de la vivacité (Neon auto-suspend après inactivité)
-            is_dead = False
-            if conn.closed:
-                is_dead = True
-            else:
-                try:
-                    with conn.cursor() as test_cur:
-                        test_cur.execute("SELECT 1")
-                except Exception:
+            for _ in range(3):
+                is_dead = False
+                if conn.closed:
                     is_dead = True
-            if is_dead:
+                else:
+                    try:
+                        with conn.cursor() as test_cur:
+                            test_cur.execute("SELECT 1")
+                    except Exception:
+                        is_dead = True
+                if not is_dead:
+                    break
                 try:
-                    _pg_pool.putconn(conn, close=True)
+                    if is_from_pool and _pg_pool:
+                        _pg_pool.putconn(conn, close=True)
+                    else:
+                        conn.close()
                 except Exception:
                     pass
-                conn = _pg_pool.getconn()
-                is_from_pool = True
+                try:
+                    conn = _pg_pool.getconn()
+                    is_from_pool = True
+                except Exception:
+                    conn = psycopg2.connect(PG_DSN, connect_timeout=20)
+                    is_from_pool = False
             wrapper = PostgresConnectionWrapper(conn)
             yield wrapper
             wrapper.commit()
