@@ -304,6 +304,36 @@ def update_profile(body: ProfileIn, x_auth_token: str | None = Header(None)):
     return {"ok": True}
 
 
+class PasswordChangeIn(BaseModel):
+    current_password: str
+    new_password: str
+
+
+@app.post("/api/auth/password")
+def change_password(body: PasswordChangeIn, x_auth_token: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    if not user:
+        raise HTTPException(401, "Veuillez vous connecter pour modifier votre mot de passe.")
+    curr = (body.current_password or "").strip()
+    newp = (body.new_password or "").strip()
+    if not curr:
+        raise HTTPException(400, "Veuillez renseigner votre mot de passe actuel.")
+    if not newp:
+        raise HTTPException(400, "Veuillez renseigner un nouveau mot de passe.")
+    if len(newp) < 6:
+        raise HTTPException(400, "Le nouveau mot de passe doit comporter au moins 6 caractères.")
+    if not secrets.compare_digest(_hash_pw(curr, user["salt"]), user["pass_hash"]):
+        raise HTTPException(400, "Mot de passe actuel incorrect.")
+    new_salt = secrets.token_hex(16)
+    new_hash = _hash_pw(newp, new_salt)
+    with db() as c:
+        c.execute(
+            "UPDATE users SET pass_hash = ?, salt = ? WHERE id = ?",
+            (new_hash, new_salt, user["id"]),
+        )
+    return {"ok": True, "message": "Mot de passe modifié avec succès."}
+
+
 # ---------- Cerveau & Mémoire croisée ----------
 def get_cross_session_context(uid: int | None, current_sid: str, text: str, max_items: int = 8) -> list[str]:
     """Recherche les échanges et souvenirs pertinents dans les AUTRES discussions de cet utilisateur.
@@ -894,6 +924,7 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
         "images": result.get("images", []),
         "model": result.get("model", ""),
         "search": do_search,
+        "ts": time.time(),
     })
     return resp
 
@@ -1107,7 +1138,7 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                 (full_reply, time.time(), sid, uid),
             )
 
-        yield f"data: {json.dumps({'done': True, 'reply': full_reply, 'sources': sources, 'images': images, 'model': used_model, 'session_id': sid})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'reply': full_reply, 'sources': sources, 'images': images, 'model': used_model, 'session_id': sid, 'ts': time.time()})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
@@ -1202,6 +1233,7 @@ async def chat_media(
         "session_id": sid,
         "sources": result.get("sources", []),
         "images": result.get("images", []),
+        "ts": time.time(),
     }
 
 
@@ -1295,7 +1327,7 @@ def history(session_id: str = "default", x_auth_token: str | None = Header(None)
     uid = user["id"] if user else None
     with db() as c:
         rows = c.execute(
-            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 60",
+            "SELECT role, content, media_kind, media_path, media_mime, ts FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 60",
             (session_id, uid),
         ).fetchall()[::-1]
     msgs = []

@@ -53,10 +53,13 @@ h2{font-family:"Source Serif 4",Georgia,serif;font-weight:600;letter-spacing:-.0
 .session-list{flex:1;overflow-y:auto;padding:10px}
 .session-list::-webkit-scrollbar{width:4px}
 .session-list::-webkit-scrollbar-thumb{background:rgba(23,34,59,.15);border-radius:2px}
-.session-item{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--muted);transition:background .15s,color .15s;border:1px solid transparent;margin-bottom:2px;-webkit-tap-highlight-color:transparent}
+.session-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:14px;color:var(--muted);transition:background .15s,color .15s;border:1px solid transparent;margin-bottom:2px;-webkit-tap-highlight-color:transparent}
 .session-item:hover{background:rgba(255,255,255,.7);color:var(--fg)}
 .session-item.active{background:#fff;color:var(--fg);border-color:var(--line);box-shadow:0 1px 2px rgba(23,34,59,.06);font-weight:500}
-.session-item .title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.session-item .session-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.session-item .title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+.session-item .session-date{font-size:11px;color:var(--muted);font-weight:400;opacity:.85}
+.session-item.active .session-date{color:var(--a1);font-weight:500}
 .session-item .del{opacity:0;border:0;background:none;color:var(--err);cursor:pointer;font-size:14px;padding:4px 8px;border-radius:6px;transition:opacity .15s}
 .session-item:hover .del,.session-item.active .del{opacity:1}
 .session-item .icon{flex-shrink:0;display:inline-flex;color:var(--muted)}
@@ -100,7 +103,11 @@ header{height:var(--header-h);display:flex;align-items:center;justify-content:sp
 .msg{max-width:88%;padding:13px 18px;border-radius:20px;word-wrap:break-word;overflow-wrap:anywhere;line-height:1.68;font-size:15px}
 .msg-wrap.user .msg{background:#dfe8fa;color:var(--fg);border-bottom-right-radius:6px}
 .user-text{white-space:pre-wrap;word-break:break-word}
-.user-msg-footer{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(23,34,59,.08);white-space:normal}
+.user-msg-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:6px;border-top:1px solid rgba(23,34,59,.08);white-space:normal}
+.user-msg-footer .uf-actions{display:inline-flex;align-items:center;gap:4px}
+.msg-time{font-size:11px;color:var(--muted);font-weight:400;white-space:nowrap;display:inline-flex;align-items:center;opacity:.85}
+.msg-header-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.msg-header-meta .model-tag{margin-bottom:0}
 .uf-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;border:1px solid rgba(23,34,59,.12);background:rgba(255,255,255,.75);color:var(--muted);font:500 11.5px Inter,sans-serif;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
 .uf-btn svg{width:12px;height:12px;flex-shrink:0}
 .uf-btn:hover{background:#fff;color:var(--a1);border-color:rgba(47,95,214,.35);transform:translateY(-1px)}
@@ -130,7 +137,8 @@ header{height:var(--header-h);display:flex;align-items:center;justify-content:sp
 .msg blockquote{border-left:3px solid var(--a1);margin:10px 0;padding:6px 14px;color:var(--muted);background:rgba(47,95,214,.04);border-radius:0 8px 8px 0}
 
 /* Actions en bas de chaque réponse */
-.msg-footer{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(23,34,59,.08)}
+.msg-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid rgba(23,34,59,.08)}
+.msg-footer .rf-actions{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px}
 .rf-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--muted);font:500 12.5px Inter,system-ui,sans-serif;cursor:pointer;transition:all .16s ease;box-shadow:0 1px 2px rgba(23,34,59,.04);-webkit-tap-highlight-color:transparent}
 .rf-btn svg{width:14px;height:14px;flex-shrink:0}
 .rf-btn:hover{color:var(--a2);background:var(--soft);border-color:rgba(47,95,214,.35);transform:translateY(-1px)}
@@ -281,6 +289,9 @@ dialog::backdrop{background:rgba(15,23,42,.45);backdrop-filter:blur(4px);-webkit
 textarea.persona{width:100%;min-height:76px;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:12px;padding:10px 12px;font:400 14px Inter,sans-serif;margin:6px 0 4px;outline:none;resize:vertical}
 select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:12px;padding:11px 12px;font:400 14px Inter,sans-serif;margin:6px 0 4px;outline:none}
 #int-in{width:100%;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:12px;padding:11px 12px;font:400 14px Inter,sans-serif;margin:6px 0 4px;outline:none}
+.pwd-box{display:flex;flex-direction:column;gap:8px;margin-top:6px;background:var(--soft);padding:12px;border-radius:12px;border:1px solid var(--line)}
+.pwd-box input{width:100%;border:1px solid var(--line);background:#fff;color:var(--fg);border-radius:10px;padding:9px 12px;font:400 13.5px Inter,sans-serif;outline:none;transition:border-color .15s}
+.pwd-box input:focus{border-color:var(--a1)}
 
 /* Écran d'accueil Auth */
 .gate{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;background:radial-gradient(760px 420px at 50% -140px,rgba(47,95,214,.16),transparent 70%),radial-gradient(560px 460px at 108% 112%,rgba(240,169,58,.16),transparent 72%),var(--bg)}
@@ -924,13 +935,14 @@ select.model-sel{width:100%;border:1px solid var(--line);background:#fff;color:v
   </div>
   <p class="settings-note" id="keys-note"></p>
 
-  <span class="label-mini">Sauvegarde & Données (Anti-perte Render)</span>
-  <div style="display:flex;gap:8px;margin-top:6px">
-    <button class="dialog-btn secondary" id="btn-export-db" type="button" style="margin-top:0;font-size:13px">💾 Exporter mes données</button>
-    <button class="dialog-btn secondary" id="btn-import-db" type="button" style="margin-top:0;font-size:13px">📥 Restaurer sauvegarde</button>
-    <input type="file" id="file-import-db" accept=".json" hidden>
+  <span class="label-mini">Modifier mon mot de passe</span>
+  <div class="pwd-box">
+    <input id="pwd-curr" type="password" placeholder="Mot de passe actuel" autocomplete="current-password">
+    <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (6 car. min)" autocomplete="new-password">
+    <input id="pwd-conf" type="password" placeholder="Confirmer le nouveau mot de passe" autocomplete="new-password">
+    <button class="dialog-btn secondary" id="btn-change-pwd" type="button" style="margin-top:2px;width:100%">Changer mon mot de passe</button>
+    <div id="pwd-msg" style="font-size:12.5px;margin-top:2px;display:none;padding:8px 12px;border-radius:8px"></div>
   </div>
-  <p class="settings-note" style="margin-top:6px">Télécharge une copie de tes discussions et mémoires sur ton PC pour les réinjecter à tout moment.</p>
 
   <span class="label-mini">Modèle IA</span>
   <select class="model-sel" id="model-sel">
@@ -1674,34 +1686,65 @@ function renderClaudeCode() {
   }
 }
 
+// ---- Formatage Date & Heure pour chats et discussions ----
+function formatDateTime(ts) {
+  if (!ts) return '';
+  var sec = Number(ts);
+  if (isNaN(sec) || sec <= 0) return '';
+  var d = new Date(sec > 1e11 ? sec : sec * 1000);
+  if (isNaN(d.getTime())) return '';
+  var now = new Date();
+  var isToday = d.toDateString() === now.toDateString();
+  var yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  var isYesterday = d.toDateString() === yesterday.toDateString();
+  var hh = ('0' + d.getHours()).slice(-2);
+  var mm = ('0' + d.getMinutes()).slice(-2);
+  var timeStr = hh + ':' + mm;
+  if (isToday) return timeStr;
+  if (isYesterday) return 'Hier ' + timeStr;
+  var day = ('0' + d.getDate()).slice(-2);
+  var mon = ('0' + (d.getMonth() + 1)).slice(-2);
+  var yr = d.getFullYear();
+  if (yr === now.getFullYear()) {
+    return day + '/' + mon + ' ' + timeStr;
+  }
+  return day + '/' + mon + '/' + String(yr).slice(-2) + ' ' + timeStr;
+}
+
 // ---- Barre d'actions à la fin de chaque réponse IA ----
-function renderFooterActions(wrap, text) {
+function renderFooterActions(wrap, text, ts) {
   var msgNode = (wrap && wrap.querySelector) ? wrap.querySelector('.msg') : null;
   var raw = text || (msgNode ? (msgNode.getAttribute('data-raw') || msgNode.innerText.trim()) : '');
   var hasCode = (wrap && wrap.querySelectorAll) ? wrap.querySelectorAll('.codebox').length : 0;
   if (!hasCode && raw) hasCode = (raw.indexOf('```') !== -1);
   var hasTable = raw && (raw.indexOf('|') !== -1 && raw.indexOf('---') !== -1);
   var hasSlides = raw && (raw.indexOf('## Slide') !== -1 || raw.indexOf('Slide ') !== -1 || raw.indexOf('# ') !== -1);
+  var resolvedTs = ts || (wrap && wrap.getAttribute ? Number(wrap.getAttribute('data-ts')) : null) || (Date.now() / 1000);
+  var timeStr = formatDateTime(resolvedTs);
 
   return '<div class="msg-footer">' +
-    '<button type="button" class="rf-btn" data-act="copy" title="Copier toute la réponse">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
-      '<span>Copier</span>' +
-    '</button>' +
-    '<button type="button" class="rf-btn" data-act="docx" title="Télécharger en document Word (.docx)">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>' +
-      '<span>Word (.docx)</span>' +
-    '</button>' +
-    (hasTable ? '<button type="button" class="rf-btn" data-act="xlsx" title="Télécharger en tableur Excel (.xlsx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg><span>Excel (.xlsx)</span></button>' : '') +
-    (hasCode ? '<button type="button" class="rf-btn" data-act="zip" title="Télécharger l\'archive ZIP du projet complet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg><span>Projet (.ZIP)</span></button>' : '') +
-    '<button type="button" class="rf-btn" data-act="edit" title="Modifier le message envoyé">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>' +
-      '<span>Modifier</span>' +
-    '</button>' +
-    '<button type="button" class="rf-btn" data-act="regen" title="Régénérer cette réponse">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>' +
-      '<span>Régénérer</span>' +
-    '</button>' +
+    (timeStr ? '<span class="msg-time">' + esc(timeStr) + '</span>' : '<span></span>') +
+    '<div class="rf-actions">' +
+      '<button type="button" class="rf-btn" data-act="copy" title="Copier toute la réponse">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
+        '<span>Copier</span>' +
+      '</button>' +
+      '<button type="button" class="rf-btn" data-act="docx" title="Télécharger en document Word (.docx)">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>' +
+        '<span>Word (.docx)</span>' +
+      '</button>' +
+      (hasTable ? '<button type="button" class="rf-btn" data-act="xlsx" title="Télécharger en tableur Excel (.xlsx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg><span>Excel (.xlsx)</span></button>' : '') +
+      (hasCode ? '<button type="button" class="rf-btn" data-act="zip" title="Télécharger l\'archive ZIP du projet complet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg><span>Projet (.ZIP)</span></button>' : '') +
+      '<button type="button" class="rf-btn" data-act="edit" title="Modifier le message envoyé">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>' +
+        '<span>Modifier</span>' +
+      '</button>' +
+      '<button type="button" class="rf-btn" data-act="regen" title="Régénérer cette réponse">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>' +
+        '<span>Régénérer</span>' +
+      '</button>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1791,20 +1834,24 @@ function bindReplyFooter(wrap, text) {
 }
 
 // ---- Actions sous chaque requête utilisateur (Modifier, Copier, Réessayer) ----
-function renderUserFooterActions(text) {
+function renderUserFooterActions(text, ts) {
+  var timeStr = formatDateTime(ts || (Date.now() / 1000));
   return '<div class="user-msg-footer">' +
-    '<button type="button" class="uf-btn" data-uact="edit" title="Modifier ce message">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>' +
-      '<span>Modifier</span>' +
-    '</button>' +
-    '<button type="button" class="uf-btn" data-uact="copy" title="Copier ce message">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
-      '<span>Copier</span>' +
-    '</button>' +
-    '<button type="button" class="uf-btn" data-uact="retry" title="Réessayer / Relancer">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>' +
-      '<span>Réessayer</span>' +
-    '</button>' +
+    (timeStr ? '<span class="msg-time">' + esc(timeStr) + '</span>' : '<span></span>') +
+    '<div class="uf-actions">' +
+      '<button type="button" class="uf-btn" data-uact="edit" title="Modifier ce message">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>' +
+        '<span>Modifier</span>' +
+      '</button>' +
+      '<button type="button" class="uf-btn" data-uact="copy" title="Copier ce message">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
+        '<span>Copier</span>' +
+      '</button>' +
+      '<button type="button" class="uf-btn" data-uact="retry" title="Réessayer / Relancer">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>' +
+        '<span>Réessayer</span>' +
+      '</button>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1853,15 +1900,22 @@ function bindUserFooter(wrap, text) {
 // ---- Ajout et affichage des messages ----
 function addMsg(role, text, opts) {
   opts = opts || {};
+  var ts = opts.ts || (Date.now() / 1000);
   var wrap = document.createElement('div');
   wrap.className = 'msg-wrap ' + (role === 'user' ? 'user' : 'ai');
+  wrap.setAttribute('data-ts', ts);
 
   var html = '';
   if (role !== 'user') {
     html += '<div class="avatar"><svg viewBox="0 0 24 24" fill="#2f5fd6" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg></div>';
   }
   html += '<div class="msg" data-raw="' + esc(text || '') + '">';
-  if (opts.model) html += '<span class="model-tag">' + esc(opts.model) + '</span>';
+  if (role !== 'user' && (opts.model || opts.ts)) {
+    html += '<div class="msg-header-meta">';
+    if (opts.model) html += '<span class="model-tag">' + esc(opts.model) + '</span>';
+    if (opts.ts) html += '<span class="msg-time">' + esc(formatDateTime(opts.ts)) + '</span>';
+    html += '</div>';
+  }
   if (opts.media_url) {
     if (opts.media_kind === 'image') html += '<img class="media" src="' + esc(opts.media_url) + '" alt="Image">';
     else if (opts.media_kind === 'audio') html += '<audio class="media" controls src="' + esc(opts.media_url) + '"></audio>';
@@ -1870,15 +1924,15 @@ function addMsg(role, text, opts) {
   }
   if (role === 'user') {
     html += '<div class="user-text">' + esc(text) + '</div>';
-    if (text) html += renderUserFooterActions(text);
+    if (text || opts.media_url) html += renderUserFooterActions(text, ts);
   } else if (text) {
     html += renderMarkdown(text);
-    html += renderFooterActions(wrap, text);
+    html += renderFooterActions(wrap, text, ts);
   }
   html += '</div>';
   wrap.innerHTML = html;
 
-  if (role === 'user' && text) {
+  if (role === 'user' && (text || opts.media_url)) {
     bindUserFooter(wrap, text);
   } else if (role !== 'user' && text) {
     bindReplyFooter(wrap, text);
@@ -1896,8 +1950,15 @@ function addMsg(role, text, opts) {
 function paintReply(wrap, j) {
   var msg = wrap.querySelector('.msg');
   msg.setAttribute('data-raw', j.reply || '');
+  var ts = j.ts || (wrap ? Number(wrap.getAttribute('data-ts')) : null) || (Date.now() / 1000);
+  if (wrap) wrap.setAttribute('data-ts', ts);
   var html = '';
-  if (j.model) html += '<span class="model-tag">' + esc(j.model) + '</span>';
+  if (j.model || ts) {
+    html += '<div class="msg-header-meta">';
+    if (j.model) html += '<span class="model-tag">' + esc(j.model) + '</span>';
+    if (ts) html += '<span class="msg-time">' + esc(formatDateTime(ts)) + '</span>';
+    html += '</div>';
+  }
   if (j.media_url) html += '<img class="media" src="' + esc(j.media_url) + '" alt="Image générée">';
   html += renderMarkdown(j.reply || '');
   if (j.images && j.images.length) {
@@ -1914,7 +1975,7 @@ function paintReply(wrap, j) {
           '<span class="s-title">' + esc(s.title) + '</span><span class="s-host">' + esc(host) + '</span></a>';
       }).join('') + '</div>';
   }
-  html += renderFooterActions(wrap, j.reply || '');
+  html += renderFooterActions(wrap, j.reply || '', ts);
   msg.innerHTML = html;
   bindReplyFooter(wrap, j.reply || '');
   var zoom = msg.querySelector('img.media');
@@ -2021,9 +2082,13 @@ function loadSessions() {
     var html = '';
     (j.sessions || []).forEach(function(s) {
       var active = s.id === currentSession ? ' active' : '';
+      var timeStr = formatDateTime(s.updated_at || s.created_at);
       html += '<div class="session-item' + active + '" data-id="' + s.id + '">' +
         '<span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1L3 20l1.1-4.3A8.5 8.5 0 1 1 21 11.5z"/></svg></span>' +
-        '<span class="title">' + esc(s.title || 'Nouvelle conversation') + '</span>' +
+        '<div class="session-info">' +
+          '<span class="title">' + esc(s.title || 'Nouvelle conversation') + '</span>' +
+          (timeStr ? '<span class="session-date">' + esc(timeStr) + '</span>' : '') +
+        '</div>' +
         (s.id !== 'default' ? '<button type="button" class="del" title="Supprimer">✕</button>' : '') +
         '</div>';
     });
@@ -2068,7 +2133,7 @@ function load() {
     $('msgs').innerHTML = '';
     if (!j.messages.length) showEmpty();
     else j.messages.forEach(function(m) {
-      addMsg(m.role, m.content, {media_url: m.media_url, media_kind: m.media_kind});
+      addMsg(m.role, m.content, {media_url: m.media_url, media_kind: m.media_kind, ts: m.ts});
     });
   }).catch(function() {});
 }
@@ -2748,6 +2813,11 @@ $('key-add-btn').addEventListener('click', function() {
 $('settings').addEventListener('click', function() {
   closeSidebar();
   loadKeys();
+  $('pwd-curr').value = '';
+  $('pwd-new').value = '';
+  $('pwd-conf').value = '';
+  var msg = $('pwd-msg');
+  if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
   api('/api/auth/me').then(function(j) {
     $('model-sel').value = j.model_pref || 'auto';
     $('persona-in').value = j.persona || '';
@@ -2767,40 +2837,108 @@ $('set-save').addEventListener('click', function() {
 });
 $('set-close').addEventListener('click', function() { $('setd').close(); });
 
-// ---- Sauvegarde & Restauration (Anti-perte Render) ----
-$('btn-export-db').addEventListener('click', function() {
-  api('/api/db/export').then(function(data) {
-    var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'mel-ia-sauvegarde-' + (data.user && data.user.username ? data.user.username + '-' : '') + new Date().toISOString().slice(0, 10) + '.json';
-    a.click();
-  }).catch(function(e) { alert(e.message); });
+// ---- Modification du mot de passe ----
+$('btn-change-pwd').addEventListener('click', function() {
+  var curr = $('pwd-curr').value;
+  var newp = $('pwd-new').value;
+  var conf = $('pwd-conf').value;
+  var msg = $('pwd-msg');
+  msg.style.display = 'none';
+
+  if (!curr) {
+    msg.style.display = 'block';
+    msg.style.color = '#dc2626';
+    msg.style.background = '#fef2f2';
+    msg.style.border = '1px solid #fecaca';
+    msg.textContent = 'Veuillez renseigner votre mot de passe actuel.';
+    return;
+  }
+  if (!newp || newp.length < 6) {
+    msg.style.display = 'block';
+    msg.style.color = '#dc2626';
+    msg.style.background = '#fef2f2';
+    msg.style.border = '1px solid #fecaca';
+    msg.textContent = 'Le nouveau mot de passe doit comporter au moins 6 caractères.';
+    return;
+  }
+  if (newp !== conf) {
+    msg.style.display = 'block';
+    msg.style.color = '#dc2626';
+    msg.style.background = '#fef2f2';
+    msg.style.border = '1px solid #fecaca';
+    msg.textContent = 'Les deux nouveaux mots de passe ne correspondent pas.';
+    return;
+  }
+
+  var btn = $('btn-change-pwd');
+  btn.disabled = true;
+  btn.textContent = 'Modification en cours…';
+
+  api('/api/auth/password', {
+    method: 'POST',
+    body: JSON.stringify({current_password: curr, new_password: newp})
+  }).then(function(res) {
+    btn.disabled = false;
+    btn.textContent = 'Changer mon mot de passe';
+    $('pwd-curr').value = '';
+    $('pwd-new').value = '';
+    $('pwd-conf').value = '';
+    msg.style.display = 'block';
+    msg.style.color = '#15803d';
+    msg.style.background = '#dcfce7';
+    msg.style.border = '1px solid #bbf7d0';
+    msg.textContent = res.message || 'Mot de passe modifié avec succès !';
+    setTimeout(function() { msg.style.display = 'none'; }, 4000);
+  }).catch(function(err) {
+    btn.disabled = false;
+    btn.textContent = 'Changer mon mot de passe';
+    msg.style.display = 'block';
+    msg.style.color = '#dc2626';
+    msg.style.background = '#fef2f2';
+    msg.style.border = '1px solid #fecaca';
+    msg.textContent = err.message || 'Erreur lors du changement de mot de passe.';
+  });
 });
 
-$('btn-import-db').addEventListener('click', function() {
-  $('file-import-db').click();
-});
+if ($('btn-export-db')) {
+  $('btn-export-db').addEventListener('click', function() {
+    api('/api/db/export').then(function(data) {
+      var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'mel-ia-sauvegarde-' + (data.user && data.user.username ? data.user.username + '-' : '') + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+    }).catch(function(e) { alert(e.message); });
+  });
+}
 
-$('file-import-db').addEventListener('change', function() {
-  var file = this.files && this.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      var json = JSON.parse(e.target.result);
-      api('/api/db/import', {method: 'POST', body: JSON.stringify(json)}).then(function(res) {
-        alert('Restauration réussie ! ' + res.restored_sessions + ' discussions et ' + res.restored_messages + ' messages restaurés.');
-        loadSessions();
-        load();
-        $('setd').close();
-      }).catch(function(err) { alert('Erreur d\'importation : ' + err.message); });
-    } catch(ex) {
-      alert('Fichier de sauvegarde invalide (JSON attendu).');
-    }
-  };
-  reader.readAsText(file);
-});
+if ($('btn-import-db')) {
+  $('btn-import-db').addEventListener('click', function() {
+    if ($('file-import-db')) $('file-import-db').click();
+  });
+}
+
+if ($('file-import-db')) {
+  $('file-import-db').addEventListener('change', function() {
+    var file = this.files && this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var json = JSON.parse(e.target.result);
+        api('/api/db/import', {method: 'POST', body: JSON.stringify(json)}).then(function(res) {
+          alert('Restauration réussie ! ' + res.restored_sessions + ' discussions et ' + res.restored_messages + ' messages restaurés.');
+          loadSessions();
+          load();
+          $('setd').close();
+        }).catch(function(err) { alert('Erreur d\'importation : ' + err.message); });
+      } catch(ex) {
+        alert('Fichier de sauvegarde invalide (JSON attendu).');
+      }
+    };
+    reader.readAsText(file);
+  });
+}
 
 
 // ---- Initialisation au démarrage ----

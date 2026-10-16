@@ -51,7 +51,7 @@ def test_static_routes():
     
     r = client.get("/sw.js")
     assert r.status_code == 200, f"GET /sw.js status: {r.status_code}"
-    assert "mel-ia-v9" in r.text, "sw.js cache version is not mel-ia-v9"
+    assert "mel-ia-v10" in r.text, "sw.js cache version is not mel-ia-v10"
 
 # 2. Test Auth flow (Register, Login, Invalid Pass, Me)
 gemini_key = os.getenv("GEMINI_API_KEY", "")
@@ -127,13 +127,15 @@ def test_chat_generation():
     reply = r.json().get("reply", "")
     assert reply, "Chat returned empty reply"
     
-    # Verify history has 2 messages
+    # Verify history has 2 messages with timestamps
     r = client.get(f"/api/history?session_id={sid}", headers=headers)
     assert r.status_code == 200
     msgs = r.json().get("messages", [])
     assert len(msgs) == 2, f"Expected 2 messages, got {len(msgs)}"
     assert msgs[0]["role"] == "user"
     assert msgs[1]["role"] == "assistant"
+    assert "ts" in msgs[0] and msgs[0]["ts"] > 0, "Missing timestamp on user message"
+    assert "ts" in msgs[1] and msgs[1]["ts"] > 0, "Missing timestamp on assistant message"
 
 # 5. Test Streaming SSE
 def test_chat_stream():
@@ -244,7 +246,43 @@ def test_backup_and_restore():
     r = client.post("/api/db/import", headers=headers, json=backup_data)
     assert r.status_code == 200, f"Import failed: {r.status_code}"
 
-# 10. Test Delete Session & Cleanup
+# 10. Test Modification de mot de passe
+def test_password_change():
+    global auth_token
+    headers = {"x-auth-token": auth_token}
+    # Current wrong pass
+    r = client.post("/api/auth/password", headers=headers, json={
+        "current_password": "WrongPassword999!",
+        "new_password": "NewSecretPassword456!"
+    })
+    assert r.status_code == 400, f"Expected 400 on wrong password, got {r.status_code}"
+
+    # Short new pass (<6)
+    r = client.post("/api/auth/password", headers=headers, json={
+        "current_password": test_pass,
+        "new_password": "123"
+    })
+    assert r.status_code == 400, f"Expected 400 on short password, got {r.status_code}"
+
+    # Success change
+    new_pwd = "NewSecretPassword456!"
+    r = client.post("/api/auth/password", headers=headers, json={
+        "current_password": test_pass,
+        "new_password": new_pwd
+    })
+    assert r.status_code == 200, f"Password change failed: {r.text}"
+    assert r.json().get("ok") is True
+
+    # Old password no longer works
+    r = client.post("/api/auth/login", json={"username": test_user, "password": test_pass})
+    assert r.status_code == 401, "Old password should not work"
+
+    # New password works
+    r = client.post("/api/auth/login", json={"username": test_user, "password": new_pwd})
+    assert r.status_code == 200, "New password failed to login"
+    auth_token = r.json()["token"]
+
+# 11. Test Delete Session & Cleanup
 def test_session_cleanup():
     headers = {"x-auth-token": auth_token}
     sid = test_session_id or "default"
@@ -268,6 +306,7 @@ run_test("Générateurs Documents Word (.docx) & Excel (.xlsx)", test_document_e
 run_test("Upload et Analyse Multimodale Documents (.txt)", test_media_chat)
 run_test("Personnalisation Profil & Clés Secondaires", test_facts_and_profile)
 run_test("Sauvegarde Globale & Restauration (Anti-perte)", test_backup_and_restore)
+run_test("Modification de mot de passe & Sécurité Hash", test_password_change)
 run_test("Nettoyage & Suppression de Session", test_session_cleanup)
 
 print("\n" + "="*55)
