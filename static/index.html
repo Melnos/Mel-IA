@@ -214,11 +214,6 @@ footer .heart{color:var(--a1)}
 
 <script src="/static/atom.js"></script>
 <script>
-try {
-  if (window.screen && screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock('portrait').catch(function() {});
-  }
-} catch (e) {}
 mountAtom('logo', 34); mountAtom('hero-atom');
 var dp = null;
 addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); dp = e; });

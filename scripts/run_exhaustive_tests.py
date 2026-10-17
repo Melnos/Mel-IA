@@ -51,7 +51,7 @@ def test_static_routes():
     
     r = client.get("/sw.js")
     assert r.status_code == 200, f"GET /sw.js status: {r.status_code}"
-    assert "mel-ia-v12" in r.text or "mel-ia-v11" in r.text, "sw.js cache version is not mel-ia-v12"
+    assert "mel-ia-v13" in r.text or "mel-ia-v12" in r.text, "sw.js cache version is not mel-ia-v13"
 
 # 2. Test Auth flow (Register, Login, Invalid Pass, Me)
 gemini_key = os.getenv("GEMINI_API_KEY", "")

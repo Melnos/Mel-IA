@@ -4205,12 +4205,6 @@ if ($('file-import-db')) {
 }
 
 // ---- Initialisation au démarrage ----
-try {
-  if (window.screen && screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock('portrait').catch(function() {});
-  }
-} catch (e) {}
-
 initTheme();
 if ($('theme-toggle')) {
   $('theme-toggle').addEventListener('click', toggleTheme);
