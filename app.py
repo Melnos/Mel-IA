@@ -849,6 +849,35 @@ def delete_session(session_id: str, x_auth_token: str | None = Header(None)):
     return {"ok": True}
 
 
+class SessionUpdate(BaseModel):
+    title: str
+
+
+@app.patch("/api/sessions/{session_id}")
+@app.put("/api/sessions/{session_id}")
+def update_session(session_id: str, body: SessionUpdate, x_auth_token: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    uid = user["id"] if user else None
+    title = (body.title or "").strip()[:80]
+    if not title:
+        raise HTTPException(400, "Le titre ne peut pas être vide.")
+    now = time.time()
+    with db() as c:
+        row = c.execute("SELECT id FROM sessions WHERE id = ? AND user_id IS ?", (session_id, uid)).fetchone()
+        if not row:
+            if session_id == "default":
+                c.execute(
+                    "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES ('default', ?, ?, ?, ?)",
+                    (title, now, now, uid),
+                )
+            else:
+                raise HTTPException(404, "Discussion introuvable.")
+        else:
+            c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id IS ?", (title, now, session_id, uid))
+    return {"ok": True, "session_id": session_id, "title": title}
+
+
+
 @app.post("/api/chat")
 def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
     user = current_user(x_auth_token)

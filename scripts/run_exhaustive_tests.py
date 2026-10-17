@@ -51,7 +51,7 @@ def test_static_routes():
     
     r = client.get("/sw.js")
     assert r.status_code == 200, f"GET /sw.js status: {r.status_code}"
-    assert "mel-ia-v11" in r.text or "mel-ia-v10" in r.text, "sw.js cache version is not mel-ia-v11"
+    assert "mel-ia-v12" in r.text or "mel-ia-v11" in r.text, "sw.js cache version is not mel-ia-v12"
 
 # 2. Test Auth flow (Register, Login, Invalid Pass, Me)
 gemini_key = os.getenv("GEMINI_API_KEY", "")
@@ -107,6 +107,17 @@ def test_sessions_and_history():
     assert r.status_code == 200
     test_session_id = r.json().get("session_id")
     assert test_session_id, "No session_id created"
+
+    # Rename session
+    r = client.patch(f"/api/sessions/{test_session_id}", headers=headers, json={"title": "Session Renommée Test"})
+    assert r.status_code == 200, f"Failed to rename session: {r.text}"
+    assert r.json().get("title") == "Session Renommée Test"
+
+    # Verify session list has updated title
+    r = client.get("/api/sessions", headers=headers)
+    assert r.status_code == 200
+    matched = [s for s in r.json().get("sessions", []) if s["id"] == test_session_id]
+    assert matched and matched[0]["title"] == "Session Renommée Test", f"Title not updated: {matched}"
     
     # Get empty history
     r = client.get(f"/api/history?session_id={test_session_id}", headers=headers)

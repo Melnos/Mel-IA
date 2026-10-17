@@ -49,23 +49,23 @@ if DATABASE_URL and HAS_PG:
     PG_DSN = dsn
 
     # Boucle de tentative : Neon suspend ses instances gratuites, le réveil peut prendre ~10-15s
-    for attempt in range(1, 4):
+    for attempt in range(1, 3):
         try:
-            logger.info(f"Connexion à Neon PostgreSQL en cours... (essai {attempt}/3)")
-            test_conn = psycopg2.connect(PG_DSN, connect_timeout=25)
+            logger.info(f"Connexion à Neon PostgreSQL en cours... (essai {attempt}/2)")
+            test_conn = psycopg2.connect(PG_DSN, connect_timeout=5)
             test_conn.close()
             _pg_pool = psycopg2.pool.ThreadedConnectionPool(
                 minconn=1,
                 maxconn=10,
                 dsn=PG_DSN,
-                connect_timeout=25,
+                connect_timeout=5,
             )
             IS_POSTGRES = True
             logger.info("Connecté avec succès à la base de données PostgreSQL (Neon).")
             break
         except Exception as e:
-            if attempt < 3:
-                time.sleep(2)
+            if attempt < 2:
+                time.sleep(1)
             else:
                 logger.warning(f"Impossible de se connecter à PostgreSQL/Neon ({e}). Fallback sur SQLite local.")
                 IS_POSTGRES = False
@@ -168,73 +168,54 @@ class PostgresConnectionWrapper:
 @contextmanager
 def db():
     """Fournit une connexion à la base de données.
-    Utilise PostgreSQL (Neon) si configuré, sinon SQLite local.
-    S'assure du commit automatique et de la libération des ressources."""
+    Utilise PostgreSQL (Neon) si disponible, avec bascule transparente immédiate sur SQLite local en cas de ralentissement ou coupure."""
+    global IS_POSTGRES
     if IS_POSTGRES and _pg_pool:
         conn = None
         is_from_pool = False
         try:
             conn = _pg_pool.getconn()
             is_from_pool = True
-            # Vérification de la vivacité (Neon auto-suspend après inactivité)
-            for _ in range(3):
-                is_dead = False
-                if conn.closed:
-                    is_dead = True
-                else:
-                    try:
-                        with conn.cursor() as test_cur:
-                            test_cur.execute("SELECT 1")
-                    except Exception:
-                        is_dead = True
-                if not is_dead:
-                    break
+            if conn.closed:
                 try:
-                    if is_from_pool and _pg_pool:
-                        _pg_pool.putconn(conn, close=True)
-                    else:
-                        conn.close()
+                    _pg_pool.putconn(conn, close=True)
                 except Exception:
                     pass
-                try:
-                    conn = _pg_pool.getconn()
-                    is_from_pool = True
-                except Exception:
-                    conn = psycopg2.connect(PG_DSN, connect_timeout=20)
-                    is_from_pool = False
+                conn = _pg_pool.getconn()
             wrapper = PostgresConnectionWrapper(conn)
             yield wrapper
             wrapper.commit()
-        except Exception:
+            if is_from_pool and _pg_pool:
+                try:
+                    _pg_pool.putconn(conn)
+                except Exception:
+                    pass
+            return
+        except Exception as e:
+            logger.warning(f"Erreur connexion PostgreSQL ({e}), bascule de secours sur SQLite local.")
             if conn:
                 try:
                     conn.rollback()
                 except Exception:
                     pass
-            raise
-        finally:
-            if conn:
                 if is_from_pool and _pg_pool:
                     try:
-                        _pg_pool.putconn(conn)
+                        _pg_pool.putconn(conn, close=True)
                     except Exception:
                         pass
-                else:
-                    try:
-                        conn.close()
-                    except Exception:
-                        pass
-    else:
-        conn = sqlite3.connect(SQLITE_PATH)
-        conn.row_factory = sqlite3.Row
-        try:
-            yield conn
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
+                conn = None
+
+    conn = sqlite3.connect(SQLITE_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
 
 
 def init_db():
