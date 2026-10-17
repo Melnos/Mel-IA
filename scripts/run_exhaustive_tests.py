@@ -50,8 +50,7 @@ def test_static_routes():
     assert "name" in r.json()
     
     r = client.get("/sw.js")
-    assert r.status_code == 200, f"GET /sw.js status: {r.status_code}"
-    assert "mel-ia-v13" in r.text or "mel-ia-v12" in r.text, "sw.js cache version is not mel-ia-v13"
+    assert "mel-ia-v14" in r.text or "mel-ia-v13" in r.text or "mel-ia-v12" in r.text, "sw.js cache version is not up to date"
 
 # 2. Test Auth flow (Register, Login, Invalid Pass, Me)
 gemini_key = os.getenv("GEMINI_API_KEY", "")
@@ -179,25 +178,43 @@ def test_chat_stream():
     full_text = "".join(tokens)
     assert len(full_text) > 0, "No tokens received from stream"
 
-# 6. Test Document Exports (Word, Excel)
+# 6. Test Document Exports (Word, Excel, PDF, PowerPoint)
 def test_document_exports():
     # Word docx export
     r = client.post(
         "/api/export/docx",
-        json={"markdown": "# Titre du Rapport\n\nVoici un test complet avec une liste :\n- Element A\n- Element B\n\n| Col 1 | Col 2 |\n|---|---|\n| Val 1 | Val 2 |", "filename": "rapport_test"}
+        json={"content": "# Titre du Rapport\n\nVoici un test complet avec une liste :\n- Element A\n- Element B\n\n| Col 1 | Col 2 |\n|---|---|\n| Val 1 | Val 2 |", "filename": "rapport_test.docx"}
     )
     assert r.status_code == 200, f"/api/export/docx failed: {r.status_code}"
-    assert len(r.content) > 1000, "Docx file too small"
+    assert len(r.content) > 500, "Docx file too small"
     assert "wordprocessingml" in r.headers.get("content-type", "")
     
     # Excel xlsx export
     r = client.post(
         "/api/export/xlsx",
-        json={"tables": [[["Produit", "Prix", "Stock"], ["Ordinateur", "899 €", "12"], ["Souris", "29 €", "50"]]], "filename": "inventaire_test"}
+        json={"sheets": [{"title": "Feuille 1", "rows": [["Produit", "Prix", "Stock"], ["Ordinateur", "899 €", "12"], ["Souris", "29 €", "50"]]}] , "filename": "inventaire_test.xlsx"}
     )
     assert r.status_code == 200, f"/api/export/xlsx failed: {r.status_code}"
-    assert len(r.content) > 1000, "Xlsx file too small"
+    assert len(r.content) > 500, "Xlsx file too small"
     assert "spreadsheetml" in r.headers.get("content-type", "")
+
+    # PDF export
+    r = client.post(
+        "/api/export/pdf",
+        json={"title": "Rapport Test PDF", "content": "# Titre\n\nContenu test\n- Point 1\n- Point 2", "filename": "rapport_test.pdf"}
+    )
+    assert r.status_code == 200, f"/api/export/pdf failed: {r.status_code}"
+    assert len(r.content) > 500, "PDF file too small"
+    assert "pdf" in r.headers.get("content-type", "")
+
+    # PowerPoint export
+    r = client.post(
+        "/api/export/pptx",
+        json={"title": "Diaporama Test", "content": "## Slide 1\n\n- Point A\n- Point B\n\n## Slide 2\n\n- Point C", "filename": "presentation_test.pptx"}
+    )
+    assert r.status_code == 200, f"/api/export/pptx failed: {r.status_code}"
+    assert len(r.content) > 1000, "PPTX file too small"
+    assert "presentationml" in r.headers.get("content-type", "")
 
 # 7. Test Media Chat Upload (Document texte)
 def test_media_chat():

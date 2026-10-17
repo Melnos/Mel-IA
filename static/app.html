@@ -118,7 +118,6 @@ body{
   color:var(--fg);
   font:400 15px/1.65 var(--font-sans);
   display:flex;
-  transition:background-color .25s ease,color .25s ease;
   -webkit-font-smoothing:antialiased;
 }
 h2{font-family:var(--font-serif);font-weight:600;letter-spacing:-.015em;color:var(--fg-heading)}
@@ -744,8 +743,11 @@ header{
 .rf-btn:active{transform:translateY(1px)}
 .rf-btn.copied{color:var(--success);background:var(--success-bg);border-color:var(--success)}
 .rf-btn[data-act="docx"]:hover{color:#2563eb;border-color:rgba(37,99,235,.35);background:rgba(37,99,235,.1)}
+.rf-btn[data-act="pdf"]:hover{color:#dc2626;border-color:rgba(220,38,38,.35);background:rgba(220,38,38,.1)}
+.rf-btn[data-act="pptx"]:hover{color:#ea580c;border-color:rgba(234,88,12,.35);background:rgba(234,88,12,.1)}
 .rf-btn[data-act="xlsx"]:hover{color:#16a34a;border-color:rgba(22,163,74,.35);background:rgba(22,163,74,.1)}
 .rf-btn[data-act="zip"]:hover{color:#7c3aed;border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.1)}
+.dialog-btn.theme-active{border-color:var(--accent) !important;background:var(--surface-hover) !important;color:var(--accent) !important;box-shadow:0 0 0 1px var(--accent) !important}
 
 /* ==========================================================================
    CARTE ARTEFACTS CLAUDE & VOLET LATÉRAL
@@ -1795,19 +1797,21 @@ textarea.persona:focus, select.model-sel:focus, #int-in:focus{border-color:var(-
   <div class="sidebar-search">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input type="text" id="session-search" placeholder="Rechercher une discussion…" aria-label="Rechercher une discussion">
-    <button type="button" id="session-search-clear" style="display:none" aria-label="Effacer recherche">✕</button>
+    <button type="button" id="session-search-clear" style="display:none" aria-label="Effacer recherche">
+      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
   <div class="session-list" id="sessions"></div>
   <div class="sidebar-bottom">
     <div id="user-chip" style="display:none">
       <div class="chip-user">
-        <span class="u-avatar" id="u-avatar">?</span>
+        <span class="u-avatar" id="u-avatar">M</span>
         <span class="u-name" id="u-name">—</span>
         <button class="icon-btn" id="logout" title="Se déconnecter" aria-label="Se déconnecter" style="width:30px;height:30px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg></button>
       </div>
     </div>
     <button class="sidebar-btn" id="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>Mon compte</button>
-    <button class="sidebar-btn" id="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>Paramètres</button>
+    <button class="sidebar-btn" id="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>Paramètres</button>
     <button class="sidebar-btn" id="mem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>Mémoire</button>
     <button class="sidebar-btn danger" id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6.5 7l.8 12a2 2 0 0 0 2 1.8h5.4a2 2 0 0 0 2-1.8l.8-12"/></svg>Tout effacer</button>
   </div>
@@ -1824,9 +1828,6 @@ textarea.persona:focus, select.model-sel:focus, #int-in:focus{border-color:var(-
       </div>
     </div>
     <div class="header-tools">
-      <button class="icon-btn" id="theme-toggle" title="Changer le thème" aria-label="Changer le thème">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      </button>
       <button class="icon-btn" id="voice" title="Lire les réponses à voix haute" aria-pressed="false" aria-label="Lecture vocale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15 9a4.2 4.2 0 0 1 0 6"/><path d="M17.8 6.2a8 8 0 0 1 0 11.6"/></svg></button>
       <button class="icon-btn" id="mic" title="Parler" aria-label="Dicter un message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/></svg></button>
     </div>
@@ -1903,7 +1904,9 @@ textarea.persona:focus, select.model-sel:focus, #int-in:focus{border-color:var(-
         </div>
         <div class="vrec-waveform" id="vrec-waveform"></div>
         <div class="vrec-btns">
-          <button type="button" class="vrec-action-btn cancel" id="vrec-cancel" title="Annuler">✕</button>
+          <button type="button" class="vrec-action-btn cancel" id="vrec-cancel" title="Annuler" aria-label="Annuler">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
           <button type="button" class="vrec-action-btn done" id="vrec-done" title="Terminer et écouter">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
             <span>Terminer</span>
@@ -1933,26 +1936,39 @@ textarea.persona:focus, select.model-sel:focus, #int-in:focus{border-color:var(-
 <dialog id="setd">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
     <h2 style="margin:0;font-size:20px">Paramètres</h2>
-    <button type="button" class="icon-btn" id="set-close-x" style="width:30px;height:30px;border:none;background:none;font-size:16px;cursor:pointer;color:var(--muted)">✕</button>
+    <button type="button" class="icon-btn" id="set-close-x" style="width:32px;height:32px;border:none;background:none;cursor:pointer;color:var(--muted);display:flex;align-items:center;justify-content:center" aria-label="Fermer">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
   </div>
 
   <div class="tabs set-nav" role="tablist" style="margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch">
-    <button type="button" class="tab on" id="set-tab-keys" data-sec="sec-keys">🔑 Clés & Modèles</button>
-    <button type="button" class="tab" id="set-tab-persona" data-sec="sec-persona">🧠 Personnalisation</button>
-    <button type="button" class="tab" id="set-tab-security" data-sec="sec-security">🔒 Sécurité</button>
-    <button type="button" class="tab" id="set-tab-look" data-sec="sec-look">🎨 Apparence</button>
+    <button type="button" class="tab on" id="set-tab-keys" data-sec="sec-keys">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M21 2l-2 2m-1.5 1.5L16 7l-1.5-1.5M14 8l-2 2m-1.5 1.5L9 13l-1.5-1.5M7 15l-4.5 4.5a2.12 2.12 0 0 0 3 3L10 18"/><circle cx="16" cy="8" r="5"/></svg>
+      Clés & Modèles
+    </button>
+    <button type="button" class="tab" id="set-tab-persona" data-sec="sec-persona">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Personnalisation
+    </button>
+    <button type="button" class="tab" id="set-tab-security" data-sec="sec-security">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Sécurité
+    </button>
+    <button type="button" class="tab" id="set-tab-look" data-sec="sec-look">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      Apparence
+    </button>
   </div>
 
   <!-- Section 1 : Clés & Modèles -->
   <div class="set-sec" id="sec-keys">
     <span class="label-mini" style="margin-top:0">Modèle IA Gemini</span>
     <select class="model-sel" id="model-sel">
-      <option value="auto">Automatique (recommandé)</option>
-      <option value="gemini-2.5-flash">Gemini 2.5 Flash (rapide & intelligent)</option>
-      <option value="gemini-2.0-flash">Gemini 2.0 Flash (polyvalent)</option>
-      <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash-Lite (ultra-rapide)</option>
-      <option value="gemini-1.5-flash">Gemini 1.5 Flash (stable)</option>
-      <option value="gemini-1.5-pro">Gemini 1.5 Pro (raisonnement complexe)</option>
+      <option value="auto">Automatique - Ultra-rapide (recommandé)</option>
+      <option value="gemini-flash-lite-latest">Gemini Flash-Lite Latest (instantané)</option>
+      <option value="gemini-flash-latest">Gemini Flash Latest (rapide & intelligent)</option>
+      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (haute cadence)</option>
+      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (nouvelle génération)</option>
     </select>
     <span class="label-mini" style="margin-top:14px">Clés API Gemini personnelles</span>
     <div id="key-list"></div>
@@ -1987,15 +2003,17 @@ textarea.persona:focus, select.model-sel:focus, #int-in:focus{border-color:var(-
   <!-- Section 4 : Apparence & Thème -->
   <div class="set-sec" id="sec-look" style="display:none">
     <span class="label-mini" style="margin-top:0">Thème de l'interface</span>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
-      <button type="button" class="dialog-btn secondary" id="theme-btn-dark" style="margin:0;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span>🌙</span> Mode Sombre
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
+      <button type="button" class="dialog-btn secondary" id="theme-btn-dark" style="margin:0;padding:12px 14px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span>Mode Sombre</span>
       </button>
-      <button type="button" class="dialog-btn secondary" id="theme-btn-light" style="margin:0;padding:12px;display:flex;align-items:center;justify-content:center;gap:8px">
-        <span>☀️</span> Mode Clair
+      <button type="button" class="dialog-btn secondary" id="theme-btn-light" style="margin:0;padding:12px 14px;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <span>Mode Clair</span>
       </button>
     </div>
-    <p class="settings-note" style="margin-top:12px">Le thème est automatiquement synchronisé et mémorisé sur cet appareil.</p>
+    <p class="settings-note" style="margin-top:12px">Basculez entre le mode sombre et le mode clair. Le réglage est conservé instantanément.</p>
   </div>
 
   <div style="margin-top:18px;display:flex;gap:10px">
@@ -2030,8 +2048,14 @@ function showToast(text, type) {
   if (!cont) return;
   var toast = document.createElement('div');
   toast.className = 'toast ' + type;
-  var icon = type === 'success' ? '✓' : type === 'error' ? '⚠' : type === 'warning' ? '⚡' : 'ℹ';
-  toast.innerHTML = '<span style="font-weight:700">' + icon + '</span><span>' + esc(text) + '</span>';
+  var icon = type === 'success' 
+    ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+    : type === 'error'
+    ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+    : type === 'warning'
+    ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+  toast.innerHTML = '<span style="display:inline-flex;align-items:center">' + icon + '</span><span>' + esc(text) + '</span>';
   cont.appendChild(toast);
   setTimeout(function() {
     toast.style.animation = 'toastOut 0.25s forwards';
@@ -2039,7 +2063,7 @@ function showToast(text, type) {
   }, 3500);
 }
 
-// ---- Gestionnaire de Thème (Dark OLED / Light Mode) ----
+// ---- Gestionnaire de Thème (Paramètres : Dark OLED / Light Mode) ----
 function initTheme() {
   var saved = localStorage.getItem('mel_theme');
   if (!saved) {
@@ -2055,12 +2079,14 @@ function applyTheme(theme) {
   if (metaTheme) {
     metaTheme.setAttribute('content', theme === 'dark' ? '#090d16' : '#f8fafc');
   }
-  var btn = $('theme-toggle');
-  if (btn) {
-    btn.innerHTML = theme === 'dark' 
-      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
-      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-    btn.title = theme === 'dark' ? 'Passer au mode clair' : 'Passer au mode sombre';
+  if ($('theme-btn-dark') && $('theme-btn-light')) {
+    if (theme === 'dark') {
+      $('theme-btn-dark').classList.add('theme-active');
+      $('theme-btn-light').classList.remove('theme-active');
+    } else {
+      $('theme-btn-light').classList.add('theme-active');
+      $('theme-btn-dark').classList.remove('theme-active');
+    }
   }
 }
 
@@ -2154,15 +2180,15 @@ function fallbackMd(p) {
 function renderClaudeProjectCard(files, projectTitle) {
   var fileNames = files.map(function(f){ return esc(f.path || f.name); }).join(' · ');
   return '<div class="artifact-card project-card">' +
-    '<div class="artifact-icon">📦</div>' +
+    '<div class="artifact-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.5 9.4 7.5 4.21 2.5 7.14 2.5 16.86 7.5 19.79 16.5 14.6 21.5 11.67 16.5 9.4"/><polyline points="7.5 4.21 16.5 9.4 16.5 19.14"/><line x1="16.5" y1="9.4" x2="7.5" y2="14.6"/><line x1="2.5" y1="7.14" x2="11.5" y2="12.33"/></svg></div>' +
     '<div class="artifact-info">' +
-      '<div class="artifact-badge"><span style="color:#7c3aed">●</span> PROJET CLAUDE ARTIFACT • ' + files.length + ' FICHIERS</div>' +
+      '<div class="artifact-badge"><span style="color:#7c3aed">●</span> PROJET MULTI-FICHIERS • ' + files.length + ' FICHIERS</div>' +
       '<div class="artifact-title">' + esc(projectTitle || 'Projet Complet') + '</div>' +
       '<div class="artifact-sub">' + fileNames + '</div>' +
     '</div>' +
     '<div class="artifact-actions">' +
-      '<button type="button" class="art-btn primary" data-art-act="zip" title="Télécharger l\'archive complète .zip">📥 Télécharger .ZIP</button>' +
-      '<button type="button" class="art-btn secondary" data-art-act="preview" title="Tester et explorer les fichiers">👁️ Aperçu Claude</button>' +
+      '<button type="button" class="art-btn primary" data-art-act="zip" title="Télécharger l\'archive complète .zip"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg><span>Télécharger ZIP</span></button>' +
+      '<button type="button" class="art-btn secondary" data-art-act="preview" title="Tester et explorer les fichiers"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Aperçu direct</span></button>' +
     '</div>' +
   '</div>';
 }
@@ -2631,22 +2657,22 @@ function openClaudeArtifact(files, activeIndex, meta) {
     drawer.innerHTML = 
       '<div class="drawer-head">' +
         '<div class="drawer-meta">' +
-          '<div class="drawer-icon" id="cd-icon">📦</div>' +
+          '<div class="drawer-icon" id="cd-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16.5 9.4 7.5 4.21 2.5 7.14 2.5 16.86 7.5 19.79 16.5 14.6 21.5 11.67 16.5 9.4"/><polyline points="7.5 4.21 16.5 9.4 16.5 19.14"/><line x1="16.5" y1="9.4" x2="7.5" y2="14.6"/><line x1="2.5" y1="7.14" x2="11.5" y2="12.33"/></svg></div>' +
           '<div>' +
-            '<div class="drawer-title" id="cd-title">Artefact Claude</div>' +
+            '<div class="drawer-title" id="cd-title">Explorateur de Fichiers</div>' +
             '<div style="font-size:11.5px;color:var(--muted)" id="cd-sub">Projet multi-fichiers</div>' +
           '</div>' +
         '</div>' +
         '<div class="drawer-actions">' +
-          '<button type="button" class="art-btn primary" id="cd-zip-btn" style="padding:6px 12px;font-size:12px">📥 Télécharger .ZIP</button>' +
+          '<button type="button" class="art-btn primary" id="cd-zip-btn" style="padding:6px 12px;font-size:12px"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg><span>Télécharger ZIP</span></button>' +
           '<button type="button" class="icon-btn" id="cd-expand" title="Plein écran" style="width:32px;height:32px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>' +
-          '<button type="button" class="icon-btn" id="cd-close" title="Fermer" style="width:32px;height:32px">✕</button>' +
+          '<button type="button" class="icon-btn" id="cd-close" title="Fermer" style="width:32px;height:32px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
         '</div>' +
       '</div>' +
       '<div class="drawer-nav">' +
         '<div class="drawer-tabs">' +
-          '<button type="button" class="d-tab active" id="cd-tab-prev">👁️ Aperçu direct</button>' +
-          '<button type="button" class="d-tab" id="cd-tab-code">💻 Fichiers & Code</button>' +
+          '<button type="button" class="d-tab active" id="cd-tab-prev"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>Aperçu direct</button>' +
+          '<button type="button" class="d-tab" id="cd-tab-code"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:6px"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Fichiers & Code</button>' +
         '</div>' +
         '<div class="drawer-file-tabs" id="cd-file-tabs"></div>' +
       '</div>' +
@@ -2682,7 +2708,11 @@ function openClaudeArtifact(files, activeIndex, meta) {
   var pTitle = (meta && meta.title) || (files.length > 1 ? ('Projet (' + files.length + ' fichiers)') : (files[0].path || 'Artefact'));
   $('cd-title').textContent = pTitle;
   $('cd-sub').textContent = files.length > 1 ? (files.length + ' fichiers inclus · Archive ZIP disponible') : (files[0].lang || 'Fichier');
-  $('cd-icon').textContent = files.length > 1 ? '📦' : (files[0].lang === 'html' ? '🌐' : '📄');
+  $('cd-icon').innerHTML = files.length > 1
+    ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16.5 9.4 7.5 4.21 2.5 7.14 2.5 16.86 7.5 19.79 16.5 14.6 21.5 11.67 16.5 9.4"/><polyline points="7.5 4.21 16.5 9.4 16.5 19.14"/><line x1="16.5" y1="9.4" x2="7.5" y2="14.6"/><line x1="2.5" y1="7.14" x2="11.5" y2="12.33"/></svg>'
+    : (files[0].lang === 'html'
+        ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>'
+        : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>');
 
   var fTabsHtml = '';
   files.forEach(function(f, idx) {
@@ -2801,16 +2831,88 @@ function formatDateTime(ts) {
   return day + '/' + mon + '/' + String(yr).slice(-2) + ' ' + timeStr;
 }
 
+// ---- Détection des exports de fichiers demandés par l'utilisateur ----
+function detectExportNeeds(wrap, text) {
+  var userPrompt = '';
+  if (wrap) {
+    var prev = wrap.previousElementSibling;
+    while (prev) {
+      if (prev.classList && prev.classList.contains('user')) {
+        var ut = prev.querySelector('.user-text');
+        userPrompt = (ut ? ut.innerText : (prev.getAttribute('data-raw') || '')).toLowerCase();
+        break;
+      }
+      prev = prev.previousElementSibling;
+    }
+  }
+  var raw = (text || '').toLowerCase();
+
+  // Word (.docx) : seulement si demandé explicitement
+  var askedDocx = /(word|\.docx|fichier docx|document word|rapport|synth[eè]se|fiche|contrat|formulaire|lettre|t[eé]l[eé]charge.*(?:word|doc))/i.test(userPrompt);
+
+  // PDF (.pdf) : seulement si demandé explicitement
+  var askedPdf = /(pdf|\.pdf|format pdf|fichier pdf|document pdf|t[eé]l[eé]charge.*pdf)/i.test(userPrompt);
+
+  // PowerPoint (.pptx) : seulement si demandé explicitement ou slides structurés
+  var askedPptx = /(powerpoint|\.pptx|slides?|diaporama|diapo|pr[eé]sentation|fichier pptx)/i.test(userPrompt) || (raw.indexOf('## slide') !== -1 || raw.indexOf('diapositive') !== -1);
+
+  // Excel (.xlsx) : seulement si demandé explicitement ou tableau de données
+  var hasTable = (text && text.indexOf('|') !== -1 && text.indexOf('---') !== -1);
+  var askedXlsx = /(excel|\.xlsx|tableur|fichier xlsx|tableau excel|t[eé]l[eé]charge.*(?:excel|tableur|tableau))/i.test(userPrompt) || (hasTable && /(tableau|chiffres|donn[ée]es|calcul|tableur)/i.test(userPrompt));
+
+  // ZIP (.zip) : seulement si projet ou code demandé au téléchargement
+  var hasCode = (wrap && wrap.querySelectorAll) ? wrap.querySelectorAll('.codebox').length : 0;
+  if (!hasCode && text) hasCode = (text.indexOf('```') !== -1);
+  var askedZip = /(zip|\.zip|archive|projet complet|t[eé]l[eé]charger.*projet|export.*projet|t[eé]l[eé]charger.*fichiers)/i.test(userPrompt) || (hasCode && /(t[eé]l[eé]charge|archive|zip|projet)/i.test(userPrompt));
+
+  return {
+    docx: askedDocx,
+    pdf: askedPdf,
+    pptx: askedPptx,
+    xlsx: askedXlsx,
+    zip: askedZip
+  };
+}
+
 // ---- Barre d'actions à la fin de chaque réponse IA ----
 function renderFooterActions(wrap, text, ts) {
   var msgNode = (wrap && wrap.querySelector) ? wrap.querySelector('.msg') : null;
   var raw = text || (msgNode ? (msgNode.getAttribute('data-raw') || msgNode.innerText.trim()) : '');
-  var hasCode = (wrap && wrap.querySelectorAll) ? wrap.querySelectorAll('.codebox').length : 0;
-  if (!hasCode && raw) hasCode = (raw.indexOf('```') !== -1);
-  var hasTable = raw && (raw.indexOf('|') !== -1 && raw.indexOf('---') !== -1);
-  var hasSlides = raw && (raw.indexOf('## Slide') !== -1 || raw.indexOf('Slide ') !== -1 || raw.indexOf('# ') !== -1);
+  var exp = detectExportNeeds(wrap, raw);
   var resolvedTs = ts || (wrap && wrap.getAttribute ? Number(wrap.getAttribute('data-ts')) : null) || (Date.now() / 1000);
   var timeStr = formatDateTime(resolvedTs);
+
+  var exportButtons = '';
+  if (exp.docx) {
+    exportButtons += '<button type="button" class="rf-btn" data-act="docx" title="Télécharger en document Word (.docx)">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>' +
+      '<span>Word (.docx)</span>' +
+    '</button>';
+  }
+  if (exp.pdf) {
+    exportButtons += '<button type="button" class="rf-btn" data-act="pdf" title="Télécharger en document PDF (.pdf)">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 15v-6h3a2 2 0 0 1 0 4H9"/></svg>' +
+      '<span>PDF (.pdf)</span>' +
+    '</button>';
+  }
+  if (exp.pptx) {
+    exportButtons += '<button type="button" class="rf-btn" data-act="pptx" title="Télécharger la présentation PowerPoint (.pptx)">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>' +
+      '<span>PowerPoint (.pptx)</span>' +
+    '</button>';
+  }
+  if (exp.xlsx) {
+    exportButtons += '<button type="button" class="rf-btn" data-act="xlsx" title="Télécharger en tableur Excel (.xlsx)">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg>' +
+      '<span>Excel (.xlsx)</span>' +
+    '</button>';
+  }
+  if (exp.zip) {
+    exportButtons += '<button type="button" class="rf-btn" data-act="zip" title="Télécharger l\'archive ZIP du projet complet">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg>' +
+      '<span>Projet (.ZIP)</span>' +
+    '</button>';
+  }
 
   return '<div class="msg-footer">' +
     (timeStr ? '<span class="msg-time">' + esc(timeStr) + '</span>' : '<span></span>') +
@@ -2819,12 +2921,7 @@ function renderFooterActions(wrap, text, ts) {
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
         '<span>Copier</span>' +
       '</button>' +
-      '<button type="button" class="rf-btn" data-act="docx" title="Télécharger en document Word (.docx)">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>' +
-        '<span>Word (.docx)</span>' +
-      '</button>' +
-      (hasTable ? '<button type="button" class="rf-btn" data-act="xlsx" title="Télécharger en tableur Excel (.xlsx)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="17"></line><line x1="16" y1="13" x2="8" y2="17"></line></svg><span>Excel (.xlsx)</span></button>' : '') +
-      (hasCode ? '<button type="button" class="rf-btn" data-act="zip" title="Télécharger l\'archive ZIP du projet complet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg><span>Projet (.ZIP)</span></button>' : '') +
+      exportButtons +
       '<button type="button" class="rf-btn" data-act="edit" title="Modifier le message envoyé">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>' +
         '<span>Modifier</span>' +
@@ -2870,6 +2967,16 @@ function bindReplyFooter(wrap, text) {
   var docxBtn = footer.querySelector('[data-act="docx"]');
   if (docxBtn) {
     docxBtn.onclick = function() { exportToDocx(msgContent); };
+  }
+
+  var pdfBtn = footer.querySelector('[data-act="pdf"]');
+  if (pdfBtn) {
+    pdfBtn.onclick = function() { exportToPdf(msgContent); };
+  }
+
+  var pptxBtn = footer.querySelector('[data-act="pptx"]');
+  if (pptxBtn) {
+    pptxBtn.onclick = function() { exportToPptx(msgContent); };
   }
 
   var xlsxBtn = footer.querySelector('[data-act="xlsx"]');
@@ -2936,7 +3043,7 @@ function bindReplyFooter(wrap, text) {
       upBtn.classList.toggle('copied');
       var downBtn = footer.querySelector('[data-act="thumb-down"]');
       if (downBtn) downBtn.classList.remove('copied');
-      showToast('Merci pour votre retour positif ! 👍', 'success');
+      showToast('Merci pour votre retour positif !', 'success');
     };
   }
 
@@ -3275,7 +3382,7 @@ function renderGroupedSessions(sessions, filter) {
         '</div>' +
         '<div class="session-actions">' +
           '<button type="button" class="ren" title="Renommer la discussion"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>' +
-          (s.id !== 'default' ? '<button type="button" class="del" title="Supprimer">✕</button>' : '') +
+          (s.id !== 'default' ? '<button type="button" class="del" title="Supprimer" aria-label="Supprimer"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' : '') +
         '</div>' +
         '</div>';
     });
@@ -3467,7 +3574,7 @@ $('file-folder').addEventListener('change', function() {
     var full = contents.filter(Boolean).join('\n\n');
     var blob = new Blob([full], {type: 'text/plain;charset=utf-8'});
     var synthetic = new File([blob], rootName + '-projet.txt', {type: 'text/plain'});
-    handleChosenFile(synthetic, '📁 Dossier : ' + rootName + ' (' + validFiles.length + ' fichiers lus)');
+    handleChosenFile(synthetic, 'Dossier : ' + rootName + ' (' + validFiles.length + ' fichiers lus)');
   });
 });
 
@@ -3707,7 +3814,7 @@ function doSendStream(text, existingWrap, isRegen) {
             if (data.error) {
               setGenerating(false);
               aiWrap.classList.add('err');
-              msgEl.textContent = '⚠ ' + data.error;
+              msgEl.textContent = data.error;
               return;
             }
             if (data.chunk) {
@@ -3734,7 +3841,7 @@ function doSendStream(text, existingWrap, isRegen) {
       }
       if (!accumulated && !mediaUrl) {
         aiWrap.classList.add('err');
-        msgEl.textContent = '⚠ Aucune réponse reçue de Gemini. Vérifiez votre clé API dans Paramètres.';
+        msgEl.textContent = 'Aucune réponse reçue de Gemini. Vérifiez votre clé API dans Paramètres.';
         return;
       }
       paintReply(aiWrap, {
@@ -3759,7 +3866,7 @@ function doSendStream(text, existingWrap, isRegen) {
       return;
     }
     aiWrap.classList.add('err');
-    msgEl.textContent = '⚠ ' + (err.message || 'Erreur de connexion');
+    msgEl.textContent = err.message || 'Erreur de connexion';
   });
 }
 
@@ -3801,7 +3908,7 @@ function send(text) {
       })
       .catch(function(e) {
         waitF.classList.add('err');
-        waitF.querySelector('.msg').textContent = '⚠ ' + e.message;
+        waitF.querySelector('.msg').textContent = e.message;
       })
       .then(function() {
         setGenerating(false);
@@ -4066,7 +4173,7 @@ $('set-save').addEventListener('click', function() {
   var payload = {model_pref: $('model-sel').value, persona: $('persona-in').value, interests: $('int-in').value};
   api('/api/auth/profile', {method: 'POST', body: JSON.stringify(payload)})
     .then(function() {
-      $('set-save').textContent = 'Enregistré ✓';
+      $('set-save').textContent = 'Enregistré';
       showToast('Paramètres enregistrés !', 'success');
       setTimeout(function() { $('set-save').textContent = 'Enregistrer'; }, 1500);
     })

@@ -471,7 +471,7 @@ def system_prompt(
     return p
 
 
-_cache = {"model": None}
+_cache = {"model": "gemini-flash-lite-latest"}
 _BAD = ("tts", "live", "embedding", "robotics", "computer")
 
 # ---------- Recherche web (Grounding Google Search) ----------
@@ -536,16 +536,16 @@ def fetch_images(query: str) -> list[dict]:
 
 
 def get_model_candidates() -> list[str]:
-    """Retourne les modèles candidats ordonnés pour garantir une réponse rapide et stable."""
+    """Retourne les modèles candidats ordonnés pour garantir une réponse ultra-rapide et stable."""
     candidates = []
     if MODEL and MODEL != "auto":
         candidates.append(MODEL)
-    # Modèles actifs vérifiés dans l'API Gemini (ordre de fiabilité et rapidité)
+    # Modèles actifs vérifiés dans l'API Gemini (ordre de rapidité et fiabilité immédiate)
     defaults = [
         "gemini-flash-lite-latest",
+        "gemini-flash-latest",
+        "gemini-2.5-flash-lite",
         "gemini-3.5-flash-lite",
-        "gemini-3.5-flash",
-        "gemini-3-flash-preview",
     ]
     for m in defaults:
         if m not in candidates:
@@ -1618,6 +1618,197 @@ def export_xlsx(req: XlsxExportRequest):
     return StreamingResponse(
         buf,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'}
+    )
+
+
+class PdfExportRequest(BaseModel):
+    filename: str = "document.pdf"
+    title: str = "Document MEL-IA"
+    content: str = ""
+
+
+@app.post("/api/export/pdf")
+def export_pdf(req: PdfExportRequest):
+    import io
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+
+    buf = io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4, rightMargin=54, leftMargin=54, topMargin=54, bottomMargin=54)
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'DocTitle',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=20,
+        leading=24,
+        textColor=colors.HexColor('#1E44B0'),
+        spaceAfter=14
+    )
+    h1_style = ParagraphStyle(
+        'H1',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=14,
+        leading=18,
+        textColor=colors.HexColor('#17223B'),
+        spaceBefore=14,
+        spaceAfter=8
+    )
+    h2_style = ParagraphStyle(
+        'H2',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=12,
+        leading=16,
+        textColor=colors.HexColor('#2F5FD6'),
+        spaceBefore=10,
+        spaceAfter=6
+    )
+    body_style = ParagraphStyle(
+        'Body',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=10.5,
+        leading=14.5,
+        textColor=colors.HexColor('#334155'),
+        spaceAfter=6
+    )
+    bullet_style = ParagraphStyle(
+        'Bullet',
+        parent=body_style,
+        leftIndent=16,
+        spaceAfter=4
+    )
+
+    story = []
+    if req.title:
+        story.append(Paragraph(req.title, title_style))
+        story.append(Spacer(1, 10))
+
+    for line in (req.content or "").split("\n"):
+        line = line.strip()
+        if not line:
+            story.append(Spacer(1, 6))
+            continue
+        clean = line.replace('**', '').replace('*', '')
+        if line.startswith("# "):
+            story.append(Paragraph(clean[2:], h1_style))
+        elif line.startswith("## "):
+            story.append(Paragraph(clean[3:], h2_style))
+        elif line.startswith("### "):
+            story.append(Paragraph(clean[4:], h2_style))
+        elif line.startswith(("- ", "* ", "• ")):
+            story.append(Paragraph(f"• {clean[2:]}", bullet_style))
+        else:
+            story.append(Paragraph(clean, body_style))
+
+    doc.build(story)
+    buf.seek(0)
+    fname = req.filename if req.filename.endswith(".pdf") else f"{req.filename}.pdf"
+    return StreamingResponse(
+        buf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'}
+    )
+
+
+class PptxExportRequest(BaseModel):
+    filename: str = "presentation.pptx"
+    title: str = "Présentation MEL-IA"
+    content: str = ""
+
+
+@app.post("/api/export/pptx")
+def export_pptx(req: PptxExportRequest):
+    import io
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+    from pptx.dml.color import RGBColor
+
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    blank_layout = prs.slide_layouts[6]
+
+    title_slide = prs.slides.add_slide(blank_layout)
+    tb = title_slide.shapes.add_textbox(Inches(1.5), Inches(2.2), Inches(10.3), Inches(3.0))
+    tf = tb.text_frame
+    tf.word_wrap = True
+    p = tf.paragraphs[0]
+    p.text = req.title or "Présentation"
+    p.font.name = "Arial"
+    p.font.size = Pt(40)
+    p.font.bold = True
+    p.font.color.rgb = RGBColor(0x1E, 0x44, 0xB0)
+
+    p2 = tf.add_paragraph()
+    p2.text = "Généré par MEL-IA"
+    p2.font.name = "Arial"
+    p2.font.size = Pt(20)
+    p2.font.color.rgb = RGBColor(0x64, 0x74, 0x8B)
+
+    slides_data = []
+    current_title = ""
+    current_bullets = []
+
+    lines = (req.content or "").split("\n")
+    for line in lines:
+        l = line.strip()
+        if not l:
+            continue
+        if l.startswith("## ") or l.startswith("# Slide") or l == "---":
+            if current_title or current_bullets:
+                slides_data.append((current_title or "Diapositive", current_bullets))
+                current_bullets = []
+            clean_title = l.replace("#", "").replace("-", "").strip()
+            current_title = clean_title if clean_title else "Diapositive"
+        elif l.startswith(("- ", "* ", "• ")):
+            clean_b = l[2:].replace("**", "").strip()
+            if clean_b:
+                current_bullets.append(clean_b)
+        else:
+            clean_l = l.replace("**", "").strip()
+            if clean_l and not clean_l.startswith("#"):
+                current_bullets.append(clean_l)
+
+    if current_title or current_bullets:
+        slides_data.append((current_title or "Diapositive", current_bullets))
+
+    for s_title, bullets in slides_data:
+        slide = prs.slides.add_slide(blank_layout)
+        header_box = slide.shapes.add_textbox(Inches(1.0), Inches(0.8), Inches(11.3), Inches(1.2))
+        htf = header_box.text_frame
+        htf.word_wrap = True
+        hp = htf.paragraphs[0]
+        hp.text = s_title
+        hp.font.name = "Arial"
+        hp.font.size = Pt(28)
+        hp.font.bold = True
+        hp.font.color.rgb = RGBColor(0x17, 0x22, 0x3B)
+
+        content_box = slide.shapes.add_textbox(Inches(1.0), Inches(2.2), Inches(11.3), Inches(4.5))
+        ctf = content_box.text_frame
+        ctf.word_wrap = True
+        for idx, bullet in enumerate(bullets):
+            bp = ctf.paragraphs[0] if idx == 0 else ctf.add_paragraph()
+            bp.text = f"•  {bullet}"
+            bp.font.name = "Arial"
+            bp.font.size = Pt(18)
+            bp.font.color.rgb = RGBColor(0x33, 0x41, 0x55)
+            bp.space_after = Pt(12)
+
+    buf = io.BytesIO()
+    prs.save(buf)
+    buf.seek(0)
+    fname = req.filename if req.filename.endswith(".pptx") else f"{req.filename}.pptx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         headers={"Content-Disposition": f'attachment; filename="{fname}"'}
     )
 
