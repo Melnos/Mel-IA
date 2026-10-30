@@ -2,151 +2,547 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>MEL-IA — Ton assistant personnel intelligent</title>
-<meta name="description" content="MEL-IA est ton assistant personnel alimenté par l'IA. Il te connaît, retient ce que tu lui demandes et t'aide au quotidien.">
-<meta name="theme-color" content="#0a0a1a">
+<meta name="description" content="MEL-IA est ton assistant personnel intelligent et autonome. Il te connaît, retient ce que tu lui demandes et t'aide au quotidien.">
+<meta name="theme-color" content="#060b17">
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" href="/static/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#f4f6f9;--bg2:#e9edf4;--fg:#17223b;--muted:#5d6a82;--line:rgba(23,34,59,.12);
-  --surface:#ffffff;--glass:rgba(255,255,255,.75);
-  --a1:#2f5fd6;--a2:#1e44b0;--a3:#f0a93a;--glow:rgba(47,95,214,.22);
-  --soft:#e7edfa;--on:#fff;--radius:20px;
-  color-scheme:light;
+
+/* ==========================================================================
+   DESIGN SYSTEM — BLEU NUIT & CYAN ÉLECTRIQUE (STYLE LINEAR / CLAUDE)
+   ========================================================================== */
+:root {
+  --bg: #060b17;
+  --bg2: #0b1326;
+  --bg-gradient: radial-gradient(1100px 700px at 50% -100px, rgba(6, 182, 212, 0.18), transparent 70%),
+                 radial-gradient(900px 500px at 85% 250px, rgba(37, 99, 235, 0.12), transparent 70%),
+                 #060b17;
+  --fg: #f1f5f9;
+  --fg-heading: #ffffff;
+  --muted: #94a3b8;
+  --muted-light: #64748b;
+  --line: rgba(56, 189, 248, 0.12);
+  --line-strong: rgba(56, 189, 248, 0.28);
+  --surface: rgba(11, 19, 41, 0.72);
+  --surface-elevated: #0f1b38;
+  --surface-hover: rgba(18, 30, 64, 0.9);
+  --glass: rgba(6, 11, 23, 0.85);
+  --glass-border: rgba(56, 189, 248, 0.18);
+  
+  /* Accents Cyan & Electric Sky */
+  --a1: #06b6d4;          /* Cyan vibrant */
+  --a2: #0284c7;          /* Sky Deep */
+  --a3: #38bdf8;          /* Bright Light Cyan */
+  --accent-grad: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
+  --glow: rgba(6, 182, 212, 0.32);
+  --glow-strong: rgba(6, 182, 212, 0.55);
+  --soft: rgba(6, 182, 212, 0.10);
+  --soft-border: rgba(6, 182, 212, 0.28);
+  --card-border: rgba(56, 189, 248, 0.15);
+  --on: #ffffff;
+  --radius: 20px;
+  color-scheme: dark;
 }
-html{scroll-behavior:smooth;scroll-padding-top:80px}
-body{background:radial-gradient(900px 480px at 50% -140px,rgba(47,95,214,.10),transparent 70%),var(--bg);color:var(--fg);font:400 16px/1.7 Inter,system-ui,sans-serif;overflow-x:hidden;min-height:100vh}
-h1,h2,.brand{font-family:"Source Serif 4",Georgia,serif;font-weight:600;letter-spacing:-.02em}
-h3{font-family:Inter,system-ui,sans-serif;letter-spacing:-.01em}
 
-/* Voile lumineux très subtil, esprit papier */
-.bg-glow{display:none}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+body {
+  background: var(--bg-gradient);
+  background-color: var(--bg);
+  color: var(--fg);
+  font: 400 16px/1.7 'Inter', system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
 
-.wrap{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+h1, h2, .brand {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  color: var(--fg-heading);
+}
+h3 {
+  font-family: 'Inter', system-ui, sans-serif;
+  letter-spacing: -.01em;
+  color: var(--fg-heading);
+}
 
-/* Nav */
-nav{display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;background:rgba(244,246,249,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);margin:0 -24px;padding:16px 24px;border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px;font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:23px;color:var(--fg);letter-spacing:-.01em}
-.brand .logo-dot{color:var(--a3)}
-.nav-links{display:flex;align-items:center;gap:22px}
-.nav-links a{color:var(--muted);text-decoration:none;font-size:14.5px;font-weight:500;transition:color .2s}
-.nav-links a:hover{color:var(--fg)}
-.nav-cta{background:var(--a1);color:var(--on);border:0;border-radius:10px;padding:10px 20px;font:600 14px Inter,sans-serif;cursor:pointer;text-decoration:none;transition:background .2s,transform .15s,box-shadow .25s;box-shadow:0 1px 2px rgba(23,34,59,.12)}
-.nav-cta:hover{background:var(--a2);transform:translateY(-1px);box-shadow:0 6px 18px var(--glow)}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
 
-/* Hero */
-.hero{text-align:center;padding:84px 0 56px;position:relative}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.7);font-size:13.5px;color:var(--muted);margin-bottom:26px;box-shadow:0 1px 2px rgba(23,34,59,.06)}
-.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--a3);animation:pulse 2.4s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-h1{font-size:clamp(38px,5.6vw,60px);line-height:1.14;font-weight:600;margin-bottom:22px;max-width:14em;margin-left:auto;margin-right:auto}
-h1 .grad{color:var(--a2);font-style:italic}
-.sub{color:var(--muted);max-width:36em;margin:0 auto 36px;font-size:18px;line-height:1.7;font-weight:400}
-.hero-buttons{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-.btn{font:600 15px Inter,sans-serif;border-radius:10px;padding:14px 28px;border:1px solid var(--line);background:#fff;color:var(--fg);cursor:pointer;min-height:52px;transition:transform .15s,box-shadow .25s,background .2s,border-color .2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(23,34,59,.08)}
-.btn:hover{background:#f8faff;transform:translateY(-1px);box-shadow:0 6px 20px rgba(23,34,59,.12);border-color:rgba(23,34,59,.22)}
-.btn:focus-visible{outline:3px solid var(--a1);outline-offset:3px}
-.btn.primary{background:var(--a1);color:var(--on);border:0;box-shadow:0 4px 16px var(--glow)}
-.btn.primary:hover{background:var(--a2);box-shadow:0 8px 26px var(--glow);transform:translateY(-1px)}
-#hero-atom{width:min(150px,38vw);height:min(150px,38vw);display:block;margin:0 auto 6px}
-#note{min-height:24px;margin:18px auto 0;color:var(--muted);font-size:14px;max-width:30em}
+/* Navbar */
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  margin: 0 -24px;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--line);
+  transition: border-color .2s;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: #fff;
+  letter-spacing: -.01em;
+  text-decoration: none;
+}
+.brand .logo-dot {
+  color: var(--a1);
+  text-shadow: 0 0 10px var(--a1);
+}
+#logo {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 500;
+  transition: color .2s;
+}
+.nav-links a:hover {
+  color: #fff;
+}
+.nav-cta {
+  background: var(--accent-grad);
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px 22px;
+  font: 600 14px 'Inter', sans-serif;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .25s ease;
+  box-shadow: 0 4px 18px var(--glow);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 26px var(--glow-strong);
+  filter: brightness(1.1);
+}
+
+/* Hero Section */
+.hero {
+  text-align: center;
+  padding: 88px 0 54px;
+  position: relative;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(6, 182, 212, 0.08);
+  font-size: 13.5px;
+  color: var(--a3);
+  margin-bottom: 26px;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.12);
+}
+.hero-badge .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--a1);
+  box-shadow: 0 0 8px var(--a1);
+  animation: pulse 2.2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .4; transform: scale(0.85); }
+}
+
+h1 {
+  font-size: clamp(40px, 6vw, 64px);
+  line-height: 1.15;
+  font-weight: 700;
+  margin-bottom: 24px;
+  max-width: 14em;
+  margin-left: auto;
+  margin-right: auto;
+  color: #fff;
+}
+h1 .grad {
+  background: linear-gradient(135deg, #38bdf8 0%, #06b6d4 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-style: italic;
+}
+.sub {
+  color: var(--muted);
+  max-width: 36em;
+  margin: 0 auto 38px;
+  font-size: 18px;
+  line-height: 1.75;
+  font-weight: 400;
+}
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+.btn {
+  font: 600 15px 'Inter', sans-serif;
+  border-radius: 12px;
+  padding: 14px 28px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: #fff;
+  cursor: pointer;
+  min-height: 52px;
+  transition: all .25s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--a1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.2);
+}
+.btn.primary {
+  background: var(--accent-grad);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  box-shadow: 0 6px 24px var(--glow);
+}
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 32px var(--glow-strong);
+  filter: brightness(1.1);
+}
+#hero-atom {
+  width: min(150px, 36vw);
+  height: min(150px, 36vw);
+  display: block;
+  margin: 0 auto 8px;
+  filter: drop-shadow(0 0 20px var(--glow));
+}
+#note {
+  min-height: 24px;
+  margin: 18px auto 0;
+  color: var(--muted);
+  font-size: 14px;
+  max-width: 30em;
+}
 
 /* Stats */
-.stats{display:flex;justify-content:center;gap:0;margin:40px auto 20px;max-width:680px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.stat{flex:1;text-align:center;padding:22px 8px}
-.stat+.stat{border-left:1px solid var(--line)}
-.stat .num{font-family:"Source Serif 4",Georgia,serif;font-size:30px;font-weight:600;color:var(--fg)}
-.stat .num .lock{display:inline-flex;vertical-align:-3px}
-.stat .label{color:var(--muted);font-size:12px;margin-top:4px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 48px auto 24px;
+  max-width: 720px;
+  border: 1px solid var(--line);
+  background: rgba(11, 19, 41, 0.45);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+}
+.stat {
+  flex: 1;
+  text-align: center;
+  padding: 24px 12px;
+}
+.stat + .stat {
+  border-left: 1px solid var(--line);
+}
+.stat .num {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--a3);
+}
+.stat .num .lock {
+  display: inline-flex;
+  vertical-align: -3px;
+  color: var(--a1);
+}
+.stat .label {
+  color: var(--muted);
+  font-size: 11.5px;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 600;
+}
 
 /* Bento Grid */
-.section-title{text-align:center;margin:70px 0 40px}
-.section-title h2{font-size:clamp(28px,3.8vw,40px);margin-bottom:12px}
-.section-title p{color:var(--muted);font-size:17px;max-width:30em;margin:0 auto}
-.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;padding:0 0 80px}
-.card{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius);padding:32px;overflow:hidden;box-shadow:0 1px 3px rgba(23,34,59,.07);transition:transform .25s,border-color .25s,box-shadow .25s}
-.card:hover{transform:translateY(-3px);border-color:rgba(47,95,214,.4);box-shadow:0 14px 40px rgba(23,34,59,.10)}
-.c1{grid-column:span 4}.c2{grid-column:span 2}.c3,.c4{grid-column:span 3}
-.card-icon{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;background:var(--soft);border:1px solid rgba(47,95,214,.22);color:var(--a2)}
-.card-icon svg{width:22px;height:22px}
-h3{font-size:21px;margin-bottom:10px;font-weight:600}
-.card p.d{margin:0;color:var(--muted);font-size:15px;line-height:1.6}
+.section-title {
+  text-align: center;
+  margin: 80px 0 44px;
+}
+.section-title h2 {
+  font-size: clamp(30px, 4vw, 44px);
+  margin-bottom: 12px;
+  color: #fff;
+}
+.section-title p {
+  color: var(--muted);
+  font-size: 17px;
+  max-width: 32em;
+  margin: 0 auto;
+}
+.bento {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+  padding: 0 0 88px;
+}
+.card {
+  border: 1px solid var(--card-border);
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 34px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition: all .28s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.card:hover {
+  transform: translateY(-3px);
+  border-color: var(--a1);
+  box-shadow: 0 16px 40px rgba(6, 182, 212, 0.16);
+}
+.c1 { grid-column: span 4; }
+.c2 { grid-column: span 2; }
+.c3, .c4 { grid-column: span 3; }
 
-/* Chat demo */
-.chat-demo{margin-top:24px;display:flex;flex-direction:column;gap:10px}
-.msg{max-width:88%;padding:11px 17px;border-radius:18px;font-size:14.5px;opacity:0;animation:msgIn .5s forwards;line-height:1.55}
-.msg.me{margin-left:auto;background:#dfe8fa;color:var(--fg);border-bottom-right-radius:6px}
-.msg.ai{background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:6px}
-.m1{animation-delay:.6s}.m2{animation-delay:1.8s}.m3{animation-delay:3s}
-@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  background: var(--soft);
+  border: 1px solid var(--soft-border);
+  color: var(--a3);
+}
+.card-icon svg {
+  width: 24px;
+  height: 24px;
+}
+h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #fff;
+}
+.card p.d {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
 
-/* Wave viz */
-.wave{display:flex;align-items:center;gap:4px;height:60px;margin-top:20px;justify-content:center}
-.wave i{display:block;width:4px;border-radius:2px;background:var(--a1);animation:waveAnim 1.2s ease-in-out infinite}
-.wave i:nth-child(1){animation-delay:0s;height:14px}.wave i:nth-child(2){animation-delay:.1s;height:28px}
-.wave i:nth-child(3){animation-delay:.2s;height:44px}.wave i:nth-child(4){animation-delay:.3s;height:22px}
-.wave i:nth-child(5){animation-delay:.4s;height:36px}.wave i:nth-child(6){animation-delay:.5s;height:16px}
-.wave i:nth-child(7){animation-delay:.6s;height:30px}.wave i:nth-child(8){animation-delay:.7s;height:20px}
-@keyframes waveAnim{0%,100%{transform:scaleY(1);opacity:.5}50%{transform:scaleY(1.6);opacity:1}}
+/* Chat Demo Card */
+.chat-demo {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.msg {
+  max-width: 88%;
+  padding: 12px 18px;
+  border-radius: 18px;
+  font-size: 14.5px;
+  opacity: 0;
+  animation: msgIn .5s forwards;
+  line-height: 1.55;
+}
+.msg.me {
+  margin-left: auto;
+  background: #0e2a56;
+  color: #f8fafc;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-bottom-right-radius: 4px;
+}
+.msg.ai {
+  background: #091224;
+  border: 1px solid var(--line-strong);
+  color: #f1f5f9;
+  border-bottom-left-radius: 4px;
+}
+.m1 { animation-delay: .6s; }
+.m2 { animation-delay: 1.8s; }
+.m3 { animation-delay: 3s; }
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Wave Viz */
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 60px;
+  margin-top: 24px;
+  justify-content: center;
+}
+.wave i {
+  display: block;
+  width: 5px;
+  border-radius: 3px;
+  background: var(--a1);
+  box-shadow: 0 0 8px var(--a1);
+  animation: waveAnim 1.2s ease-in-out infinite;
+}
+.wave i:nth-child(1){animation-delay:0s;height:16px}
+.wave i:nth-child(2){animation-delay:.1s;height:30px}
+.wave i:nth-child(3){animation-delay:.2s;height:48px}
+.wave i:nth-child(4){animation-delay:.3s;height:24px}
+.wave i:nth-child(5){animation-delay:.4s;height:40px}
+.wave i:nth-child(6){animation-delay:.5s;height:18px}
+.wave i:nth-child(7){animation-delay:.6s;height:32px}
+.wave i:nth-child(8){animation-delay:.7s;height:22px}
+@keyframes waveAnim {
+  0%, 100% { transform: scaleY(1); opacity: .5; }
+  50% { transform: scaleY(1.6); opacity: 1; }
+}
 
 /* Tags */
-.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
-.tags span{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 16px;font-size:13px;color:var(--muted);font-weight:500}
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+.tags span {
+  border: 1px solid var(--soft-border);
+  background: var(--soft);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  color: var(--a3);
+  font-weight: 500;
+}
 
 /* CTA Section */
-.cta-section{text-align:center;padding:72px 24px;margin-bottom:60px;position:relative;background:var(--soft);border:1px solid rgba(47,95,214,.2);border-radius:28px}
-.cta-section h2{font-size:clamp(30px,4.6vw,46px);margin-bottom:14px}
-.cta-section p{color:var(--muted);margin-bottom:30px;font-size:17px}
-.cta-section .hero-buttons{margin-bottom:0}
+.cta-section {
+  text-align: center;
+  padding: 76px 28px;
+  margin-bottom: 68px;
+  position: relative;
+  background: radial-gradient(800px 400px at 50% 0%, rgba(6, 182, 212, 0.15), transparent 70%), var(--surface);
+  border: 1px solid var(--soft-border);
+  border-radius: 28px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+.cta-section h2 {
+  font-size: clamp(32px, 4.8vw, 48px);
+  margin-bottom: 14px;
+}
+.cta-section p {
+  color: var(--muted);
+  margin-bottom: 32px;
+  font-size: 17.5px;
+}
 
 /* Footer */
-footer{text-align:center;padding:28px 0 40px;color:var(--muted);font-size:13.5px;border-top:1px solid var(--line)}
-footer .heart{color:var(--a1)}
+footer {
+  text-align: center;
+  padding: 32px 0 44px;
+  color: var(--muted);
+  font-size: 14px;
+  border-top: 1px solid var(--line);
+}
+footer .heart {
+  color: var(--a1);
+}
 
 /* Responsive */
-@media (max-width:768px){
-  .c1,.c2,.c3,.c4{grid-column:span 6}
-  .card{padding:24px}
-  .stats{gap:30px}
-  .nav-links a:not(.nav-cta){display:none}
+@media (max-width: 768px) {
+  .c1, .c2, .c3, .c4 { grid-column: span 6; }
+  .card { padding: 24px; }
+  .stats { flex-direction: column; max-width: 320px; }
+  .stat + .stat { border-left: none; border-top: 1px solid var(--line); }
+  .nav-links a:not(.nav-cta) { display: none; }
 }
-@media (prefers-reduced-motion:reduce){
-  .msg{animation:none;opacity:1}
-  .btn,.card{transition:none}
-  .bg-glow .orb{animation:none}
-  .wave i{animation:none}
+@media (prefers-reduced-motion: reduce) {
+  .msg { animation: none; opacity: 1; }
+  .btn, .card { transition: none; }
+  .wave i { animation: none; }
 }
-#logo{display:inline-block;width:32px;height:32px;vertical-align:-7px;margin-right:2px}
-.brand .logo-dot{color:var(--a3)}
 </style>
 </head>
 <body>
-<div class="bg-glow"><div class="orb"></div><div class="orb"></div><div class="orb"></div></div>
 
 <div class="wrap">
 <nav>
-  <span class="brand"><span id="logo"></span>MEL-IA<span class="logo-dot">.</span></span>
+  <a class="brand" href="/"><span id="logo"></span>MEL-IA<span class="logo-dot">.</span></a>
   <div class="nav-links">
     <a href="#fonctions">Fonctions</a>
-    <a class="nav-cta" href="/app">Ouvrir l'assistant</a>
+    <a class="nav-cta" href="/app">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>
+      Ouvrir l'assistant
+    </a>
   </div>
 </nav>
 
 <header class="hero">
-  <div class="hero-badge"><span class="dot"></span>Propulsé par Gemini AI</div>
+  <div class="hero-badge"><span class="dot"></span>Intelligence Artificielle Avancée</div>
   <div id="hero-atom"></div>
   <h1>Ton assistant <span class="grad">personnel</span>, toujours disponible.</h1>
-  <p class="sub">Parle-lui ou écris-lui en français. Il connaît tes projets, retient ce que tu lui demandes et t'aide dans tout ce que tu fais.</p>
+  <p class="sub">Parle-lui ou écris-lui en français. Il connaît tes projets, retient ce que tu lui demandes et t'aide dans tout ce que tu fais au quotidien.</p>
   <div class="hero-buttons">
-    <a class="btn primary" href="/app"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>Ouvrir l'assistant</a>
-    <button class="btn" id="install"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>Installer l'application</button>
+    <a class="btn primary" href="/app">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>
+      Ouvrir l'assistant
+    </a>
+    <button class="btn" id="install">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>
+      Installer l'application
+    </button>
   </div>
   <p id="note" role="status" aria-live="polite"></p>
 </header>
@@ -155,60 +551,63 @@ footer .heart{color:var(--a1)}
   <div class="stat"><div class="num">∞</div><div class="label">Conversations</div></div>
   <div class="stat"><div class="num">24/7</div><div class="label">Disponible</div></div>
   <div class="stat"><div class="num">FR</div><div class="label">Français natif</div></div>
-  <div class="stat"><div class="num"><span class="lock"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span></div><div class="label">100% privé</div></div>
+  <div class="stat"><div class="num"><span class="lock"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span></div><div class="label">100% privé</div></div>
 </div>
 
 <section id="fonctions">
 <div class="section-title">
   <h2>Ce que MEL-IA sait faire</h2>
-  <p>Un assistant complet qui s'adapte à tes besoins.</p>
+  <p>Un assistant tout-en-un fluide, intelligent et ultra-rapide.</p>
 </div>
 
 <div class="bento">
   <div class="card c1">
     <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.5 0-3-.4-4.2-1L3 20l1.1-4.3A8.5 8.5 0 1 1 21 11.5z"/></svg></div>
-    <h3>Chat naturel</h3>
-    <p class="d">Écris ou parle en français. MEL-IA comprend le contexte et répond de façon claire et directe.</p>
+    <h3>Chat naturel & Réflexion en direct</h3>
+    <p class="d">Écris ou parle en français. MEL-IA comprend le contexte, structure son raisonnement et répond avec une fluidité absolue.</p>
     <div class="chat-demo">
       <div class="msg me m1">Rappelle-moi de relancer le client demain à 9 h.</div>
-      <div class="msg ai m2">C'est noté : rappel demain à 9 h pour relancer le client.</div>
-      <div class="msg ai m3">Je prépare aussi un message de relance ?</div>
+      <div class="msg ai m2">C'est noté : rappel programmé pour demain à 9 h.</div>
+      <div class="msg ai m3">Veux-tu que je te prépare un modèle de message percutant ?</div>
     </div>
   </div>
 
   <div class="card c2">
     <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/><path d="M19 15l.7 2.1 2.1.7-2.1.7L19 20.6l-.7-2.1-2.1-.7 2.1-.7z"/></svg></div>
-    <h3>Il te connaît</h3>
-    <p class="d">Dis-lui « retiens que… » et il gardera cette info en mémoire pour toutes tes futures conversations.</p>
+    <h3>Mémoire adaptative</h3>
+    <p class="d">Dis-lui « retiens que… » et il gardera l'information en mémoire pour toutes tes sessions futures.</p>
     <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
   </div>
 
   <div class="card c3">
     <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 8-4 4 4 4"/><path d="m16 8 4 4-4 4"/><path d="m13 4-2 16"/></svg></div>
-    <h3>Multi-talents</h3>
-    <p class="d">Code, projets, rédaction, idées, organisation : MEL-IA t'aide sur tous les sujets.</p>
-    <div class="tags"><span>Python</span><span>Rédaction</span><span>Idées</span><span>Planning</span><span>Maths</span></div>
+    <h3>Code, Analyse & Documents</h3>
+    <p class="d">Génération de code coloré, aperçus HTML/JS interactifs, export direct en fichiers ZIP, PDF, Word et Excel.</p>
+    <div class="tags"><span>Python</span><span>JavaScript</span><span>Export ZIP</span><span>PDF & Word</span><span>Recherche web</span></div>
   </div>
 
   <div class="card c4">
     <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2.5"/><path d="M11 18.5h2"/></svg></div>
-    <h3>Partout avec toi</h3>
-    <p class="d">Installe MEL-IA comme une application sur ton téléphone. Fonctionne même hors ligne.</p>
-    <div class="tags"><span>iOS</span><span>Android</span><span>Desktop</span><span>PWA</span></div>
+    <h3>Mobile & PWA Optimisé</h3>
+    <p class="d">Installe MEL-IA en un clic sur Android, iPhone ou PC. Interface réactive et fluide garantie sans saccade.</p>
+    <div class="tags"><span>iOS</span><span>Android</span><span>Desktop</span><span>PWA</span><span>Portrait verrouillé</span></div>
   </div>
 </div>
 </section>
 
 <section class="cta-section">
-  <h2>Prêt à commencer ?</h2>
-  <p>Ouvre MEL-IA et pose ta première question.</p>
+  <h2>Prêt à booster ta productivité ?</h2>
+  <p>Accède à ton assistant personnel et commence une discussion.</p>
   <div class="hero-buttons">
-    <a class="btn primary" href="/app"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>Ouvrir l'assistant</a>
+    <a class="btn primary" href="/app">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>
+      Ouvrir l'assistant MEL-IA
+    </a>
   </div>
 </section>
 
 <footer>
-  <p>MEL-IA — fait avec <span class="heart">♥</span> à Cotonou</p>
+  <p>MEL-IA — fait avec <span class="heart">♥</span> · Design Bleu Nuit &amp; Cyan Électrique</p>
 </footer>
 </div>
 

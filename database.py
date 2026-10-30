@@ -22,11 +22,20 @@ except ImportError:
 # Exception unifiée pour les contraintes d'intégrité (ex: nom d'utilisateur déjà pris)
 DBIntegrityError = (sqlite3.IntegrityError, PG_IntegrityError)
 
+import sys
 from dotenv import load_dotenv
 
-BASE = Path(__file__).parent
-load_dotenv(BASE / ".env")
-SQLITE_PATH = BASE / "data" / "mel_ia.db"
+if getattr(sys, "frozen", False):
+    EXE_DIR = Path(sys.executable).parent
+    BASE = Path(getattr(sys, "_MEIPASS", EXE_DIR))
+    SQLITE_PATH = EXE_DIR / "data" / "mel_ia.db"
+    load_dotenv(EXE_DIR / ".env")
+    load_dotenv(BASE / ".env")
+else:
+    BASE = Path(__file__).parent
+    SQLITE_PATH = BASE / "data" / "mel_ia.db"
+    load_dotenv(BASE / ".env")
+
 SQLITE_PATH.parent.mkdir(exist_ok=True)
 
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()

@@ -9,10 +9,20 @@ from pathlib import Path
 import httpx
 import json
 from pathlib import Path
+import sys
 from dotenv import load_dotenv
 
-BASE = Path(__file__).parent
-load_dotenv(BASE / ".env")
+if getattr(sys, "frozen", False):
+    # En mode exécutable autonome PyInstaller
+    BASE = Path(getattr(sys, "_MEIPASS", Path(sys.executable).parent))
+    EXE_DIR = Path(sys.executable).parent
+    DATA_DIR = EXE_DIR / "data"
+    load_dotenv(EXE_DIR / ".env")
+    load_dotenv(BASE / ".env")
+else:
+    BASE = Path(__file__).parent
+    DATA_DIR = BASE / "data"
+    load_dotenv(BASE / ".env")
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
@@ -21,9 +31,9 @@ from pydantic import BaseModel
 
 from database import db, init_db, DBIntegrityError, IS_POSTGRES
 
-DB_PATH = BASE / "data" / "mel_ia.db"
+DB_PATH = DATA_DIR / "mel_ia.db"
 DB_PATH.parent.mkdir(exist_ok=True)
-MEDIA_DIR = BASE / "data" / "media"
+MEDIA_DIR = DATA_DIR / "media"
 MEDIA_DIR.mkdir(exist_ok=True)
 
 # Tailles max acceptées (Gemini inline data plafonne ~20 Mo par requête)
@@ -33,9 +43,9 @@ MEDIA_LIMITS = {
     "video": 15 * 1024 * 1024,
     "document": 15 * 1024 * 1024,
 }
-IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
-AUDIO_EXTS = {".mp3", ".wav", ".ogg", ".oga", ".m4a", ".webm", ".mp4"}
-VIDEO_EXTS = {".mp4", ".webm", ".mov", ".mkv"}
+IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
+AUDIO_EXTS = {".mp3", ".wav", ".ogg", ".oga", ".m4a", ".aac", ".flac", ".opus"}
+VIDEO_EXTS = {".mp4", ".mov", ".mkv", ".avi", ".wmv"}
 DOC_EXTS = {".pdf", ".txt", ".md", ".csv", ".json", ".py", ".js", ".ts", ".html", ".css", ".xml", ".sql", ".yaml", ".yml"}
 
 MODEL = os.getenv("GEMINI_MODEL", "auto")
@@ -481,9 +491,9 @@ SEARCH_KEYWORDS = re.compile(
     re.I,
 )
 GEN_IMAGE_RE = re.compile(
-    r"^\s*(?:génère|generes?|cr[ée]e|dessine|fabrique|imagine|fais|make|generate|draw|create)\b[^.!?\n]{0,120}?"
-    r"(?:une?|d[' ]une?|du |des |l[' ]|un )?\s*image|"
-    r"^\s*(?:image|photo|illustration|dessin)\s+(?:de|d[' ]|du |des |dun |d'une?)",
+    r"^\s*(?:génère|generes?|cr[ée]e|dessine|fabrique|imagine|fais(?:[- ]moi)?|peins|peindre|make|generate|draw|create)\b[^.!?\n]{0,120}?"
+    r"(?:une?|d[' ]une?|du |des |l[' ]|un )?\s*(?:image|photo|illustration|dessin|tableau|portrait|visuel)|"
+    r"^\s*(?:image|photo|illustration|dessin|tableau|portrait)\s+(?:de|d[' ]|du |des |dun |d'une?)",
     re.I,
 )
 
@@ -730,7 +740,7 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
     if not keys:
         raise HTTPException(
             400,
-            "Aucune clé API Gemini disponible : connectez-vous avec votre compte ou ajoutez une clé dans Paramètres.",
+            "Aucune clé API disponible : connectez-vous avec votre compte ou ajoutez une clé dans Paramètres.",
         )
 
     # 1. Tentative avec Google Imagen 3 via endpoint officiel :predict
@@ -1173,13 +1183,20 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
 
 
 def _kind_of(filename: str, mime: str) -> str | None:
-    ext = Path(filename or "").suffix.lower()
+    fn = (filename or "").lower()
+    ext = Path(fn).suffix.lower()
+    mime = (mime or "").lower()
+    # 1. Enregistrements vocaux du micro navigateur (souvent en .webm)
+    if fn.startswith("vocal-") or fn.startswith("voice-") or fn.startswith("audio-"):
+        return "audio"
+    if mime.startswith("audio/") or ext in AUDIO_EXTS:
+        return "audio"
+    if ext == ".webm" and "video" not in mime:
+        return "audio"
     if mime.startswith("image/") or ext in IMAGE_EXTS:
         return "image"
     if mime.startswith("video/") or ext in VIDEO_EXTS:
         return "video"
-    if mime.startswith("audio/") or ext in AUDIO_EXTS:
-        return "audio"
     if mime == "application/pdf" or ext in DOC_EXTS or mime.startswith("text/"):
         return "document"
     return None

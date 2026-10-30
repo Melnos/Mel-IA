@@ -1,13 +1,13 @@
 {
   "name": "MEL-IA — Assistant Personnel",
   "short_name": "MEL-IA",
-  "description": "Ton assistant personnel intelligent, propulsé par Gemini AI",
+  "description": "Ton assistant personnel intelligent et autonome",
   "start_url": "/app",
   "scope": "/",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#f4f6f9",
-  "theme_color": "#f4f6f9",
+  "orientation": "portrait-primary",
+  "background_color": "#060b17",
+  "theme_color": "#060b17",
   "lang": "fr",
   "categories": ["productivity", "utilities"],
   "icons": [
