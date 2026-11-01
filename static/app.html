@@ -2535,7 +2535,6 @@ function renderClaudeProjectCard(files, projectTitle) {
       '<div class="artifact-sub">' + fileNames + '</div>' +
     '</div>' +
     '<div class="artifact-actions">' +
-      '<button type="button" class="art-btn primary" data-art-act="zip" title="Télécharger l\'archive complète .zip"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="5" x2="12" y2="19"/></svg><span>Télécharger ZIP</span></button>' +
       '<button type="button" class="art-btn secondary" data-art-act="preview" title="Tester et explorer les fichiers"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span>Aperçu direct</span></button>' +
     '</div>' +
   '</div>';
@@ -2555,9 +2554,19 @@ function extractThinking(t) {
   }
   var openMatch = str.match(/<think>([\s\S]*)$/i);
   if (openMatch) {
+    var rawInside = openMatch[1];
+    var codeIdx = rawInside.indexOf('```');
+    if (codeIdx !== -1) {
+      return {
+        hasThink: true,
+        thinking: rawInside.slice(0, codeIdx).trim(),
+        rest: rawInside.slice(codeIdx).trim(),
+        isDone: true
+      };
+    }
     return {
       hasThink: true,
-      thinking: openMatch[1].trim(),
+      thinking: rawInside.trim(),
       rest: '',
       isDone: false
     };
@@ -2659,9 +2668,22 @@ function renderMarkdown(t) {
   var thinkInfo = extractThinking(t);
   var out = '';
   if (thinkInfo.hasThink) {
-    out += renderThinkingBox(thinkInfo.thinking, false);
+    // Si la balise de thinking n'était pas fermée dans le stream final
+    if (!thinkInfo.isDone && !thinkInfo.rest) {
+      var cIdx = thinkInfo.thinking.indexOf('```');
+      if (cIdx !== -1) {
+        var tPart = thinkInfo.thinking.slice(0, cIdx).trim();
+        var cPart = thinkInfo.thinking.slice(cIdx).trim();
+        if (tPart) out += renderThinkingBox(tPart, false);
+        thinkInfo.rest = cPart;
+      } else {
+        out += renderThinkingBox(thinkInfo.thinking, false);
+      }
+    } else {
+      out += renderThinkingBox(thinkInfo.thinking, false);
+    }
   }
-  var content = thinkInfo.hasThink ? thinkInfo.rest : t;
+  var content = (thinkInfo.hasThink && thinkInfo.rest) ? thinkInfo.rest : (thinkInfo.hasThink ? '' : t);
   if (!content) return out;
 
   var parts = String(content).split('```');
@@ -2676,12 +2698,13 @@ function renderMarkdown(t) {
       var code = m ? p.slice(m[0].length) : p;
       code = code.replace(/\r/g, '');
       if (code.slice(-1) === '\n') code = code.slice(0, -1);
+      var isPrompt = (lang === 'prompt' || lang === 'system-prompt');
 
-      if (!fname && lang && lang !== 'prompt' && lang !== 'system-prompt') {
+      if (!fname && lang && !isPrompt) {
         var ext = lang === 'javascript' ? 'js' : (lang === 'python' ? 'py' : lang);
         fname = 'fichier_' + (msgFiles.length + 1) + '.' + ext;
       }
-      if (fname && lang !== 'prompt' && lang !== 'system-prompt') {
+      if (fname && !isPrompt) {
         msgFiles.push({path: fname, name: fname, lang: lang, content: code});
       }
 
@@ -4398,17 +4421,25 @@ function doSendStream(text, existingWrap, isRegen) {
     var buffer = '';
     var listEl = $('list');
     var animFrameId = null;
+    var streamTimer = null;
+    var streamFinished = false;
     var lastRenderTime = 0;
     var renderPending = false;
 
     function scheduleStreamUpdate() {
-      if (renderPending) return;
+      if (streamFinished || renderPending) return;
       renderPending = true;
       var now = performance.now();
       var delay = Math.max(0, 32 - (now - lastRenderTime)); // ~30 FPS throttle
-      setTimeout(function() {
+      if (streamTimer) clearTimeout(streamTimer);
+      streamTimer = setTimeout(function() {
+        if (streamFinished) {
+          renderPending = false;
+          return;
+        }
         animFrameId = requestAnimationFrame(function() {
           renderPending = false;
+          if (streamFinished) return;
           lastRenderTime = performance.now();
           msgEl.innerHTML = renderStreamingMarkdown(accumulated);
           var isNearBottom = listEl.scrollHeight - listEl.scrollTop - listEl.clientHeight < 160;
@@ -4436,7 +4467,9 @@ function doSendStream(text, existingWrap, isRegen) {
           try {
             var data = JSON.parse(jsonStr);
             if (data.error) {
-              if (animFrameId) cancelAnimationFrame(animFrameId);
+              streamFinished = true;
+              if (streamTimer) { clearTimeout(streamTimer); streamTimer = null; }
+              if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
               renderPending = false;
               setGenerating(false);
               aiWrap.classList.add('err');
@@ -4460,7 +4493,9 @@ function doSendStream(text, existingWrap, isRegen) {
     }
 
     function finishStream() {
-      if (animFrameId) cancelAnimationFrame(animFrameId);
+      streamFinished = true;
+      if (streamTimer) { clearTimeout(streamTimer); streamTimer = null; }
+      if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
       renderPending = false;
       setGenerating(false);
       if (aiWrap.classList.contains('err')) {
@@ -4471,12 +4506,17 @@ function doSendStream(text, existingWrap, isRegen) {
         msgEl.textContent = 'Aucune réponse reçue du serveur IA. Vérifiez votre clé API dans Paramètres.';
         return;
       }
-      paintReply(aiWrap, {
-        reply: accumulated,
-        sources: sources,
-        model: modelUsed,
-        media_url: mediaUrl
-      });
+      try {
+        paintReply(aiWrap, {
+          reply: accumulated,
+          sources: sources,
+          model: modelUsed,
+          media_url: mediaUrl
+        });
+      } catch(errPaint) {
+        console.error('Erreur paintReply:', errPaint);
+        msgEl.innerHTML = fallbackMd(accumulated);
+      }
       if (speak && accumulated) say(accumulated);
       loadSessions();
       listEl.scrollTop = listEl.scrollHeight;
@@ -4485,12 +4525,18 @@ function doSendStream(text, existingWrap, isRegen) {
     return readNext();
   })
   .catch(function(err) {
-    if (animFrameId) cancelAnimationFrame(animFrameId);
+    streamFinished = true;
+    if (streamTimer) { clearTimeout(streamTimer); streamTimer = null; }
+    if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
     renderPending = false;
     setGenerating(false);
     if (err.name === 'AbortError') {
       if (accumulated) {
-        paintReply(aiWrap, {reply: accumulated, sources: sources, model: modelUsed, media_url: mediaUrl});
+        try {
+          paintReply(aiWrap, {reply: accumulated, sources: sources, model: modelUsed, media_url: mediaUrl});
+        } catch(e) {
+          msgEl.innerHTML = fallbackMd(accumulated);
+        }
       }
       return;
     }

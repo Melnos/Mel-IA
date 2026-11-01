@@ -16,10 +16,7 @@ scripts/archive/
 _*.py
 _*.ps1
 quick_sql.py
- 
 dist/
 build/
-\; Add-Content -Path '.gitignore' -Value \
-dist/
-build/
-
+*.spec
+test.txt

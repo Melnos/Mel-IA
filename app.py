@@ -734,47 +734,48 @@ def generate_svg_illustration(prompt: str, user: dict | None = None) -> str:
 
 
 def generate_image(prompt: str, user: dict | None = None) -> str:
-    """Génère une image avec Google Imagen 3 (via API :predict), avec fallbacks IA haute fidélité."""
+    """Génère une image avec Google Imagen 3 (via API :predict), avec fallbacks IA haute fidélité (Pollinations Flux/SDXL & SVG)."""
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
-    if not keys:
-        raise HTTPException(
-            400,
-            "Aucune clé API disponible : connectez-vous avec votre compte ou ajoutez une clé dans Paramètres.",
-        )
 
-    # 1. Tentative avec Google Imagen 3 via endpoint officiel :predict
-    for key in keys:
-        for model in ("imagen-3.0-generate-002", "imagen-3.0-generate-001"):
-            try:
-                r = httpx.post(
-                    f"{API_BASE}/models/{model}:predict",
-                    headers={"x-goog-api-key": key, "Content-Type": "application/json"},
-                    json={
-                        "instances": [{"prompt": prompt}],
-                        "parameters": {"sampleCount": 1, "aspectRatio": "1:1"}
-                    },
-                    timeout=60,
-                )
-                if r.status_code == 200:
-                    data = r.json()
-                    preds = data.get("predictions", [])
-                    if preds and preds[0].get("bytesBase64Encoded"):
-                        b64 = preds[0]["bytesBase64Encoded"]
-                        fname = f"gen_{uuid.uuid4().hex[:12]}.jpg"
-                        (MEDIA_DIR / fname).write_bytes(base64.b64decode(b64))
-                        return fname
-            except Exception:
-                pass
+    # 1. Tentative avec Google Imagen 3 via endpoint officiel :predict si des clés sont configurées
+    if keys:
+        for key in keys:
+            for model in ("imagen-3.0-generate-002", "imagen-3.0-generate-001"):
+                try:
+                    r = httpx.post(
+                        f"{API_BASE}/models/{model}:predict",
+                        headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                        json={
+                            "instances": [{"prompt": prompt}],
+                            "parameters": {"sampleCount": 1, "aspectRatio": "1:1"}
+                        },
+                        timeout=50,
+                    )
+                    if r.status_code == 200:
+                        data = r.json()
+                        preds = data.get("predictions", [])
+                        if preds and preds[0].get("bytesBase64Encoded"):
+                            b64 = preds[0]["bytesBase64Encoded"]
+                            fname = f"gen_{uuid.uuid4().hex[:12]}.jpg"
+                            (MEDIA_DIR / fname).write_bytes(base64.b64decode(b64))
+                            return fname
+                except Exception:
+                    pass
 
-    # 2. Fallback Pollinations Flux / SDXL
+    # 2. Fallback Pollinations Flux / SDXL (gratuit, ultra-rapide et autonome)
     try:
         from urllib.parse import quote
-        safe_p = quote(prompt[:200])
+        safe_p = quote(prompt[:220])
         seed = secrets.randbelow(999999)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        }
         r = httpx.get(
             f"https://image.pollinations.ai/prompt/{safe_p}?width=1024&height=1024&nologo=true&seed={seed}",
-            timeout=30,
+            headers=headers,
+            timeout=45,
             follow_redirects=True,
         )
         if r.status_code == 200 and r.content and len(r.content) > 3000:
@@ -784,12 +785,46 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
     except Exception:
         pass
 
-    # 3. Fallback SVG généré sur mesure par Gemini
-    svg_code = generate_svg_illustration(prompt, user)
-    if svg_code:
+    # 3. Fallback SVG généré sur mesure par Gemini (si clé Gemini disponible)
+    if keys:
+        try:
+            svg_code = generate_svg_illustration(prompt, user)
+            if svg_code:
+                fname = f"gen_{uuid.uuid4().hex[:12]}.svg"
+                (MEDIA_DIR / fname).write_text(svg_code, encoding="utf-8")
+                return fname
+        except Exception:
+            pass
+
+    # 4. Fallback ultime SVG esthétique pour toujours fournir un visuel propre
+    try:
+        from html import escape as esc_html
+        clean_p = esc_html(prompt[:70])
         fname = f"gen_{uuid.uuid4().hex[:12]}.svg"
-        (MEDIA_DIR / fname).write_text(svg_code, encoding="utf-8")
+        fallback_svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1326" />
+      <stop offset="60%" stop-color="#0f182e" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <radialGradient id="r" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="800" height="600" rx="20" fill="url(#g)" />
+  <circle cx="400" cy="250" r="160" fill="url(#r)"/>
+  <circle cx="400" cy="250" r="85" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6 6"/>
+  <circle cx="400" cy="250" r="55" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2"/>
+  <path d="M375 250 L395 230 L425 260" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <text x="400" y="410" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="22" font-weight="600" fill="#f8fafc" text-anchor="middle">{clean_p}</text>
+  <text x="400" y="445" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="14" fill="#94a3b8" text-anchor="middle">Illustration vectorielle générée par MEL-IA</text>
+</svg>"""
+        (MEDIA_DIR / fname).write_text(fallback_svg, encoding="utf-8")
         return fname
+    except Exception:
+        pass
 
     raise HTTPException(502, "Impossible de générer l'image : vérifiez votre connexion ou réessayez avec un autre sujet.")
 
@@ -975,13 +1010,6 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
     user = current_user(x_auth_token)
     if x_auth_token and not user:
         raise HTTPException(401, "Session expirée. Veuillez vous reconnecter.")
-    user_keys = get_user_keys(user)
-    keys = [k for k in user_keys if _key_usable(k)] or user_keys
-    if not keys:
-        raise HTTPException(
-            400,
-            "Aucune clé API Gemini disponible : veuillez renseigner votre clé API dans Paramètres.",
-        )
     uid = user["id"] if user else None
     text = body.message.strip()
     sid = body.session_id or "default"
@@ -990,6 +1018,14 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
     now = time.time()
     do_search = body.search if body.search is not None else bool(SEARCH_KEYWORDS.search(text))
     do_image = body.generate_image if body.generate_image is not None else bool(GEN_IMAGE_RE.search(text))
+
+    user_keys = get_user_keys(user)
+    keys = [k for k in user_keys if _key_usable(k)] or user_keys
+    if not do_image and not keys:
+        raise HTTPException(
+            400,
+            "Aucune clé API Gemini disponible : veuillez renseigner votre clé API dans Paramètres.",
+        )
 
     with db() as c:
         s_row = c.execute("SELECT title, user_id FROM sessions WHERE id = ?", (sid,)).fetchone()
