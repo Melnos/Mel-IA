@@ -1409,9 +1409,10 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None), x_g
                 res = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search, memories=memories)
                 full_reply = res["reply"]
                 sources = res.get("sources", [])
-                yield f"data: {json.dumps({'chunk': full_reply, 'done': False})}\n\n"
+                yield f"data: {json.dumps({'chunk': full_reply, 'reply': full_reply, 'done': False})}\n\n"
             except Exception as e:
-                yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
+                err_msg = getattr(e, "detail", str(e))
+                yield f"data: {json.dumps({'error': err_msg, 'done': True})}\n\n"
                 return
 
         media_url = ""

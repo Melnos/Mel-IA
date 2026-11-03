@@ -6286,6 +6286,9 @@
                       typeInterval = setInterval(typeTick, 16);
                     }
                   }
+                  if (data.reply && !targetText) {
+                    targetText = data.reply;
+                  }
                   if (data.media_url) mediaUrl = data.media_url;
                   if (data.sources) sources = data.sources;
                   if (data.model) modelUsed = data.model;
