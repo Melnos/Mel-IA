@@ -227,11 +227,13 @@ def init_db():
         if IS_POSTGRES:
             c.execute("""
                 CREATE TABLE IF NOT EXISTS sessions (
-                    id TEXT PRIMARY KEY,
+                    pk SERIAL PRIMARY KEY,
+                    id TEXT,
                     title TEXT,
                     created_at DOUBLE PRECISION,
                     updated_at DOUBLE PRECISION,
-                    user_id INTEGER
+                    user_id INTEGER,
+                    guest_id TEXT
                 )
             """)
             c.execute("""
@@ -296,25 +298,29 @@ def init_db():
                 )
             """)
             # Index optimisés pour PostgreSQL
+            try:
+                c.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS guest_id TEXT")
+                c.execute("ALTER TABLE messages ADD COLUMN IF NOT EXISTS guest_id TEXT")
+            except Exception:
+                pass
             c.execute("CREATE INDEX IF NOT EXISTS idx_messages_user_sid ON messages(user_id, session_id)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_messages_guest_sid ON messages(guest_id, session_id)")
             c.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token)")
-            c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id, id)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_guest ON sessions(guest_id, id)")
             c.execute("CREATE INDEX IF NOT EXISTS idx_facts_user ON facts(user_id)")
             c.execute("CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id)")
-
-            # Session principale par défaut
-            c.execute(
-                "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES ('default', 'Discussion principale', %s, %s, NULL) ON CONFLICT (id) DO NOTHING",
-                (time.time(), time.time()),
-            )
         else:
             # Mode SQLite local
             c.execute("""
                 CREATE TABLE IF NOT EXISTS sessions (
-                    id TEXT PRIMARY KEY,
+                    pk INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id TEXT,
                     title TEXT,
                     created_at REAL,
-                    updated_at REAL
+                    updated_at REAL,
+                    user_id INTEGER,
+                    guest_id TEXT
                 )
             """)
             c.execute("""
@@ -348,10 +354,12 @@ def init_db():
                 if col.split()[0] not in cols:
                     c.execute(f"ALTER TABLE messages ADD COLUMN {col}")
 
-            c.execute(
-                "INSERT INTO sessions(id, title, created_at, updated_at) VALUES('default', 'Discussion principale', ?, ?) ON CONFLICT (id) DO NOTHING",
-                (time.time(), time.time())
-            )
+            scols = [r["name"] for r in c.execute("PRAGMA table_info(sessions)").fetchall()]
+            if "pk" not in scols:
+                c.execute("CREATE TABLE IF NOT EXISTS sessions_migrated (pk INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT, title TEXT, created_at REAL, updated_at REAL, user_id INTEGER, guest_id TEXT)")
+                c.execute("INSERT INTO sessions_migrated (id, title, created_at, updated_at, user_id, guest_id) SELECT id, title, created_at, updated_at, user_id, guest_id FROM sessions")
+                c.execute("DROP TABLE sessions")
+                c.execute("ALTER TABLE sessions_migrated RENAME TO sessions")
 
             c.execute("""
                 CREATE TABLE IF NOT EXISTS users (
@@ -391,3 +399,11 @@ def init_db():
                 tcols = [r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()]
                 if "user_id" not in tcols:
                     c.execute(f"ALTER TABLE {table} ADD COLUMN user_id INTEGER")
+            for table in ("sessions", "messages"):
+                tcols = [r["name"] for r in c.execute(f"PRAGMA table_info({table})").fetchall()]
+                if "guest_id" not in tcols:
+                    c.execute(f"ALTER TABLE {table} ADD COLUMN guest_id TEXT")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id, id)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_sessions_guest ON sessions(guest_id, id)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_messages_user ON messages(user_id, session_id)")
+            c.execute("CREATE INDEX IF NOT EXISTS idx_messages_guest ON messages(guest_id, session_id)")

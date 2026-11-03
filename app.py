@@ -998,14 +998,21 @@ def get_quota(x_auth_token: str | None = Header(None), x_guest_id: str | None = 
 
 
 @app.get("/api/sessions")
-def get_sessions(x_auth_token: str | None = Header(None)):
+def get_sessions(x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
     uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip()
     with db() as c:
-        rows = c.execute(
-            "SELECT id, title, created_at, updated_at FROM sessions WHERE user_id IS ? ORDER BY updated_at DESC",
-            (uid,),
-        ).fetchall()
+        if uid is not None:
+            rows = c.execute(
+                "SELECT id, title, created_at, updated_at FROM sessions WHERE user_id = ? ORDER BY updated_at DESC",
+                (uid,),
+            ).fetchall()
+        else:
+            rows = c.execute(
+                "SELECT id, title, created_at, updated_at FROM sessions WHERE user_id IS NULL AND guest_id = ? ORDER BY updated_at DESC",
+                (gid,),
+            ).fetchall()
         res = [dict(r) for r in rows]
         if not res:
             res = [{"id": "default", "title": "Discussion principale", "created_at": time.time(), "updated_at": time.time()}]
@@ -1013,29 +1020,40 @@ def get_sessions(x_auth_token: str | None = Header(None)):
 
 
 @app.post("/api/sessions")
-def create_session(x_auth_token: str | None = Header(None)):
+def create_session(x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
     sid = secrets.token_hex(6)
     now = time.time()
+    uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip() if not uid else None
     with db() as c:
         c.execute(
-            "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES (?, 'Nouvelle conversation', ?, ?, ?)",
-            (sid, now, now, user["id"] if user else None),
+            "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id) VALUES (?, 'Nouvelle conversation', ?, ?, ?, ?)",
+            (sid, now, now, uid, gid),
         )
     return {"session_id": sid, "title": "Nouvelle conversation"}
 
 
 @app.delete("/api/sessions/{session_id}")
-def delete_session(session_id: str, x_auth_token: str | None = Header(None)):
+def delete_session(session_id: str, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
     uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip()
     with db() as c:
-        if session_id == "default":
-            c.execute("DELETE FROM messages WHERE session_id = 'default' AND user_id IS ?", (uid,))
-            c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default'", (time.time(),))
+        if uid is not None:
+            if session_id == "default":
+                c.execute("DELETE FROM messages WHERE session_id = 'default' AND user_id = ?", (uid,))
+                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id = ?", (time.time(), uid))
+            else:
+                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id = ?", (session_id, uid))
+                c.execute("DELETE FROM sessions WHERE id = ? AND user_id = ?", (session_id, uid))
         else:
-            c.execute("DELETE FROM messages WHERE session_id = ? AND user_id IS ?", (session_id, uid))
-            c.execute("DELETE FROM sessions WHERE id = ? AND user_id IS ?", (session_id, uid))
+            if session_id == "default":
+                c.execute("DELETE FROM messages WHERE session_id = 'default' AND user_id IS NULL AND guest_id = ?", (gid,))
+                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id IS NULL AND guest_id = ?", (time.time(), gid))
+            else:
+                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ?", (session_id, gid))
+                c.execute("DELETE FROM sessions WHERE id = ? AND user_id IS NULL AND guest_id = ?", (session_id, gid))
     return {"ok": True}
 
 
@@ -1096,40 +1114,61 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str 
             )
             raise HTTPException(429, msg)
 
+    db_gid = gid if not uid else None
+
     with db() as c:
-        s_row = c.execute("SELECT title, user_id FROM sessions WHERE id = ?", (sid,)).fetchone()
+        if uid is not None:
+            s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id = ?", (sid, uid)).fetchone()
+        else:
+            s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id IS NULL AND guest_id = ?", (sid, db_gid)).fetchone()
         title_text = text[:40] + ("…" if len(text) > 40 else "")
         if not s_row:
             c.execute(
-                "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)",
-                (sid, title_text, now, now, uid),
+                "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id) VALUES (?, ?, ?, ?, ?, ?)",
+                (sid, title_text, now, now, uid, db_gid),
             )
         else:
-            if s_row["user_id"] is None and uid is not None:
-                c.execute("UPDATE sessions SET user_id = ? WHERE id = ?", (uid, sid))
             if s_row["title"] in ("Nouvelle conversation", "Discussion principale"):
-                c.execute(
-                    "UPDATE sessions SET title = ?, updated_at = ? WHERE id = ?",
-                    (title_text, now, sid),
-                )
+                if uid is not None:
+                    c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id = ?", (title_text, now, sid, uid))
+                else:
+                    c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id IS NULL AND guest_id = ?", (title_text, now, sid, db_gid))
             else:
-                c.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (now, sid))
+                if uid is not None:
+                    c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id = ?", (now, sid, uid))
+                else:
+                    c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id IS NULL AND guest_id = ?", (now, sid, db_gid))
 
         if body.replace_last:
-            c.execute(
-                "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id IS ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
-                (sid, uid),
-            )
+            if uid is not None:
+                c.execute(
+                    "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id = ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
+                    (sid, uid),
+                )
+            else:
+                c.execute(
+                    "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
+                    (sid, db_gid),
+                )
         else:
             m = FACT_RE.match(text)
             if m:
                 c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
-            c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('user',?,?,?,?)", (text, now, sid, uid))
+            c.execute(
+                "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id) VALUES('user',?,?,?,?,?)",
+                (text, now, sid, uid, db_gid),
+            )
 
-        rows = c.execute(
-            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
-            (sid, uid),
-        ).fetchall()[::-1]
+        if uid is not None:
+            rows = c.execute(
+                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 40",
+                (sid, uid),
+            ).fetchall()[::-1]
+        else:
+            rows = c.execute(
+                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? ORDER BY id DESC LIMIT 40",
+                (sid, db_gid),
+            ).fetchall()[::-1]
         facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
 
     resp: dict = {"session_id": sid}
@@ -1142,8 +1181,8 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str 
         now2 = time.time()
         with db() as c:
             c.execute(
-                "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
-                (reply, now2, sid, uid, "image", fname, "image/jpeg"),
+                "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?,?)",
+                (reply, now2, sid, uid, db_gid, "image", fname, "image/jpeg"),
             )
         resp.update({"reply": reply, "media_url": f"/api/media/{fname}", "generated": True, "quota": get_user_quota_info(user, gid), "model": "MEL-IA"})
         return resp
@@ -1166,8 +1205,8 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str 
             now2 = time.time()
             with db() as c:
                 c.execute(
-                    "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
-                    (reply, now2, sid, uid, "image", fname, "image/jpeg"),
+                    "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?,?)",
+                    (reply, now2, sid, uid, db_gid, "image", fname, "image/jpeg"),
                 )
             resp.update({
                 "reply": reply,
@@ -1184,7 +1223,10 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str 
     record_quota_usage(user, gid, is_image=False)
 
     with db() as c:
-        c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)", (reply, time.time(), sid, uid))
+        c.execute(
+            "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id) VALUES('assistant',?,?,?,?,?)",
+            (reply, time.time(), sid, uid, db_gid),
+        )
     resp.update({
         "reply": reply,
         "sources": result.get("sources", []),
@@ -1237,43 +1279,67 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None), x_g
             "Aucune clé API Gemini disponible : veuillez renseigner votre clé API dans Paramètres ou dans le fichier .env.",
         )
 
+    db_gid = gid if not uid else None
+
     with db() as c:
-        s_row = c.execute("SELECT title, user_id FROM sessions WHERE id = ?", (sid,)).fetchone()
+        if uid is not None:
+            s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id = ?", (sid, uid)).fetchone()
+        else:
+            s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id IS NULL AND guest_id = ?", (sid, db_gid)).fetchone()
         title_text = text[:40] + ("…" if len(text) > 40 else "")
         if not s_row:
             c.execute(
-                "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)",
-                (sid, title_text, now, now, uid),
+                "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id) VALUES (?, ?, ?, ?, ?, ?)",
+                (sid, title_text, now, now, uid, db_gid),
             )
         else:
-            if s_row["user_id"] is None and uid is not None:
-                c.execute("UPDATE sessions SET user_id = ? WHERE id = ?", (uid, sid))
             if s_row["title"] in ("Nouvelle conversation", "Discussion principale"):
-                c.execute(
-                    "UPDATE sessions SET title = ?, updated_at = ? WHERE id = ?",
-                    (title_text, now, sid),
-                )
+                if uid is not None:
+                    c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id = ?", (title_text, now, sid, uid))
+                else:
+                    c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id IS NULL AND guest_id = ?", (title_text, now, sid, db_gid))
             else:
-                c.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (now, sid))
+                if uid is not None:
+                    c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id = ?", (now, sid, uid))
+                else:
+                    c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id IS NULL AND guest_id = ?", (now, sid, db_gid))
 
         if body.replace_last:
-            c.execute(
-                "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id IS ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
-                (sid, uid),
-            )
+            if uid is not None:
+                c.execute(
+                    "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id = ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
+                    (sid, uid),
+                )
+            else:
+                c.execute(
+                    "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
+                    (sid, db_gid),
+                )
         else:
             m = FACT_RE.match(text)
             if m:
                 c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
-            c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('user',?,?,?,?)", (text, now, sid, uid))
+            c.execute(
+                "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id) VALUES('user',?,?,?,?,?)",
+                (text, now, sid, uid, db_gid),
+            )
 
-        rows = [
-            dict(r)
-            for r in c.execute(
-                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
-                (sid, uid),
-            ).fetchall()[::-1]
-        ]
+        if uid is not None:
+            rows = [
+                dict(r)
+                for r in c.execute(
+                    "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 40",
+                    (sid, uid),
+                ).fetchall()[::-1]
+            ]
+        else:
+            rows = [
+                dict(r)
+                for r in c.execute(
+                    "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? ORDER BY id DESC LIMIT 40",
+                    (sid, db_gid),
+                ).fetchall()[::-1]
+            ]
         facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
 
     async def event_generator():
@@ -1286,8 +1352,8 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None), x_g
                 now2 = time.time()
                 with db() as c:
                     c.execute(
-                        "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
-                        (reply, now2, sid, uid, "image", fname, "image/jpeg"),
+                        "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?,?)",
+                        (reply, now2, sid, uid, db_gid, "image", fname, "image/jpeg"),
                     )
                 yield f"data: {json.dumps({'chunk': reply, 'reply': reply, 'media_url': f'/api/media/{fname}', 'done': True, 'model': 'MEL-IA', 'quota': get_user_quota_info(user, gid), 'session_id': sid, 'ts': now2})}\n\n"
             except Exception as e:
@@ -1437,13 +1503,13 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None), x_g
         with db() as c:
             if media_url:
                 c.execute(
-                    "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
-                    (full_reply, time.time(), sid, uid, "image", Path(media_url).name, "image/jpeg"),
+                    "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?,?)",
+                    (full_reply, time.time(), sid, uid, db_gid, "image", Path(media_url).name, "image/jpeg"),
                 )
             else:
                 c.execute(
-                    "INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)",
-                    (full_reply, time.time(), sid, uid),
+                    "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id) VALUES('assistant',?,?,?,?,?)",
+                    (full_reply, time.time(), sid, uid, db_gid),
                 )
 
         yield f"data: {json.dumps({'done': True, 'reply': full_reply, 'media_url': media_url, 'sources': sources, 'images': images, 'model': 'MEL-IA', 'quota': get_user_quota_info(user, gid), 'session_id': sid, 'ts': time.time()})}\n\n"
@@ -1520,25 +1586,37 @@ async def chat_media(
     }
     content = text or f"[{labels[kind]}]"
     now = time.time()
+    gid = (x_guest_id or "").strip()
+    db_gid = gid if not uid else None
     with db() as c:
-        s_row = c.execute("SELECT title, user_id FROM sessions WHERE id = ?", (sid,)).fetchone()
+        if uid is not None:
+            s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id = ?", (sid, uid)).fetchone()
+        else:
+            s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id IS NULL AND guest_id = ?", (sid, db_gid)).fetchone()
         if not s_row:
             c.execute(
-                "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)",
-                (sid, labels[kind], now, now, uid),
+                "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id) VALUES (?, ?, ?, ?, ?, ?)",
+                (sid, labels[kind], now, now, uid, db_gid),
             )
         else:
-            if s_row["user_id"] is None and uid is not None:
-                c.execute("UPDATE sessions SET user_id = ? WHERE id = ?", (uid, sid))
-            c.execute("UPDATE sessions SET updated_at = ? WHERE id = ?", (now, sid))
+            if uid is not None:
+                c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id = ?", (now, sid, uid))
+            else:
+                c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id IS NULL AND guest_id = ?", (now, sid, db_gid))
         c.execute(
-            "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('user',?,?,?,?,?,?,?)",
-            (content, now, sid, uid, kind, fname, mime),
+            "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id, media_kind, media_path, media_mime) VALUES('user',?,?,?,?,?,?,?,?)",
+            (content, now, sid, uid, db_gid, kind, fname, mime),
         )
-        rows = c.execute(
-            "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 40",
-            (sid, uid),
-        ).fetchall()[::-1]
+        if uid is not None:
+            rows = c.execute(
+                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 40",
+                (sid, uid),
+            ).fetchall()[::-1]
+        else:
+            rows = c.execute(
+                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? ORDER BY id DESC LIMIT 40",
+                (sid, db_gid),
+            ).fetchall()[::-1]
         facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
 
     memories = get_cross_session_context(uid, sid, text)
@@ -1547,7 +1625,10 @@ async def chat_media(
     record_quota_usage(user, x_guest_id, is_image=False)
 
     with db() as c:
-        c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)", (reply, time.time(), sid, uid))
+        c.execute(
+            "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id) VALUES('assistant',?,?,?,?,?)",
+            (reply, time.time(), sid, uid, db_gid),
+        )
     return {
         "reply": reply,
         "session_id": sid,
@@ -1642,14 +1723,21 @@ def del_key(kid: int, x_auth_token: str | None = Header(None)):
 
 
 @app.get("/api/history")
-def history(session_id: str = "default", x_auth_token: str | None = Header(None)):
+def history(session_id: str = "default", x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
     uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip()
     with db() as c:
-        rows = c.execute(
-            "SELECT role, content, media_kind, media_path, media_mime, ts FROM messages WHERE session_id = ? AND user_id IS ? ORDER BY id DESC LIMIT 60",
-            (session_id, uid),
-        ).fetchall()[::-1]
+        if uid is not None:
+            rows = c.execute(
+                "SELECT role, content, media_kind, media_path, media_mime, ts FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 60",
+                (session_id, uid),
+            ).fetchall()[::-1]
+        else:
+            rows = c.execute(
+                "SELECT role, content, media_kind, media_path, media_mime, ts FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? ORDER BY id DESC LIMIT 60",
+                (session_id, gid),
+            ).fetchall()[::-1]
     msgs = []
     for r in rows:
         m = dict(r)
@@ -1661,16 +1749,25 @@ def history(session_id: str = "default", x_auth_token: str | None = Header(None)
 
 
 @app.post("/api/clear")
-def clear(session_id: str | None = None, x_auth_token: str | None = Header(None)):
+def clear(session_id: str | None = None, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
     uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip()
     with db() as c:
-        if session_id:
-            c.execute("DELETE FROM messages WHERE session_id = ? AND user_id IS ?", (session_id, uid))
+        if uid is not None:
+            if session_id:
+                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id = ?", (session_id, uid))
+            else:
+                c.execute("DELETE FROM messages WHERE user_id = ?", (uid,))
+                c.execute("DELETE FROM sessions WHERE id != 'default' AND user_id = ?", (uid,))
+                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id = ?", (time.time(), uid))
         else:
-            c.execute("DELETE FROM messages WHERE user_id IS ?", (uid,))
-            c.execute("DELETE FROM sessions WHERE id != 'default' AND user_id IS ?", (uid,))
-            c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default'", (time.time(),))
+            if session_id:
+                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ?", (session_id, gid))
+            else:
+                c.execute("DELETE FROM messages WHERE user_id IS NULL AND guest_id = ?", (gid,))
+                c.execute("DELETE FROM sessions WHERE id != 'default' AND user_id IS NULL AND guest_id = ?", (gid,))
+                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id IS NULL AND guest_id = ?", (time.time(), gid))
     return {"ok": True}
 
 

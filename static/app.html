@@ -6902,6 +6902,8 @@
         localStorage.setItem('mel_guest', '1');
         token = '';
         localStorage.removeItem('mel_token');
+        currentSession = 'default';
+        localStorage.setItem('mel_session', 'default');
         closeGate();
         showUserChip('Invité (Mode Test)');
         updateQuotaUI();
