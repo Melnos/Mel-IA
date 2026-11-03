@@ -57,27 +57,21 @@ if DATABASE_URL and HAS_PG:
         dsn = f"{dsn}{sep}sslmode=require"
     PG_DSN = dsn
 
-    # Boucle de tentative : Neon suspend ses instances gratuites, le réveil peut prendre ~10-15s
-    for attempt in range(1, 3):
-        try:
-            logger.info(f"Connexion à Neon PostgreSQL en cours... (essai {attempt}/2)")
-            test_conn = psycopg2.connect(PG_DSN, connect_timeout=5)
-            test_conn.close()
-            _pg_pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn=1,
-                maxconn=10,
-                dsn=PG_DSN,
-                connect_timeout=5,
-            )
-            IS_POSTGRES = True
-            logger.info("Connecté avec succès à la base de données PostgreSQL (Neon).")
-            break
-        except Exception as e:
-            if attempt < 2:
-                time.sleep(1)
-            else:
-                logger.warning(f"Impossible de se connecter à PostgreSQL/Neon ({e}). Fallback sur SQLite local.")
-                IS_POSTGRES = False
+    # Vérification rapide de la connexion PostgreSQL (timeout 1s)
+    try:
+        test_conn = psycopg2.connect(PG_DSN, connect_timeout=1)
+        test_conn.close()
+        _pg_pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=1,
+            maxconn=10,
+            dsn=PG_DSN,
+            connect_timeout=1,
+        )
+        IS_POSTGRES = True
+        logger.info("Connecté avec succès à la base de données PostgreSQL (Neon).")
+    except Exception as e:
+        logger.warning(f"PostgreSQL/Neon indisponible ({e}). Bascule immédiate sur SQLite local.")
+        IS_POSTGRES = False
 
 
 
@@ -290,6 +284,17 @@ def init_db():
                     created_at DOUBLE PRECISION
                 )
             """)
+            c.execute("""
+                CREATE TABLE IF NOT EXISTS usage_quotas (
+                    id SERIAL PRIMARY KEY,
+                    tracker_id TEXT,
+                    day TEXT,
+                    questions_count INTEGER DEFAULT 0,
+                    images_count INTEGER DEFAULT 0,
+                    updated_at DOUBLE PRECISION,
+                    UNIQUE(tracker_id, day)
+                )
+            """)
             # Index optimisés pour PostgreSQL
             c.execute("CREATE INDEX IF NOT EXISTS idx_messages_user_sid ON messages(user_id, session_id)")
             c.execute("CREATE INDEX IF NOT EXISTS idx_auth_tokens_token ON auth_tokens(token)")
@@ -369,6 +374,17 @@ def init_db():
                     token TEXT PRIMARY KEY,
                     user_id INTEGER,
                     created_at REAL
+                )
+            """)
+            c.execute("""
+                CREATE TABLE IF NOT EXISTS usage_quotas (
+                    id INTEGER PRIMARY KEY,
+                    tracker_id TEXT,
+                    day TEXT,
+                    questions_count INTEGER DEFAULT 0,
+                    images_count INTEGER DEFAULT 0,
+                    updated_at REAL,
+                    UNIQUE(tracker_id, day)
                 )
             """)
             for table in ("sessions", "messages", "facts", "api_keys"):

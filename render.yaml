@@ -14,5 +14,7 @@ services:
         value: auto
       - key: ASSISTANT_NAME
         value: MEL-IA
+      - key: GEMINI_API_KEY
+        sync: false
       - key: DATABASE_URL
         sync: false

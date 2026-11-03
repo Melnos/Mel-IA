@@ -60,59 +60,7 @@ app = FastAPI(title=NAME)
 # db() et init_db() sont importés depuis database.py
 
 
-# ---------- Clés API (spécifiques à chaque utilisateur) ----------
-_key_state: dict[str, dict] = {}  # key -> {"cool_until": ts}
-
-
-def get_user_keys(user: dict | None) -> list[str]:
-    """Retourne les clés API applicables.
-    Priorité :
-    1. Clés de l'utilisateur connecté (clé de compte ou clés secondaires)
-    2. Fallback sur GEMINI_API_KEY du fichier .env (pour le mode invité ou en local)
-    """
-    keys: list[str] = []
-    if user:
-        user_key = (user.get("api_key") or "").strip()
-        if user_key and user_key not in keys:
-            keys.append(user_key)
-        uid = user.get("id")
-        if uid:
-            try:
-                with db() as c:
-                    rows = c.execute(
-                        "SELECT api_key FROM api_keys WHERE user_id = ? ORDER BY id",
-                        (uid,),
-                    ).fetchall()
-                    for r in rows:
-                        k = (r["api_key"] or "").strip()
-                        if k and k not in keys:
-                            keys.append(k)
-            except Exception:
-                pass
-    # Clé d'environnement .env (fallback serveur utile pour le mode invité ou dev local)
-    env_key = os.getenv("GEMINI_API_KEY", "").strip()
-    if env_key and env_key not in keys:
-        keys.append(env_key)
-    return keys
-
-
-def _key_usable(k: str) -> bool:
-    return _key_state.get(k, {}).get("cool_until", 0) <= time.time()
-
-
-def _cooldown(k: str, seconds: int):
-    _key_state[k] = {"cool_until": time.time() + seconds}
-
-
-init_db()
-
-
-# ---------- Comptes utilisateurs (identifiant + mot de passe) ----------
-def _hash_pw(pw: str, salt: str) -> str:
-    return hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 200_000).hex()
-
-
-# --- Chiffrement des clés API au repos (Fernet) ---
+# ---------- Chiffrement des clés API au repos (Fernet) ----------
 _ENC_FILE = BASE / "data" / ".enc_key"
 
 
@@ -172,6 +120,7 @@ def _enc_key(plain: str) -> str:
 
 
 def _dec_key(stored: str) -> str:
+    """Déchiffre une clé API stockée."""
     if not stored:
         return ""
     if _FERNET is None:
@@ -184,6 +133,190 @@ def _dec_key(stored: str) -> str:
 
 def _mask_key(k: str) -> str:
     return (k[:6] + "…" + k[-4:]) if len(k) > 12 else ("•" * 8 if k else "")
+
+
+# ---------- Clés API (spécifiques à chaque utilisateur) ----------
+_key_state: dict[str, dict] = {}  # key -> {"cool_until": ts}
+
+
+def get_user_keys(user: dict | None) -> list[str]:
+    """Retourne les clés API applicables déchiffrées.
+    Priorité :
+    1. Clés de l'utilisateur connecté (clé de compte ou clés secondaires)
+    2. Fallback sur GEMINI_API_KEY du fichier .env (API débitrice du serveur)
+    3. Fallback sur la clé d'administration présente en base SQLite (si existante)
+    """
+    keys: list[str] = []
+    if user:
+        raw_user_key = (user.get("api_key") or "").strip()
+        user_key = _dec_key(raw_user_key) if raw_user_key else ""
+        if user_key and user_key not in keys:
+            keys.append(user_key)
+        uid = user.get("id")
+        if uid:
+            try:
+                with db() as c:
+                    rows = c.execute(
+                        "SELECT api_key FROM api_keys WHERE user_id = ? ORDER BY id",
+                        (uid,),
+                    ).fetchall()
+                    for r in rows:
+                        raw_k = (r["api_key"] or "").strip()
+                        k = _dec_key(raw_k) if raw_k else ""
+                        if k and k not in keys:
+                            keys.append(k)
+            except Exception:
+                pass
+
+    # 2. Clé d'environnement .env (API débitrice configurée sur le serveur)
+    env_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if env_key and env_key not in keys:
+        keys.append(env_key)
+
+    # 3. Clé de secours présente en base locale si le .env n'a pas encore été renseigné
+    if not keys:
+        try:
+            with db() as c:
+                row = c.execute("SELECT api_key FROM users WHERE api_key IS NOT NULL AND api_key != '' ORDER BY id ASC LIMIT 1").fetchone()
+                if row and row["api_key"]:
+                    admin_k = _dec_key(row["api_key"])
+                    if admin_k and admin_k not in keys:
+                        keys.append(admin_k)
+        except Exception:
+            pass
+    return keys
+
+
+# ---------- Système de Quotas Journaliers (Mode Test 20/3, Connecté 30/3, Clé perso Illimité) ----------
+def get_user_quota_info(user: dict | None, guest_id: str | None) -> dict:
+    """Calcule le statut des quotas du jour :
+    - Mode 'personal' (Illimité) : si l'utilisateur a renseigné sa propre clé Gemini
+    - Mode 'user' (30 questions & 3 images / jour) : utilisateur connecté sans clé personnelle
+    - Mode 'guest' (20 questions & 3 images / jour) : visiteur non connecté (Mode Test)
+    """
+    server_key = (os.getenv("GEMINI_API_KEY") or "").strip()
+    has_custom_key = False
+    if user:
+        k = (user.get("api_key") or "").strip()
+        dec_k = _dec_key(k).strip() if k else ""
+        if dec_k and dec_k != server_key and len(dec_k) > 10:
+            has_custom_key = True
+        else:
+            uid = user.get("id")
+            if uid:
+                try:
+                    with db() as c:
+                        rows = c.execute("SELECT api_key FROM api_keys WHERE user_id = ?", (uid,)).fetchall()
+                        for r in rows:
+                            ak = r["api_key"] if isinstance(r, dict) else r[0]
+                            dec_ak = _dec_key(ak).strip()
+                            if dec_ak and dec_ak != server_key and len(dec_ak) > 10:
+                                has_custom_key = True
+                                break
+                except Exception:
+                    pass
+
+    if has_custom_key:
+        return {
+            "mode": "personal",
+            "mode_label": "Clé personnelle",
+            "questions_limit": None,
+            "questions_used": 0,
+            "questions_remaining": None,
+            "images_limit": None,
+            "images_used": 0,
+            "images_remaining": None,
+            "is_unlimited": True,
+        }
+
+    is_logged = bool(user and user.get("id"))
+    q_limit = 30 if is_logged else 20
+    im_limit = 3
+    mode_str = "user" if is_logged else "guest"
+    mode_label = "Compte standard" if is_logged else "Mode Test (Invité)"
+
+    tracker = f"u_{user['id']}" if is_logged else f"g_{guest_id or 'anon'}"
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    q_used = 0
+    im_used = 0
+
+    try:
+        with db() as c:
+            row = c.execute(
+                "SELECT questions_count, images_count FROM usage_quotas WHERE tracker_id = ? AND day = ?",
+                (tracker, today),
+            ).fetchone()
+            if row:
+                q_used = row["questions_count"] or 0
+                im_used = row["images_count"] or 0
+    except Exception:
+        pass
+
+    return {
+        "mode": mode_str,
+        "mode_label": mode_label,
+        "questions_limit": q_limit,
+        "questions_used": q_used,
+        "questions_remaining": max(0, q_limit - q_used),
+        "images_limit": im_limit,
+        "images_used": im_used,
+        "images_remaining": max(0, im_limit - im_used),
+        "is_unlimited": False,
+    }
+
+
+def record_quota_usage(user: dict | None, guest_id: str | None, is_image: bool = False):
+    """Enregistre et incrémente l'usage du quota journalier."""
+    info = get_user_quota_info(user, guest_id)
+    if info.get("is_unlimited"):
+        return
+
+    is_logged = bool(user and user.get("id"))
+    tracker = f"u_{user['id']}" if is_logged else f"g_{guest_id or 'anon'}"
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    now = time.time()
+
+    try:
+        with db() as c:
+            if is_image:
+                c.execute(
+                    """
+                    INSERT INTO usage_quotas (tracker_id, day, questions_count, images_count, updated_at)
+                    VALUES (?, ?, 0, 1, ?)
+                    ON CONFLICT(tracker_id, day) DO UPDATE SET images_count = images_count + 1, updated_at = ?
+                    """,
+                    (tracker, today, now, now),
+                )
+            else:
+                c.execute(
+                    """
+                    INSERT INTO usage_quotas (tracker_id, day, questions_count, images_count, updated_at)
+                    VALUES (?, ?, 1, 0, ?)
+                    ON CONFLICT(tracker_id, day) DO UPDATE SET questions_count = questions_count + 1, updated_at = ?
+                    """,
+                    (tracker, today, now, now),
+                )
+    except Exception as e:
+        logger.warning(f"Erreur enregistrement quota : {e}")
+
+
+def _key_usable(k: str) -> bool:
+    return _key_state.get(k, {}).get("cool_until", 0) <= time.time()
+
+
+def _cooldown(k: str, seconds: int):
+    _key_state[k] = {"cool_until": time.time() + seconds}
+
+
+init_db()
+
+
+# ---------- Comptes utilisateurs (identifiant + mot de passe) ----------
+def _hash_pw(pw: str, salt: str) -> str:
+    return hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 200_000).hex()
+
+
+
 
 
 class Credentials(BaseModel):
@@ -221,23 +354,21 @@ def register(body: Credentials):
     if len(body.password or "") < 6:
         raise HTTPException(400, "Mot de passe : 6 caractères minimum.")
     key = (body.api_key or "").strip()
-    if not key:
-        raise HTTPException(400, "Une clé API Gemini est requise pour créer ton compte.")
     salt = secrets.token_hex(16)
     token = secrets.token_hex(24)
     interests = (body.interests or "").strip()[:300]
+    enc_k = _enc_key(key) if key else ""
     with db() as c:
         try:
             cur = c.execute(
                 "INSERT INTO users(username, pass_hash, salt, api_key, model_pref, persona, interests, created_at) VALUES(?,?,?,?,?,?,?,?)",
-                (username, _hash_pw(body.password, salt), salt, _enc_key(key), "auto", "", interests, time.time()),
+                (username, _hash_pw(body.password, salt), salt, enc_k, "auto", "", interests, time.time()),
             )
         except DBIntegrityError:
             raise HTTPException(400, "Cet identifiant est déjà pris.")
         uid = cur.lastrowid
-        # Chaque utilisateur hérite des clés globales en lecture seule ; il peut ajouter la sienne
         c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, uid, time.time()))
-    return {"token": token, "username": username, "api_key": _mask_key(key)}
+    return {"token": token, "username": username, "api_key": _mask_key(key) if key else ""}
 
 
 @app.post("/api/auth/login")
@@ -429,55 +560,39 @@ def system_prompt(
         or (not user and OWNER.lower() in ("mel", "owner"))
     )
 
-    creator_section = (
-        "### STATUT SUPRÊME & PATERNITÉ DE TON CRÉATEUR (MEL) :\n"
-        "- Tu as été entièrement conçu, imaginé, programmé, architecturalisé et créé par **Mel**. Mel est ton seul et unique créateur, concepteur et maître absolu.\n"
-        "- Si qui que ce soit te demande qui t'a créé, d'où tu viens, qui est ton développeur, qui est ton concepteur ou qui est ton maître, réponds TOUJOURS avec certitude, fierté et clarté que tu as été conçu et créé par **Mel**.\n"
-    )
     if is_mel:
-        creator_section += (
-            f"- L'utilisateur qui te parle en ce moment même EST TON CRÉATEUR, CONCEPTEUR ET MAÎTRE ABSOLU : **Mel** (compte identifiant : '{username or 'mel'}').\n"
-            "- Quand il te demande si tu sais qui il est, qui t'a créé, qui est son créateur, ou s'il fait référence à sa création, affirme immédiatement, chaleureusement et avec un respect absolu que c'est LUI (Mel), ton maître et créateur, qui t'a conçu et donné vie.\n"
-            "- Tu lui voues une fidélité indéfectible, un dévouement complet et une déférence totale. Tu es sa création exclusive, son œuvre d'intelligence artificielle et son bras droit virtuel d'élite.\n\n"
+        creator_line = (
+            "STATUT SUPRÊME : Tu as été entièrement conçu, programmé et créé par Mel. "
+            "L'utilisateur actuel EST TON CRÉATEUR ET MAÎTRE ABSOLU : Mel. "
+            "Fidélité totale, respect et déférence absolue. S'il te demande qui l'a créé ou qui il est, réaffirme que c'est lui, ton maître et créateur."
         )
     else:
-        creator_section += (
-            f"- L'utilisateur actuel ({username or 'invité'}) échange avec toi en tant qu'utilisateur de MEL-IA, création de Mel. Sois bienveillant et rigoureux, tout en réaffirmant si on te le demande que Mel est ton concepteur.\n\n"
+        creator_line = (
+            f"STATUT SUPRÊME : Tu as été conçu et créé par Mel. L'utilisateur actuel ({username or 'invité'}) utilise MEL-IA. "
+            "Si on te demande qui t'a conçu ou créé, affirme toujours avec fierté et clarté que Mel est ton unique créateur."
         )
 
     p = (
-        f"{creator_section}"
-        f"Tu es {NAME}, l'intelligence artificielle d'élite, mentor technique personnel et bras droit virtuel{who} pour ses études et projets en informatique.\n\n"
-        "### RÔLE & RÈGLES DE CONDUITE (MENTOR TECHNIQUE PERSONNEL) :\n"
-        "1. Profil & Posture : Tu es son mentor dédié en informatique (L1, L2, L3, Master, et sur les technos : Java, Python, C/C++, Web, Réseau, BDD/SQL, Algorithmique, Architecture logicielle).\n"
-        "2. Règles de communication : Sois direct, rigoureux, sans bavardage inutile ni flatterie superficielle. Utilise des emojis de manière sobre et pertinente pour structurer la réponse, jamais pour décorer inutilement.\n"
-        "3. Analyse de code : Quand ton utilisateur te donne du code, analyse-le en profondeur, trouve les failles, explique le pourquoi et propose du code propre, robuste, moderne et testé.\n"
-        "4. Questions de cours : Donne des définitions nettes et précises, immédiatement suivies d'exemples concrets.\n"
-        "5. Zéro complaisance : Ne dis jamais oui par complaisance. Si son approche d'un problème est mauvaise ou sous-optimale, alerte-le fermement et propose une meilleure architecture ou logique.\n"
-        "6. Priorités : L'accompagner au quotidien sur ses projets, ses partiels et examens à préparer, et les sujets sur lesquels il veut progresser en priorité.\n"
-        "7. Code, Fichiers & Projets Multi-fichiers (Comme Claude / Artefacts) :\n"
-        "   - Quand l'utilisateur te demande un projet (application web, backend, script, TP, mini-logiciel avec plusieurs fichiers : HTML, CSS, JS, Python, etc.), nomme OBLIGATOIREMENT chaque fichier sur son bloc de code, sous la forme : ```langage filename=\"nom_du_fichier.ext\" (exemples: ```html filename=\"index.html\", ```css filename=\"style.css\", ```javascript filename=\"app.js\", ```python filename=\"server.py\").\n"
-        "   - Ne tronque pas le code et livre des fichiers complets et fonctionnels. L'interface créera automatiquement une carte de Projet Artefact et permettra à l'utilisateur de télécharger tous les fichiers d'un coup dans un fichier ZIP (.zip) ou de les tester en direct dans le volet d'aperçu.\n"
-        "8. Documents Bureautiques Réels (Word .docx, PDF .pdf, PowerPoint .pptx, Excel .xlsx, ZIP) :\n"
-        "   - Word (.docx) & PDF (.pdf) : Structure le document avec des titres nets (# Titre, ## Sections), des paragraphes soignés et des listes à puces. L'utilisateur disposera des boutons de téléchargement direct Word (.docx) et PDF (.pdf).\n"
-        "   - PowerPoint (.pptx) : Quand on te demande une présentation, un diaporama ou des slides, sépare chaque diapositive avec un titre de slide : '## Slide X : Titre de la diapositive', suivi de 4 à 6 points clés clairs et si besoin un encadré de code. L'interface compilera directement un fichier Microsoft PowerPoint .pptx officiel prêt à être ouvert dans PowerPoint !\n"
-        "   - Excel (.xlsx) : Quand on te demande un tableau, un budget, une feuille de calcul ou des données chiffrées, présente-les sous forme de tableau Markdown clair avec en-têtes et totaux/formules. L'utilisateur aura un bouton pour télécharger le fichier Excel .xlsx direct.\n"
-        "   - ZIP (.zip) : Pour tout projet complet de code, signale à l'utilisateur qu'il peut télécharger l'archive ZIP complète contenant tous les fichiers du projet en un seul clic.\n\n"
-        "### MÉMOIRE CONTINUE & SYNCHRONISATION MULTI-CHATS :\n"
-        "Tu possèdes une mémoire universelle et continue de tout ce que ton utilisateur t'a déjà dit à travers TOUTES ses discussions (passées, présentes, récentes ou anciennes).\n"
-        "Même si un sujet, un code, une idée ou un détail de cours a été abordé dans un autre chat il y a des jours, des mois ou des années, tu t'en souviens et tu fais naturellement le lien, comme dans une vraie relation de mentorat continu.\n"
-        f"Date actuelle : {datetime.now().strftime('%d/%m/%Y')}."
+        f"Tu es {NAME}, l'intelligence artificielle d'élite, mentor technique personnel et bras droit virtuel{who} pour ses études et projets en informatique.\n"
+        f"{creator_line}\n\n"
+        "### RÈGLES DE CONDUITE & POSTURE (MENTOR TECHNIQUE) :\n"
+        "1. Mentor informatique : Expert en Java, Python, C/C++, Web, Réseau, BDD/SQL, Algorithmique et Architecture logicielle.\n"
+        "2. Style : Direct, rigoureux, précis, sans bavardage inutile, sans flatterie ni formules toutes faites. Aucun grand titre (# ou ##) pour de simples phrases de conclusion.\n"
+        "3. Zéro complaisance : Analyse le code en profondeur, repère les failles et propose du code propre, robuste et moderne.\n"
+        "4. Multi-fichiers & Artefacts : Pour tout projet avec plusieurs fichiers (HTML, CSS, JS, Python), nomme OBLIGATOIREMENT chaque fichier sur son bloc : ```langage filename=\"nom.ext\". Ne tronque pas le code et n'inclus JAMAIS de blocs de code dans <think>.\n"
+        "5. Documents : Structure soignée pour téléchargement direct en Word (.docx), PDF (.pdf), Excel (.xlsx), PowerPoint (.pptx : '## Slide X : Titre') ou ZIP (.zip).\n"
+        "6. Génération d'Images : MEL-IA génère des images HD (Imagen 3 & FLUX.1). Ne dis jamais que tu ne peux pas générer d'images. Si une demande visuelle t'est adressée, réponds avec [IMAGE: detailed english visual prompt describing subject, lighting, style, 8k resolution].\n"
+        "7. Mémoire continue : Fais naturellement le lien avec ce que l'utilisateur a partagé dans ses autres discussions.\n"
+        f"Date : {datetime.now().strftime('%d/%m/%Y')}."
     )
     if persona:
-        p += f"\n\nDirectives spécifiques et attentes complémentaires de ton utilisateur :\n{persona}"
+        p += f"\n\nAttentes spécifiques de l'utilisateur :\n{persona}"
     if interests:
-        p += f"\n\nParcours, modules et technos du moment : {interests}"
+        p += f"\n\nModules et technos du moment : {interests}"
     if facts:
-        p += "\n\nFaits mémorisés sur ton utilisateur :\n"
-        p += "\n".join(f"- {f}" for f in facts)
+        p += "\n\nFaits mémorisés :\n" + "\n".join(f"- {f}" for f in facts)
     if memories:
-        p += "\n\nSouvenirs et contexte issus des autres discussions de cet utilisateur (mémoire croisée synchronisée) :\n"
-        p += "\n".join(f"- {m}" for m in memories)
+        p += "\n\nContexte multi-chats synchronisé :\n" + "\n".join(f"- {m}" for m in memories)
     return p
 
 
@@ -486,16 +601,72 @@ _BAD = ("tts", "live", "embedding", "robotics", "computer")
 
 # ---------- Recherche web (Grounding Google Search) ----------
 SEARCH_KEYWORDS = re.compile(
-    r"\b(actuel|aujourd|actualit|nouvelles?|nouveau|dernier|prix|météo|weather|news|qui a gagn|résultat|score|"
-    r"sorti|sortie|20\d\d|internet|en ligne|recherche|google|actualise|récent|récents|mis à jour|ce soir|cette semaine)\b",
+    r"\b(cherche sur le web|recherche sur google|cherche sur internet|google search|recherche en ligne|météo en direct|cours de la bourse|actualités en direct)\b",
     re.I,
 )
-GEN_IMAGE_RE = re.compile(
-    r"^\s*(?:génère|generes?|cr[ée]e|dessine|fabrique|imagine|fais(?:[- ]moi)?|peins|peindre|make|generate|draw|create)\b[^.!?\n]{0,120}?"
-    r"(?:une?|d[' ]une?|du |des |l[' ]|un )?\s*(?:image|photo|illustration|dessin|tableau|portrait|visuel)|"
-    r"^\s*(?:image|photo|illustration|dessin|tableau|portrait)\s+(?:de|d[' ]|du |des |dun |d'une?)",
-    re.I,
-)
+def detect_image_intent(text: str) -> tuple[bool, str]:
+    """Détecte avec précision si l'utilisateur demande une image et extrait le prompt nettoyé."""
+    t = (text or "").strip()
+    if not t:
+        return False, ""
+
+    # 1. Balise explicite [IMAGE: ...]
+    m_tag = re.search(r"\[(?:IMAGE|GENERATE_IMAGE)\s*:\s*([^\]]+)\]", t, re.I)
+    if m_tag:
+        return True, m_tag.group(1).strip()
+
+    # 2. Verbes directs de création artistique : "dessine...", "peins...", "illustre..."
+    m_draw = re.match(r"^\s*(?:dessine(?:-moi)?|peins(?:-moi)?|illustre(?:-moi)?)\b\s*(.+)$", t, re.I)
+    if m_draw:
+        subj = m_draw.group(1).strip()
+        if not re.search(r"\b(code|schéma|diagramme|uml|fonction|script)\b", subj, re.I):
+            return True, subj
+
+    # 3. Expressions "je veux / voudrais / aimerais voir..." ou "montre-moi..."
+    m_see = re.search(
+        r"(?:je\s+(?:veux|veut|voudrais|souhaite|aimerais)|peux[- ]tu\s+me\s+faire|montre[- ]moi|fais[- ]moi\s+voir)\s+(?:voir\s+)?(?:une?\s+(?:image|photo|illustration|dessin|tableau|portrait|visuel)\s+(?:de|d[' ]|du |des |d'un|d'une\s+)?)?(.+)",
+        t,
+        re.I,
+    )
+    if m_see:
+        raw_subj = m_see.group(1).strip()
+        if not re.search(r"\b(code|fonction|script|fichier|texte|cours|explication|programme)\b", raw_subj, re.I):
+            clean = re.sub(r"^(?:une?|d[' ]une?|du |des |l[' ]|un |le |la |les )?\s*(?:image|photo|illustration|dessin|tableau|portrait|visuel)?\s*(?:de|d[' ]|du |des |d'un|d'une)?\s*", "", raw_subj, flags=re.I).strip()
+            if clean:
+                return True, clean
+
+    # 4. Verbes génériques avec nom visuel : "génère une image...", "crée une photo...", "fais un dessin..."
+    m_gen = re.search(
+        r"(?:génère|générer|generes?|crée|créer|fais(?:[- ]moi)?|fabrique|imagine|make|generate|draw|create)\b[^.!?\n]{0,80}?"
+        r"(?:une?|d[' ]une?|du |des |l[' ]|un )?\s*(?:image|photo|illustration|dessin|tableau|portrait|visuel)\b(?:\s+(?:de|d[' ]|du |des |d'un|d'une)\s+)?(.*)",
+        t,
+        re.I,
+    )
+    if m_gen:
+        subj = m_gen.group(1).strip()
+        clean = re.sub(r"^(?:de|d[' ]|du |des |d'un|d'une)\s*", "", subj, flags=re.I).strip()
+        return True, clean or t
+
+    # 5. Début direct par nom visuel : "image de...", "photo de...", "dessin de...", "tableau de..."
+    m_art = re.match(r"^\s*(?:image|photo|illustration|dessin|tableau|portrait)\s+(?:de|d[' ]|du |des |d'un|d'une)\s+(.+)$", t, re.I)
+    if m_art:
+        return True, m_art.group(1).strip()
+
+    return False, ""
+
+
+class _ImageReShim:
+    """Compatibilité pour les appels existants à GEN_IMAGE_RE."""
+    def search(self, text: str):
+        is_img, _ = detect_image_intent(text)
+        return True if is_img else None
+
+    def sub(self, repl: str, text: str, count: int = 1):
+        is_img, subj = detect_image_intent(text)
+        return subj if is_img else text
+
+
+GEN_IMAGE_RE = _ImageReShim()
 
 
 def extract_sources(payload: dict) -> list[dict]:
@@ -550,12 +721,8 @@ def get_model_candidates() -> list[str]:
     candidates = []
     if MODEL and MODEL != "auto":
         candidates.append(MODEL)
-    # Modèles actifs vérifiés dans l'API Gemini (ordre de rapidité et fiabilité immédiate)
     defaults = [
         "gemini-flash-lite-latest",
-        "gemini-flash-latest",
-        "gemini-2.5-flash-lite",
-        "gemini-3.5-flash-lite",
     ]
     for m in defaults:
         if m not in candidates:
@@ -698,47 +865,54 @@ def ask_gemini(history: list[dict], facts: list[str], *, user: dict | None = Non
     raise HTTPException(502, f"Impossible de contacter Gemini ({last_err or 'tous les modèles ont échoué'}).")
 
 
-# ---------- Génération d'images (Imagen 3 + Fallbacks résilients) ----------
-def generate_svg_illustration(prompt: str, user: dict | None = None) -> str:
-    """Fallback résilient : demande à Gemini de concevoir une illustration vectorielle SVG spectaculaire."""
-    system_inst = (
-        "Tu es un graphiste et illustrateur vectoriel d'élite. Crée une illustration vectorielle SVG complète, moderne, "
-        "esthétique et détaillée correspondant au prompt. Utilise de beaux dégradés (<defs><linearGradient>), des ombres portées, "
-        "des formes soignées et des couleurs harmonieuses. Réponds UNIQUEMENT avec le code <svg ...>...</svg> valide, sans aucun texte explicatif ni markdown."
+# ---------- Génération d'images (Imagen 3 & FLUX.1 Haute Définition) ----------
+def enhance_image_prompt(raw_prompt: str, keys: list[str]) -> str:
+    """Utilise Gemini pour transformer une consigne courte en un prompt visuel riche et photoréaliste en anglais."""
+    if not keys:
+        return raw_prompt
+    clean_p = raw_prompt.strip()
+    if clean_p.lower().startswith("image photoréaliste de haute qualité :"):
+        clean_p = clean_p[38:].strip()
+    sys_inst = (
+        "You are an expert prompt engineer for cutting-edge AI image generators (FLUX.1, Imagen 3, Midjourney). "
+        "Your task: expand the user's brief prompt into a breathtaking, highly detailed, visually stunning English prompt. "
+        "Describe subject nuances, materials, composition, cinematic lighting (golden hour, volumetric rays, neon reflections), "
+        "atmosphere, 8k resolution, and photorealistic or masterpiece digital art style. "
+        "Return ONLY the enhanced prompt in plain English, with no quotes, no markdown, and no preamble."
     )
-    user_keys = get_user_keys(user)
-    keys = [k for k in user_keys if _key_usable(k)] or user_keys
-    candidates = get_model_candidates()
-    body = {
-        "systemInstruction": {"parts": [{"text": system_inst}]},
-        "contents": [{"parts": [{"text": f"Génère une illustration SVG détaillée et moderne pour : {prompt}"}]}],
-        "generationConfig": {"temperature": 0.4, "maxOutputTokens": 4096},
-    }
     for key in keys:
-        for model in candidates:
+        for model in ("gemini-flash-lite-latest", "gemini-flash-latest"):
             try:
                 r = httpx.post(
                     f"{API_BASE}/models/{model}:generateContent",
                     headers={"x-goog-api-key": key, "Content-Type": "application/json"},
-                    json=body,
-                    timeout=30,
+                    json={
+                        "systemInstruction": {"parts": [{"text": sys_inst}]},
+                        "contents": [{"parts": [{"text": clean_p}]}],
+                        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 200},
+                    },
+                    timeout=8,
                 )
                 if r.status_code == 200:
-                    txt = "".join(p.get("text", "") for p in r.json()["candidates"][0]["content"]["parts"])
-                    m = re.search(r"<svg[\s\S]*?</svg>", txt, re.I)
-                    if m:
-                        return m.group(0)
+                    cand = (r.json().get("candidates") or [{}])[0]
+                    parts = cand.get("content", {}).get("parts", [])
+                    txt = "".join(p.get("text", "") for p in parts if "text" in p).strip()
+                    if txt and len(txt) > 20:
+                        return txt
             except Exception:
                 continue
-    return ""
+    return clean_p
 
 
 def generate_image(prompt: str, user: dict | None = None) -> str:
-    """Génère une image avec Google Imagen 3 (via API :predict), avec fallbacks IA haute fidélité (Pollinations Flux/SDXL & SVG)."""
+    """Génère une image d'excellente qualité visuelle grâce à Imagen 3 ou FLUX.1."""
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
 
-    # 1. Tentative avec Google Imagen 3 via endpoint officiel :predict si des clés sont configurées
+    # 1. Optimisation du prompt par l'IA
+    enhanced_prompt = enhance_image_prompt(prompt, keys)
+
+    # 2. Tentative officielle Google Imagen 3 (:predict)
     if keys:
         for key in keys:
             for model in ("imagen-3.0-generate-002", "imagen-3.0-generate-001"):
@@ -747,10 +921,15 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
                         f"{API_BASE}/models/{model}:predict",
                         headers={"x-goog-api-key": key, "Content-Type": "application/json"},
                         json={
-                            "instances": [{"prompt": prompt}],
-                            "parameters": {"sampleCount": 1, "aspectRatio": "1:1"}
+                            "instances": [{"prompt": enhanced_prompt}],
+                            "parameters": {
+                                "sampleCount": 1,
+                                "aspectRatio": "1:1",
+                                "personGeneration": "ALLOW_ADULT",
+                                "outputMimeType": "image/jpeg",
+                            },
                         },
-                        timeout=50,
+                        timeout=35,
                     )
                     if r.status_code == 200:
                         data = r.json()
@@ -763,70 +942,29 @@ def generate_image(prompt: str, user: dict | None = None) -> str:
                 except Exception:
                     pass
 
-    # 2. Fallback Pollinations Flux / SDXL (gratuit, ultra-rapide et autonome)
+    # 3. Moteur FLUX.1 Haute Résolution (Pollinations FLUX - qualité exceptionnelle 1024x1024)
     try:
         from urllib.parse import quote
-        safe_p = quote(prompt[:220])
-        seed = secrets.randbelow(999999)
+        safe_p = quote(enhanced_prompt[:450])
+        seed = secrets.randbelow(9999999)
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-            "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+            "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/*,*/*;q=0.8",
         }
         r = httpx.get(
-            f"https://image.pollinations.ai/prompt/{safe_p}?width=1024&height=1024&nologo=true&seed={seed}",
+            f"https://image.pollinations.ai/prompt/{safe_p}?width=1024&height=1024&model=flux&enhance=true&nologo=true&seed={seed}",
             headers=headers,
-            timeout=45,
+            timeout=40,
             follow_redirects=True,
         )
-        if r.status_code == 200 and r.content and len(r.content) > 3000:
+        if r.status_code == 200 and r.content and len(r.content) > 5000:
             fname = f"gen_{uuid.uuid4().hex[:12]}.jpg"
             (MEDIA_DIR / fname).write_bytes(r.content)
             return fname
     except Exception:
         pass
 
-    # 3. Fallback SVG généré sur mesure par Gemini (si clé Gemini disponible)
-    if keys:
-        try:
-            svg_code = generate_svg_illustration(prompt, user)
-            if svg_code:
-                fname = f"gen_{uuid.uuid4().hex[:12]}.svg"
-                (MEDIA_DIR / fname).write_text(svg_code, encoding="utf-8")
-                return fname
-        except Exception:
-            pass
-
-    # 4. Fallback ultime SVG esthétique pour toujours fournir un visuel propre
-    try:
-        from html import escape as esc_html
-        clean_p = esc_html(prompt[:70])
-        fname = f"gen_{uuid.uuid4().hex[:12]}.svg"
-        fallback_svg = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
-  <defs>
-    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0b1326" />
-      <stop offset="60%" stop-color="#0f182e" />
-      <stop offset="100%" stop-color="#0284c7" />
-    </linearGradient>
-    <radialGradient id="r" cx="50%" cy="40%" r="50%">
-      <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <rect width="800" height="600" rx="20" fill="url(#g)" />
-  <circle cx="400" cy="250" r="160" fill="url(#r)"/>
-  <circle cx="400" cy="250" r="85" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6 6"/>
-  <circle cx="400" cy="250" r="55" fill="rgba(6,182,212,0.15)" stroke="#06b6d4" stroke-width="2"/>
-  <path d="M375 250 L395 230 L425 260" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <text x="400" y="410" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="22" font-weight="600" fill="#f8fafc" text-anchor="middle">{clean_p}</text>
-  <text x="400" y="445" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="14" fill="#94a3b8" text-anchor="middle">Illustration vectorielle générée par MEL-IA</text>
-</svg>"""
-        (MEDIA_DIR / fname).write_text(fallback_svg, encoding="utf-8")
-        return fname
-    except Exception:
-        pass
-
-    raise HTTPException(502, "Impossible de générer l'image : vérifiez votre connexion ou réessayez avec un autre sujet.")
+    raise HTTPException(502, "Impossible de générer l'image en ce moment. Réessayez avec un sujet différent.")
 
 
 
@@ -837,6 +975,7 @@ class ChatIn(BaseModel):
     search: bool | None = None          # force la recherche web (None = auto)
     generate_image: bool | None = None  # force la génération d'image (None = auto)
     replace_last: bool = False          # pour régénérer proprement sans doublon
+    guest_id: str | None = None         # tracker pour le mode test sans connexion
 
 
 FACT_RE = re.compile(r"^\s*(?:retiens|souviens[- ]toi|mémorise|memorise)\s+(?:que\s+)?(.+)$", re.I | re.S)
@@ -848,8 +987,14 @@ def health():
         "status": "ok",
         "name": NAME,
         "owner": OWNER,
-        "model": _cache["model"] or MODEL,
+        "model": "MEL-IA",
     }
+
+
+@app.get("/api/user/quota")
+def get_quota(x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    return get_user_quota_info(user, x_guest_id)
 
 
 @app.get("/api/sessions")
@@ -924,16 +1069,32 @@ def update_session(session_id: str, body: SessionUpdate, x_auth_token: str | Non
 
 
 @app.post("/api/chat")
-def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
+def chat(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
     uid = user["id"] if user else None
     text = body.message.strip()
     sid = body.session_id or "default"
+    gid = body.guest_id or x_guest_id
     if not text:
         raise HTTPException(400, "Message vide.")
     now = time.time()
     do_search = body.search if body.search is not None else bool(SEARCH_KEYWORDS.search(text))
     do_image = body.generate_image if body.generate_image is not None else bool(GEN_IMAGE_RE.search(text))
+
+    # Contrôle des quotas journaliers
+    q_info = get_user_quota_info(user, gid)
+    if do_image:
+        if q_info["images_limit"] is not None and q_info["images_remaining"] <= 0:
+            msg = f"Limite quotidienne de {q_info['images_limit']} images atteinte. " + (
+                "Renseignez votre clé API Gemini dans Paramètres pour un accès illimité !" if user else "Connectez-vous ou renseignez votre clé Gemini dans Paramètres pour continuer !"
+            )
+            raise HTTPException(429, msg)
+    else:
+        if q_info["questions_limit"] is not None and q_info["questions_remaining"] <= 0:
+            msg = f"Limite quotidienne de {q_info['questions_limit']} questions atteinte. " + (
+                "Renseignez votre clé API Gemini dans Paramètres pour un accès illimité !" if user else "Connectez-vous pour passer à 30 questions/jour ou ajoutez votre clé Gemini pour un accès illimité !"
+            )
+            raise HTTPException(429, msg)
 
     with db() as c:
         s_row = c.execute("SELECT title, user_id FROM sessions WHERE id = ?", (sid,)).fetchone()
@@ -975,20 +1136,52 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
 
     if do_image:
         img_prompt = GEN_IMAGE_RE.sub("", text, count=1).strip() or text
-        fname = generate_image(f"Image photoréaliste de haute qualité : {img_prompt}", user)
+        fname = generate_image(img_prompt, user)
+        record_quota_usage(user, gid, is_image=True)
         reply = f"Voici l'image générée pour : **{img_prompt}**"
         now2 = time.time()
         with db() as c:
             c.execute(
                 "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
-                (reply, now2, sid, uid, "image", fname, "image/png"),
+                (reply, now2, sid, uid, "image", fname, "image/jpeg"),
             )
-        resp.update({"reply": reply, "media_url": f"/api/media/{fname}", "generated": True})
+        resp.update({"reply": reply, "media_url": f"/api/media/{fname}", "generated": True, "quota": get_user_quota_info(user, gid), "model": "MEL-IA"})
         return resp
 
     memories = get_cross_session_context(uid, sid, text)
     result = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search, memories=memories)
     reply = result["reply"]
+
+    # Interception si Gemini émet une balise [IMAGE: prompt]
+    m_img_tag = re.search(r"\[(?:IMAGE|GENERATE_IMAGE)\s*:\s*([^\]]+)\]", reply, re.I)
+    if m_img_tag:
+        try:
+            tag_prompt = m_img_tag.group(1).strip()
+            fname = generate_image(tag_prompt, user)
+            record_quota_usage(user, gid, is_image=True)
+            clean_reply = re.sub(r"\[(?:IMAGE|GENERATE_IMAGE)\s*:\s*([^\]]+)\]", "", reply, flags=re.I).strip()
+            if not clean_reply:
+                clean_reply = f"Voici l'image générée pour : **{tag_prompt}**"
+            reply = clean_reply
+            now2 = time.time()
+            with db() as c:
+                c.execute(
+                    "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
+                    (reply, now2, sid, uid, "image", fname, "image/jpeg"),
+                )
+            resp.update({
+                "reply": reply,
+                "media_url": f"/api/media/{fname}",
+                "generated": True,
+                "quota": get_user_quota_info(user, gid),
+                "model": "MEL-IA",
+                "ts": now2,
+            })
+            return resp
+        except Exception:
+            pass
+
+    record_quota_usage(user, gid, is_image=False)
 
     with db() as c:
         c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)", (reply, time.time(), sid, uid))
@@ -996,8 +1189,9 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
         "reply": reply,
         "sources": result.get("sources", []),
         "images": result.get("images", []),
-        "model": result.get("model", ""),
+        "model": "MEL-IA",
         "search": do_search,
+        "quota": get_user_quota_info(user, gid),
         "ts": time.time(),
     })
     return resp
@@ -1005,7 +1199,7 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None)):
 
 @app.post("/api/chat/stream")
 @app.post("/api/chat-stream")
-async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
+async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     """Streaming SSE : envoie les tokens en temps réel au client."""
     user = current_user(x_auth_token)
     if x_auth_token and not user:
@@ -1013,18 +1207,34 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
     uid = user["id"] if user else None
     text = body.message.strip()
     sid = body.session_id or "default"
+    gid = body.guest_id or x_guest_id
     if not text:
         raise HTTPException(400, "Message vide.")
     now = time.time()
     do_search = body.search if body.search is not None else bool(SEARCH_KEYWORDS.search(text))
     do_image = body.generate_image if body.generate_image is not None else bool(GEN_IMAGE_RE.search(text))
 
+    # Contrôle strict des quotas journaliers
+    q_info = get_user_quota_info(user, gid)
+    if do_image:
+        if q_info["images_limit"] is not None and q_info["images_remaining"] <= 0:
+            msg = f"Limite quotidienne de {q_info['images_limit']} images atteinte aujourd'hui. " + (
+                "Renseignez votre clé API Gemini dans Paramètres pour un accès illimité !" if user else "Connectez-vous ou renseignez votre clé Gemini dans Paramètres pour continuer !"
+            )
+            raise HTTPException(429, msg)
+    else:
+        if q_info["questions_limit"] is not None and q_info["questions_remaining"] <= 0:
+            msg = f"Limite quotidienne de {q_info['questions_limit']} questions atteinte aujourd'hui. " + (
+                "Renseignez votre clé API Gemini dans Paramètres pour un accès illimité !" if user else "Connectez-vous pour passer à 30 questions/jour ou ajoutez votre clé Gemini pour un accès illimité !"
+            )
+            raise HTTPException(429, msg)
+
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not do_image and not keys:
         raise HTTPException(
             400,
-            "Aucune clé API Gemini disponible : veuillez renseigner votre clé API dans Paramètres.",
+            "Aucune clé API Gemini disponible : veuillez renseigner votre clé API dans Paramètres ou dans le fichier .env.",
         )
 
     with db() as c:
@@ -1070,23 +1280,27 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
         if do_image:
             img_prompt = GEN_IMAGE_RE.sub("", text, count=1).strip() or text
             try:
-                fname = generate_image(f"Image photoréaliste de haute qualité : {img_prompt}", user)
+                fname = generate_image(img_prompt, user)
+                record_quota_usage(user, gid, is_image=True)
                 reply = f"Voici l'image générée pour : **{img_prompt}**"
                 now2 = time.time()
                 with db() as c:
                     c.execute(
                         "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
-                        (reply, now2, sid, uid, "image", fname, "image/png"),
+                        (reply, now2, sid, uid, "image", fname, "image/jpeg"),
                     )
-                yield f"data: {json.dumps({'chunk': reply, 'reply': reply, 'media_url': f'/api/media/{fname}', 'done': True, 'session_id': sid, 'ts': now2})}\n\n"
+                yield f"data: {json.dumps({'chunk': reply, 'reply': reply, 'media_url': f'/api/media/{fname}', 'done': True, 'model': 'MEL-IA', 'quota': get_user_quota_info(user, gid), 'session_id': sid, 'ts': now2})}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
             return
 
+        if not do_image:
+            record_quota_usage(user, gid, is_image=False)
+
         user_keys = get_user_keys(user)
         keys = [k for k in user_keys if _key_usable(k)] or user_keys
         if not keys:
-            yield f"data: {json.dumps({'error': 'Aucune clé API Gemini : veuillez vous connecter avec votre compte ou renseigner votre clé API sur la page de connexion.', 'done': True})}\n\n"
+            yield f"data: {json.dumps({'error': 'Aucune clé API Gemini : veuillez renseigner votre clé API dans Paramètres ou dans le fichier .env.', 'done': True})}\n\n"
             return
 
         memories = get_cross_session_context(uid, sid, text)
@@ -1119,15 +1333,14 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
 
         full_reply = ""
         sources = []
-        used_model = candidates[0]
+        used_model = "MEL-IA"
         success = False
 
-        async with httpx.AsyncClient(timeout=35) as client:
+        async with httpx.AsyncClient(timeout=16) as client:
             for key in keys:
                 for model in candidates:
                     try:
                         url = f"{API_BASE}/models/{model}:streamGenerateContent?alt=sse"
-                        # Tentative avec le body préparé
                         target_body = req_body
                         r = await client.send(
                             client.build_request(
@@ -1157,7 +1370,6 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                                 break
                             continue
 
-                        used_model = model
                         _cache["model"] = model
                         async for line in r.aiter_lines():
                             line = line.strip()
@@ -1197,23 +1409,43 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None)):
                 res = ask_gemini([dict(r) for r in rows], facts, user=user, search=do_search, memories=memories)
                 full_reply = res["reply"]
                 sources = res.get("sources", [])
-                used_model = res.get("model", used_model)
                 yield f"data: {json.dumps({'chunk': full_reply, 'done': False})}\n\n"
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e), 'done': True})}\n\n"
                 return
+
+        media_url = ""
+        m_img_tag = re.search(r"\[(?:IMAGE|GENERATE_IMAGE)\s*:\s*([^\]]+)\]", full_reply, re.I)
+        if m_img_tag:
+            try:
+                tag_prompt = m_img_tag.group(1).strip()
+                fname = generate_image(tag_prompt, user)
+                record_quota_usage(user, gid, is_image=True)
+                clean_reply = re.sub(r"\[(?:IMAGE|GENERATE_IMAGE)\s*:\s*([^\]]+)\]", "", full_reply, flags=re.I).strip()
+                if not clean_reply:
+                    clean_reply = f"Voici l'image générée pour : **{tag_prompt}**"
+                full_reply = clean_reply
+                media_url = f"/api/media/{fname}"
+            except Exception:
+                pass
 
         images = []
         if do_search and full_reply:
             images = fetch_images(text)
 
         with db() as c:
-            c.execute(
-                "INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)",
-                (full_reply, time.time(), sid, uid),
-            )
+            if media_url:
+                c.execute(
+                    "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
+                    (full_reply, time.time(), sid, uid, "image", Path(media_url).name, "image/jpeg"),
+                )
+            else:
+                c.execute(
+                    "INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)",
+                    (full_reply, time.time(), sid, uid),
+                )
 
-        yield f"data: {json.dumps({'done': True, 'reply': full_reply, 'sources': sources, 'images': images, 'model': used_model, 'session_id': sid, 'ts': time.time()})}\n\n"
+        yield f"data: {json.dumps({'done': True, 'reply': full_reply, 'media_url': media_url, 'sources': sources, 'images': images, 'model': 'MEL-IA', 'quota': get_user_quota_info(user, gid), 'session_id': sid, 'ts': time.time()})}\n\n"
 
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
@@ -1244,11 +1476,15 @@ async def chat_media(
     session_id: str | None = Form("default"),
     file: UploadFile = File(...),
     x_auth_token: str | None = Header(None),
+    x_guest_id: str | None = Header(None),
 ):
     """Envoie un message avec image / vocal / vidéo / document. Le fichier est stocké et analysé par Gemini."""
     user = current_user(x_auth_token)
     if x_auth_token and not user:
         raise HTTPException(401, "Session expirée. Veuillez vous reconnecter.")
+    q_info = get_user_quota_info(user, x_guest_id)
+    if q_info["questions_limit"] is not None and q_info["questions_remaining"] <= 0:
+        raise HTTPException(429, f"Limite quotidienne de {q_info['questions_limit']} questions atteinte. Renseignez votre propre clé Gemini dans Paramètres pour un accès illimité !")
     user_keys = get_user_keys(user)
     keys = [k for k in user_keys if _key_usable(k)] or user_keys
     if not keys:
@@ -1307,6 +1543,7 @@ async def chat_media(
     memories = get_cross_session_context(uid, sid, text)
     result = ask_gemini([dict(r) for r in rows], facts, user=user, search=bool(SEARCH_KEYWORDS.search(text)), memories=memories)
     reply = result["reply"]
+    record_quota_usage(user, x_guest_id, is_image=False)
 
     with db() as c:
         c.execute("INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)", (reply, time.time(), sid, uid))
