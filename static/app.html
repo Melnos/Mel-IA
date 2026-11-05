@@ -3546,6 +3546,533 @@
         transform: none
       }
     }
+  
+    /* ==========================================================================
+       STUDIO HOME EXPERIENCE & 3D VISUAL DEPTH (MEL-IA 2.0)
+       ========================================================================== */
+    .studio-home {
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 20px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      animation: fadeUp .32s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .home-ambient-glow {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 520px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(13, 148, 136, 0.08) 45%, transparent 70%);
+      filter: blur(48px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .home-hero-head {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .home-hero-emblem-wrap {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .home-emblem-halo {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.32) 0%, transparent 70%);
+      filter: blur(10px);
+      animation: pulseHalo 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulseHalo {
+      0% { opacity: 0.5; transform: scale(0.95); }
+      100% { opacity: 0.9; transform: scale(1.05); }
+    }
+
+    .home-hero-title {
+      font: 800 clamp(28px, 4.2vw, 38px)/1.2 var(--font-sans);
+      letter-spacing: -0.03em;
+      color: var(--fg-heading);
+      margin: 0 0 10px;
+      text-align: center;
+    }
+
+    .home-hero-name {
+      background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 50%, #94A3B8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-theme="light"] .home-hero-name {
+      background: linear-gradient(135deg, #0F172A 0%, #334155 50%, #64748B 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .home-hero-sub {
+      font: 400 15px/1.6 var(--font-sans);
+      color: var(--muted);
+      max-width: 580px;
+      margin: 0;
+      text-align: center;
+    }
+
+    /* Sélecteur de Spécialités / Filtres */
+    .home-pills-bar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .home-cat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font: 500 12.5px var(--font-sans);
+      cursor: pointer;
+      transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .home-cat-pill svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    .home-cat-pill:hover {
+      color: var(--fg);
+      border-color: var(--line-strong);
+      background: var(--surface-hover);
+      transform: translateY(-1px);
+    }
+
+    .home-cat-pill.active {
+      color: var(--a1);
+      background: var(--soft);
+      border-color: var(--soft-border);
+      font-weight: 600;
+      box-shadow: 0 2px 12px var(--glow);
+    }
+
+    /* Grille de Cartes d'Inspiration Studio */
+    .home-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      width: 100%;
+      max-width: 820px;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 640px) {
+      .home-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .home-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--surface-elevated);
+      cursor: pointer;
+      transition: all .22s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .home-card:hover {
+      border-color: var(--a1);
+      background: var(--surface-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 32px -4px var(--glow), 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    [data-theme="light"] .home-card {
+      background: #FFFFFF;
+      border-color: #E2E8F0;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    [data-theme="light"] .home-card:hover {
+      border-color: #0891B2;
+      background: #FFFFFF;
+      box-shadow: 0 8px 24px -2px rgba(8, 145, 178, 0.16);
+    }
+
+    .home-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    .home-card-tag {
+      font: 700 10.5px/1 var(--font-sans);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--soft);
+      color: var(--a1);
+      border: 1px solid var(--soft-border);
+    }
+
+    .home-card-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg);
+      transition: all .2s ease;
+    }
+
+    .home-card:hover .home-card-icon-box {
+      background: var(--soft);
+      color: var(--a1);
+      border-color: var(--soft-border);
+    }
+
+    .home-card-icon-box svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .home-card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .home-card-title {
+      font: 600 14px/1.35 var(--font-sans);
+      color: var(--fg-heading);
+      margin: 0;
+    }
+
+    .home-card-desc {
+      font: 400 12.5px/1.5 var(--font-sans);
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .home-card-arrow {
+      align-self: flex-end;
+      width: 16px;
+      height: 16px;
+      color: var(--muted);
+      transition: all .2s ease;
+      opacity: 0.6;
+    }
+
+    .home-card:hover .home-card-arrow {
+      color: var(--a1);
+      opacity: 1;
+      transform: translateX(3px);
+    }
+
+    /* Raccourcis Rapides (Actions Dock) */
+    .home-shortcuts-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .shortcuts-label {
+      font: 600 11.5px var(--font-sans);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 4px;
+    }
+
+    .home-quick-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font: 500 12px var(--font-sans);
+      cursor: pointer;
+      transition: all .16s ease;
+    }
+
+    .home-quick-pill svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    .home-quick-pill:hover {
+      background: var(--surface-hover);
+      color: var(--fg);
+      border-color: var(--line-strong);
+      transform: translateY(-1px);
+    }
+
+    /* ==========================================================================
+       ZONE DE SAISIE PREMIUM (COMPOSER 3D)
+       ========================================================================== */
+    .input-area {
+      padding: 12px 20px 20px !important;
+      background: linear-gradient(180deg, transparent 0%, var(--bg) 28%) !important;
+    }
+
+    .input-wrap {
+      border-radius: 20px !important;
+      border-color: var(--line-strong) !important;
+      background: var(--surface-elevated) !important;
+      box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    [data-theme="light"] .input-wrap {
+      background: #FFFFFF !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 10px 28px -6px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+    }
+
+    .input-wrap:focus-within {
+      border-color: var(--a1) !important;
+      box-shadow: 0 12px 40px -4px var(--glow), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Message Utilisateur Raffiné 3D */
+    .msg-wrap.user .msg {
+      background: var(--user-bubble) !important;
+      color: var(--user-bubble-fg) !important;
+      border-radius: 20px 20px 6px 20px !important;
+      border: 1px solid var(--line-strong) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+      font-size: 14.5px !important;
+      line-height: 1.6 !important;
+    }
+
+    [data-theme="light"] .msg-wrap.user .msg {
+      background: #F1F5F9 !important;
+      border-color: #CBD5E1 !important;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+      color: #0F172A !important;
+    }
+
+    /* Blocs de code & barres */
+    .codebox {
+      border-radius: 16px !important;
+      border-color: var(--line-strong) !important;
+      box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+    }
+
+    .codebox-bar {
+      padding: 10px 16px !important;
+      background: var(--surface-elevated) !important;
+    }
+
+    /* Bouton d'envoi Studio */
+    #send {
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 11px !important;
+      background: var(--accent-grad) !important;
+      box-shadow: 0 3px 12px var(--glow) !important;
+      transition: all .18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    #send:hover {
+      transform: translateY(-1px) scale(1.04) !important;
+      box-shadow: 0 6px 18px var(--glow-strong) !important;
+    }
+
+    #send.generating {
+      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4) !important;
+    }
+
+    /* ==========================================================================
+       GOOGLE AUTH & ADVANCED AUTH GATE (MEL-IA 2.0)
+       ========================================================================== */
+    .google-auth-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 11px 18px;
+      border-radius: 14px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--line-strong);
+      color: var(--fg);
+      font: 600 13.5px var(--font-sans);
+      cursor: pointer;
+      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      margin-bottom: 12px;
+    }
+
+    .google-auth-btn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .google-auth-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--a1);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px var(--glow);
+    }
+
+    [data-theme="light"] .google-auth-btn {
+      background: #FFFFFF;
+      border-color: #CBD5E1;
+      color: #0F172A;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+
+    [data-theme="light"] .google-auth-btn:hover {
+      border-color: #0891B2;
+      box-shadow: 0 4px 14px rgba(8, 145, 178, 0.16);
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 14px;
+      color: var(--muted);
+      font: 600 11px var(--font-sans);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .auth-row-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+
+    .auth-link {
+      background: none;
+      border: 0;
+      color: var(--a1);
+      font: 500 12.5px var(--font-sans);
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: color .15s ease;
+      text-decoration: none;
+    }
+
+    .auth-link:hover {
+      color: var(--fg-heading);
+      text-decoration: underline;
+    }
+
+    .auth-link.bold {
+      font-weight: 700;
+    }
+
+    .auth-switch-prompt {
+      margin-top: 14px;
+      font: 400 13px var(--font-sans);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .auth-hint {
+      font: 400 13px/1.5 var(--font-sans);
+      color: var(--muted);
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .guest-actions-sub {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      margin-top: 10px;
+      font-size: 11.5px;
+      color: var(--muted);
+    }
+
+    .btn-reset-guest {
+      background: none;
+      border: 0;
+      color: var(--muted);
+      font: 500 11.5px var(--font-sans);
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 3px 6px;
+      transition: color .15s ease;
+    }
+
+    .btn-reset-guest:hover {
+      color: #EF4444;
+    }
   </style>
 </head>
 
@@ -3568,41 +4095,101 @@
   <!-- Écran d'accueil : connexion / inscription -->
   <div class="gate" id="authgate" hidden>
     <div class="gate-card">
-      <div class="gate-badge"><span class="dot"></span>Intelligence Artificielle Avancée</div>
+      <button type="button" class="gate-close" id="gate-close-btn" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
       <div class="gate-logo" id="gate-logo"></div>
       <h1>MEL-IA<span class="logo-dot">.</span></h1>
-      <p class="gate-sub"><em>Ton assistant personnel.</em> Connecte-toi pour retrouver tes discussions.</p>
+      <p class="gate-sub">Connectez-vous pour retrouver vos discussions, modèles et projets.</p>
 
       <div class="tabs" role="tablist">
         <button type="button" class="tab on" id="tab-login" role="tab">Connexion</button>
         <button type="button" class="tab" id="tab-signup" role="tab">Inscription</button>
       </div>
 
-      <!-- Connexion -->
+      <!-- Onglet Connexion -->
       <form class="gate-form" id="glf">
-        <input id="li-name" type="text" autocomplete="username" placeholder="Identifiant" aria-label="Identifiant"
-          required>
-        <input id="li-pass" type="password" autocomplete="current-password" placeholder="Mot de passe"
-          aria-label="Mot de passe" required>
+        <button type="button" class="google-auth-btn" id="btn-google-login">
+          <svg viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Continuer avec Google</span>
+        </button>
+
+        <div class="auth-divider">
+          <span>ou avec votre e-mail</span>
+        </div>
+
+        <input id="li-name" type="text" autocomplete="username" placeholder="Adresse e-mail ou identifiant" aria-label="Adresse e-mail ou identifiant" required>
+        <input id="li-pass" type="password" autocomplete="current-password" placeholder="Mot de passe" aria-label="Mot de passe" required>
+        
+        <div class="auth-row-actions">
+          <button type="button" id="btn-show-forgot" class="auth-link">Mot de passe oublié ?</button>
+        </div>
+
         <div class="form-err" id="li-err"></div>
         <button class="dialog-btn" type="submit">Se connecter</button>
+
+        <div class="auth-switch-prompt">
+          <span>Vous n'avez pas de compte ?</span>
+          <button type="button" id="link-to-signup" class="auth-link bold">Créer un compte</button>
+        </div>
+      </form>
+
+      <!-- Mot de passe oublié (2 étapes fluides) -->
+      <form class="gate-form" id="gff" hidden>
+        <div id="gff-step-1">
+          <div class="auth-hint">Entrez votre adresse e-mail ou identifiant pour recevoir un code de réinitialisation sécurisé.</div>
+          <input id="fp-name" type="text" placeholder="Adresse e-mail ou identifiant" aria-label="Adresse e-mail ou identifiant" required>
+          <div class="form-err" id="fp-err"></div>
+          <button class="dialog-btn" type="submit">Recevoir le code</button>
+          <button class="dialog-btn secondary" type="button" id="fp-back">← Retour à la connexion</button>
+        </div>
+        <div id="gff-step-2" style="display:none">
+          <div class="auth-hint" id="gff-step-2-hint">Code envoyé ! Entrez le code reçu et choisissez votre nouveau mot de passe.</div>
+          <input id="fp-code" type="text" placeholder="Code de réinitialisation" aria-label="Code de réinitialisation">
+          <input id="fp-newpass" type="password" placeholder="Nouveau mot de passe (6 car. min.)" aria-label="Nouveau mot de passe">
+          <div class="form-err" id="fp2-err"></div>
+          <button class="dialog-btn" type="button" id="fp-submit-reset">Changer mon mot de passe</button>
+          <button class="dialog-btn secondary" type="button" id="fp-cancel">← Annuler</button>
+        </div>
       </form>
 
       <!-- Inscription étape 1 -->
       <form class="gate-form" id="gsf1" hidden>
-        <input id="su-name" type="text" autocomplete="username" placeholder="Identifiant (3 à 30 caractères)"
-          aria-label="Identifiant" required>
-        <input id="su-pass" type="password" autocomplete="new-password" placeholder="Mot de passe (6 caractères min.)"
-          aria-label="Mot de passe" required>
+        <button type="button" class="google-auth-btn" id="btn-google-signup">
+          <svg viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>S'inscrire avec Google</span>
+        </button>
+
+        <div class="auth-divider">
+          <span>ou par formulaire</span>
+        </div>
+
+        <input id="su-email" type="email" autocomplete="email" placeholder="Adresse e-mail (ex: contact@domaine.com)" aria-label="Adresse e-mail" required>
+        <input id="su-name" type="text" autocomplete="username" placeholder="Identifiant unique (3 à 30 caractères)" aria-label="Identifiant" required>
+        <input id="su-pass" type="password" autocomplete="new-password" placeholder="Mot de passe (6 caractères min.)" aria-label="Mot de passe" required>
         <div class="form-err" id="su1-err"></div>
         <button class="dialog-btn" type="submit">Continuer</button>
+
+        <div class="auth-switch-prompt">
+          <span>Vous avez déjà un compte ?</span>
+          <button type="button" id="link-to-login" class="auth-link bold">Se connecter</button>
+        </div>
       </form>
 
-      <!-- Inscription étape 2 -->
+      <!-- Inscription étape 2 (Optionnel) -->
       <form class="gate-form" id="gsf2" hidden>
         <span class="label-mini">Clé API Gemini (Optionnel · Illimité si renseignée, ou 30 req/j offertes)</span>
-        <input id="su-key" type="password" autocomplete="off" placeholder="AIzaSy… (optionnel)"
-          aria-label="Clé d'activation API">
+        <input id="su-key" type="password" autocomplete="off" placeholder="AIzaSy… (optionnel)" aria-label="Clé d'activation API">
         <span class="label-mini">Centres d'intérêt (optionnel)</span>
         <div class="gate-chips" id="int-chips">
           <button type="button" class="gchip">Technologie</button>
@@ -3614,28 +4201,61 @@
           <button type="button" class="gchip">Jeux vidéo</button>
           <button type="button" class="gchip">Voyage</button>
         </div>
-        <input id="su-int" type="text" placeholder="Autres (séparés par virgules)"
-          aria-label="Autres centres d'intérêt">
+        <input id="su-int" type="text" placeholder="Autres (séparés par virgules)" aria-label="Autres centres d'intérêt">
         <div class="form-err" id="su2-err"></div>
         <button class="dialog-btn" type="submit">Créer mon compte gratuit</button>
         <button class="dialog-btn secondary" type="button" id="su-back">← Retour</button>
       </form>
 
-      <div class="gate-guest-zone"
-        style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);text-align:center">
-        <button type="button" class="dialog-btn secondary" id="btn-guest-test"
-          style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin:0">
+      <!-- Mode Découverte / Test -->
+      <div class="gate-guest-zone" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);text-align:center">
+        <button type="button" class="dialog-btn secondary" id="btn-guest-test" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin:0">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <polygon points="10 8 16 12 10 16 10 8" />
           </svg>
           <span>Tester sans compte (Mode Découverte · 20 req/j)</span>
         </button>
-        <span style="font-size:11.5px;color:var(--muted);margin-top:8px;display:block">Accès immédiat sans mot de passe
-          · 20 questions + 3 images offertes par jour</span>
+        <div class="guest-actions-sub">
+          <span>Accès immédiat sans mot de passe · 20 questions + 3 images offertes par jour</span>
+          <button type="button" id="btn-guest-reset" class="btn-reset-guest" title="Effacer les anciennes conversations du mode test">Effacer l'historique du mode test</button>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Dialogue d'aide & configuration Google OAuth -->
+  <dialog class="modal-dialog" id="google-config-dialog" style="max-width:500px">
+    <div class="dialog-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="22" height="22">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span style="font-weight:700;font-size:16px">Connexion avec Google</span>
+      </div>
+      <button class="icon-btn" id="google-dialog-close" type="button" aria-label="Fermer">✕</button>
+    </div>
+    <div style="font-size:13.5px;line-height:1.6;color:var(--fg);margin-bottom:16px">
+      <p style="margin-top:0">Pour activer la connexion avec de vrais comptes Google via Google Cloud OAuth :</p>
+      <ol style="padding-left:18px;margin:10px 0;color:var(--muted)">
+        <li>Ouvrez la <strong>Console Google Cloud</strong> (section API & Services > Identifiants).</li>
+        <li>Créez un ID Client OAuth 2.0 pour <em>Application Web</em>.</li>
+        <li>Renseignez la variable <code>GOOGLE_CLIENT_ID</code> dans votre fichier <code>.env</code>.</li>
+      </ol>
+      <p style="margin-bottom:0">En attendant, vous pouvez <strong>tester instantanément la connexion Google en mode simulation</strong> ci-dessous :</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="dialog-btn" type="button" id="btn-google-simulate-login" style="margin:0">
+        Tester la connexion Google (Mode Simulation)
+      </button>
+      <button class="dialog-btn secondary" type="button" id="btn-google-dialog-cancel" style="margin:0">
+        Fermer
+      </button>
+    </div>
+  </dialog>
 
   <!-- Toast container pour notifications discrètes et élégantes -->
   <div id="toast-container"></div>
@@ -3960,14 +4580,14 @@
       </div>
       <div class="qc-metrics">
         <div class="qc-metric">
-          <span class="qcm-label">Questions restantes aujourd'hui</span>
+          <span class="qcm-label">Questions restantes aujourd\'hui</span>
           <div class="qcm-val" id="qc-questions-val">20 / 20</div>
           <div class="qcm-bar-wrap">
             <div class="qcm-bar" id="qc-questions-bar" style="width:100%"></div>
           </div>
         </div>
         <div class="qc-metric">
-          <span class="qcm-label">Générations d'images</span>
+          <span class="qcm-label">Générations d\'images</span>
           <div class="qcm-val" id="qc-images-val">3 / 3</div>
           <div class="qcm-bar-wrap">
             <div class="qcm-bar" id="qc-images-bar" style="width:100%"></div>
@@ -5669,12 +6289,139 @@
 
 
     function showEmpty() {
-      $('msgs').innerHTML = '<div class="empty-state">' +
-        '<div class="atom-wrap" id="big"></div>' +
-        '<h2>Bonjour' + (owner ? ' <em>' + esc(owner) + '</em>' : '') + ' !</h2>' +
-        '<p>Comment puis-je vous aider aujourd\'hui ?</p>' +
+      var greetingName = owner ? esc(owner) : 'Mel';
+      $('msgs').innerHTML =
+        '<div class="studio-home">' +
+        '<div class="home-ambient-glow"></div>' +
+        '<div class="home-hero-head">' +
+        '  <div class="home-hero-emblem-wrap">' +
+        '    <div class="home-emblem-halo"></div>' +
+        '    <div id="home-big-emblem"></div>' +
+        '  </div>' +
+        '  <h1 class="home-hero-title">Bonjour, <span class="home-hero-name">' + greetingName + '</span></h1>' +
+        '  <p class="home-hero-sub">Que créons-nous aujourd\'hui ? Choisissez une spécialité ou décrivez votre projet.</p>' +
+        '</div>' +
+
+        '<div class="home-pills-bar">' +
+        '  <button type="button" class="home-cat-pill active" data-filter="all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 16 12 12 8"/></svg><span>Vue d\'ensemble</span></button>' +
+        '  <button type="button" class="home-cat-pill" data-filter="code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><span>Développement & Code</span></button>' +
+        '  <button type="button" class="home-cat-pill" data-filter="image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Création Visuelle</span></button>' +
+        '  <button type="button" class="home-cat-pill" data-filter="docs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Synthèse & Documents</span></button>' +
+        '  <button type="button" class="home-cat-pill" data-filter="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Recherche Web</span></button>' +
+        '</div>' +
+
+        '<div class="home-grid">' +
+        '  <div class="home-card" data-cat="code" data-prompt="Conçois une architecture logicielle moderne et complète pour un projet web full-stack, avec structure modulaire, API RESTful et composants réutilisables.">' +
+        '    <div class="home-card-top">' +
+        '      <span class="home-card-tag">Ingénierie & Code</span>' +
+        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>' +
+        '    </div>' +
+        '    <div class="home-card-body">' +
+        '      <h3 class="home-card-title">Architecture Full-Stack & Clean Code</h3>' +
+        '      <p class="home-card-desc">Architecture découplée, modèles de données, sécurité et patterns réutilisables.</p>' +
+        '    </div>' +
+        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
+        '  </div>' +
+
+        '  <div class="home-card" data-cat="image" data-prompt="Génère une illustration cinématique 3D photoréaliste d\'une métropole futuriste épurée avec architecture organique, néons diffus et atmosphère crépusculaire, ultra-détaillée 8k.">' +
+        '    <div class="home-card-top">' +
+        '      <span class="home-card-tag">Studio Visuel</span>' +
+        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>' +
+        '    </div>' +
+        '    <div class="home-card-body">' +
+        '      <h3 class="home-card-title">Direction Artistique & Prompt Studio</h3>' +
+        '      <p class="home-card-desc">Composition cinématique, éclairage volumétrique et génération d\'images IA haute fidélité.</p>' +
+        '    </div>' +
+        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
+        '  </div>' +
+
+        '  <div class="home-card" data-cat="docs" data-prompt="Rédige un rapport exécutif exhaustif et structuré sur le déploiement et la gouvernance de l\'intelligence artificielle en entreprise, incluant risques, KPIs et roadmap d\'adoption.">' +
+        '    <div class="home-card-top">' +
+        '      <span class="home-card-tag">Documents & Stratégie</span>' +
+        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>' +
+        '    </div>' +
+        '    <div class="home-card-body">' +
+        '      <h3 class="home-card-title">Rapport Stratégique & Documents</h3>' +
+        '      <p class="home-card-desc">Synthèses exécutives, roadmaps, documentation technique et analyses comparatives.</p>' +
+        '    </div>' +
+        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
+        '  </div>' +
+
+        '  <div class="home-card" data-cat="search" data-prompt="Effectue une recherche approfondie sur les ruptures technologiques récentes en IA, cite les sources précises et synthétise les points majeurs.">' +
+        '    <div class="home-card-top">' +
+        '      <span class="home-card-tag">Veille & Analyse</span>' +
+        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+        '    </div>' +
+        '    <div class="home-card-body">' +
+        '      <h3 class="home-card-title">Recherche Approfondie & Synthèse</h3>' +
+        '      <p class="home-card-desc">Exploration du web en direct, vérification factuelle et citations des sources vérifiées.</p>' +
+        '    </div>' +
+        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
+        '  </div>' +
+        '</div>' +
+
+        '<div class="home-shortcuts-row">' +
+        '  <span class="shortcuts-label">Actions rapides :</span>' +
+        '  <button type="button" class="home-quick-pill" data-quick="doc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Analyser un fichier</span></button>' +
+        '  <button type="button" class="home-quick-pill" data-quick="fastapi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>API FastAPI Python</span></button>' +
+        '  <button type="button" class="home-quick-pill" data-quick="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Dashboard interactif</span></button>' +
+        '  <button type="button" class="home-quick-pill" data-quick="voice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg><span>Note vocale</span></button>' +
+        '</div>' +
         '</div>';
-      mountAtom('big');
+
+      mountAtom('home-big-emblem', 64);
+
+      var cards = $('msgs').querySelectorAll('.home-card');
+      cards.forEach(function (c) {
+        c.addEventListener('click', function () {
+          var p = c.getAttribute('data-prompt');
+          var input = $('in');
+          input.value = p;
+          input.style.height = 'auto';
+          input.style.height = Math.min(input.scrollHeight, 150) + 'px';
+          input.focus();
+        });
+      });
+
+      var filterPills = $('msgs').querySelectorAll('.home-cat-pill');
+      filterPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+          filterPills.forEach(function (p) { p.classList.remove('active'); });
+          pill.classList.add('active');
+          var filter = pill.getAttribute('data-filter');
+          cards.forEach(function (card) {
+            if (filter === 'all' || card.getAttribute('data-cat') === filter) {
+              card.style.display = 'flex';
+            } else {
+              card.style.display = 'none';
+            }
+          });
+        });
+      });
+
+      var quickPills = $('msgs').querySelectorAll('.home-quick-pill');
+      quickPills.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var act = btn.getAttribute('data-quick');
+          if (act === 'doc') {
+            if ($('file-doc')) $('file-doc').click();
+          } else if (act === 'fastapi') {
+            var inp = $('in');
+            inp.value = "Développe une API REST complète et professionnelle en Python avec FastAPI, validation Pydantic, modèles SQLite et routes CRUD complètes.";
+            inp.style.height = 'auto';
+            inp.style.height = Math.min(inp.scrollHeight, 150) + 'px';
+            inp.focus();
+          } else if (act === 'dashboard') {
+            var inp = $('in');
+            inp.value = "Crée un tableau de bord analytique moderne avec graphiques dynamiques en SVG/Canvas, métriques interactives et filtres temps-réel.";
+            inp.style.height = 'auto';
+            inp.style.height = Math.min(inp.scrollHeight, 150) + 'px';
+            inp.focus();
+          } else if (act === 'voice') {
+            if ($('tg-rec')) $('tg-rec').click();
+          }
+        });
+      });
     }
 
     // ---- Sessions ----
@@ -5881,7 +6628,7 @@
       $('preview').classList.add('show');
     }
 
-    // ---- Collage d'images depuis le presse-papier (Ctrl+V / Cmd+V) ----
+    // ---- Collage d\'images depuis le presse-papier (Ctrl+V / Cmd+V) ----
     window.addEventListener('paste', function (e) {
       if (!e.clipboardData || !e.clipboardData.items) return;
       var items = e.clipboardData.items;
@@ -6172,7 +6919,7 @@
     }
 
     function doSendStream(text, existingWrap, isRegen) {
-      if ($('msgs').querySelector('.empty-state')) $('msgs').innerHTML = '';
+      if ($('msgs').querySelector('.empty-state, .studio-home')) $('msgs').innerHTML = '';
 
       var aiWrap = existingWrap;
       if (!isRegen) {
@@ -6372,7 +7119,7 @@
       $('in').style.height = 'auto';
 
       if (file) {
-        if ($('msgs').querySelector('.empty-state')) $('msgs').innerHTML = '';
+        if ($('msgs').querySelector('.empty-state, .studio-home')) $('msgs').innerHTML = '';
         var isAudio = file.type.startsWith('audio/') || /^vocal-|^voice-|^audio-/i.test(file.name) || /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus)$/i.test(file.name);
         var kind = isAudio ? 'audio' : (file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : 'document'));
         addMsg('user', text, {
@@ -6506,11 +7253,25 @@
       $('glf').hidden = m !== 'login';
       $('gsf1').hidden = m !== 'signup';
       $('gsf2').hidden = true;
-      $('li-err').textContent = ''; $('su1-err').textContent = '';
+      if ($('gff')) $('gff').hidden = true;
+      if ($('gff-step-1')) $('gff-step-1').style.display = 'block';
+      if ($('gff-step-2')) $('gff-step-2').style.display = 'none';
+      $('li-err').textContent = '';
+      $('su1-err').textContent = '';
+      if ($('fp-err')) $('fp-err').textContent = '';
+      if ($('fp2-err')) $('fp2-err').textContent = '';
     }
 
     $('tab-login').addEventListener('click', function () { setAuthMode('login'); });
     $('tab-signup').addEventListener('click', function () { setAuthMode('signup'); });
+    
+    if ($('link-to-signup')) {
+      $('link-to-signup').addEventListener('click', function () { setAuthMode('signup'); });
+    }
+    if ($('link-to-login')) {
+      $('link-to-login').addEventListener('click', function () { setAuthMode('login'); });
+    }
+
     $('su-back').addEventListener('click', function () {
       $('gsf1').hidden = false;
       $('gsf2').hidden = true;
@@ -6520,18 +7281,28 @@
       if (username) {
         $('user-chip').style.display = 'block';
         $('u-name').textContent = username;
-        $('u-avatar').textContent = username.charAt(0);
+        $('u-avatar').textContent = username.charAt(0).toUpperCase();
         $('account').style.display = 'none';
+        if ($('header-login-btn')) $('header-login-btn').style.display = 'none';
+        if ($('header-user-avatar')) {
+          $('header-user-avatar').style.display = 'inline-flex';
+          var span = $('header-user-avatar').querySelector('span');
+          if (span) span.textContent = username.charAt(0).toUpperCase();
+        }
       } else {
         $('user-chip').style.display = 'none';
         $('account').style.display = 'flex';
+        if ($('header-login-btn')) $('header-login-btn').style.display = 'inline-flex';
+        if ($('header-user-avatar')) $('header-user-avatar').style.display = 'none';
       }
     }
+
     function openGate(mode) {
       setAuthMode(mode || 'login');
       $('authgate').hidden = false;
       $('gate-logo').innerHTML = ''; mountAtom('gate-logo', 68);
     }
+
     function closeGate() { $('authgate').hidden = true; }
 
     function afterAuth(j) {
@@ -6544,13 +7315,16 @@
       closeGate();
       loadSessions();
       load();
+      updateQuotaUI();
     }
 
     $('glf').addEventListener('submit', function (e) {
       e.preventDefault();
       $('li-err').textContent = '';
+      var loginVal = $('li-name').value.trim();
       var body = {
-        username: $('li-name').value.trim(),
+        username: loginVal,
+        email: loginVal.indexOf('@') !== -1 ? loginVal : '',
         password: $('li-pass').value
       };
       api('/api/auth/login', { method: 'POST', body: JSON.stringify(body) })
@@ -6560,11 +7334,13 @@
 
     $('gsf1').addEventListener('submit', function (e) {
       e.preventDefault();
+      var email = $('su-email') ? $('su-email').value.trim() : '';
       var name = $('su-name').value.trim(), pw = $('su-pass').value;
       $('su1-err').textContent = '';
+      if (email && !/^[^@]+@[^@]+\.[^@]+$/.test(email)) { $('su1-err').textContent = 'Adresse e-mail invalide.'; return; }
       if (!/^[a-z0-9._-]{3,30}$/i.test(name)) { $('su1-err').textContent = 'Identifiant : 3 à 30 caractères.'; return; }
       if (pw.length < 6) { $('su1-err').textContent = 'Mot de passe : 6 caractères min.'; return; }
-      pendingSignup = { username: name, password: pw };
+      pendingSignup = { username: name, password: pw, email: email };
       $('gsf1').hidden = true;
       $('gsf2').hidden = false;
     });
@@ -6580,8 +7356,13 @@
       e.preventDefault();
       $('su2-err').textContent = '';
       var key = $('su-key').value.trim();
-      if (!key) { $('su2-err').textContent = 'La clé API est requise.'; return; }
-      var body = { username: pendingSignup.username, password: pendingSignup.password, api_key: key, interests: collectInterests() };
+      var body = {
+        username: pendingSignup.username,
+        email: pendingSignup.email || '',
+        password: pendingSignup.password,
+        api_key: key,
+        interests: collectInterests()
+      };
       api('/api/auth/register', { method: 'POST', body: JSON.stringify(body) })
         .then(afterAuth)
         .catch(function (err) { $('su2-err').textContent = err.message; });
@@ -6591,10 +7372,180 @@
       c.addEventListener('click', function () { c.classList.toggle('on'); });
     });
 
-    if ($('guest-link')) {
-      $('guest-link').addEventListener('click', function () {
-        closeGate();
-        showUserChip('');
+    // ---- Mot de passe oublié (Flux fluide en 2 étapes) ----
+    if ($('btn-show-forgot')) {
+      $('btn-show-forgot').addEventListener('click', function () {
+        $('glf').hidden = true;
+        $('gsf1').hidden = true;
+        $('gsf2').hidden = true;
+        if ($('gff')) {
+          $('gff').hidden = false;
+          if ($('gff-step-1')) $('gff-step-1').style.display = 'block';
+          if ($('gff-step-2')) $('gff-step-2').style.display = 'none';
+        }
+      });
+    }
+
+    if ($('fp-back')) {
+      $('fp-back').addEventListener('click', function () {
+        if ($('gff')) $('gff').hidden = true;
+        $('glf').hidden = false;
+      });
+    }
+
+    if ($('fp-cancel')) {
+      $('fp-cancel').addEventListener('click', function () {
+        if ($('gff')) $('gff').hidden = true;
+        $('glf').hidden = false;
+      });
+    }
+
+    if ($('gff')) {
+      $('gff').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var val = $('fp-name').value.trim();
+        if (!val) return;
+        var errEl = $('fp-err');
+        errEl.style.color = 'var(--muted)';
+        errEl.textContent = 'Génération du code sécurisé…';
+
+        api('/api/auth/forgot-password', {
+          method: 'POST',
+          body: JSON.stringify({ email_or_username: val })
+        }).then(function (res) {
+          errEl.textContent = '';
+          if ($('gff-step-1')) $('gff-step-1').style.display = 'none';
+          if ($('gff-step-2')) {
+            $('gff-step-2').style.display = 'block';
+            if (res.code) {
+              $('fp-code').value = res.code;
+              $('gff-step-2-hint').textContent = 'Code généré : ' + res.code + '. Définissez votre nouveau mot de passe.';
+            } else if (res.message) {
+              $('gff-step-2-hint').textContent = res.message;
+            }
+          }
+          showToast(res.message || 'Code généré avec succès !', 'info');
+        }).catch(function (er) {
+          errEl.style.color = '#EF4444';
+          errEl.textContent = er.message || 'Erreur lors de la demande.';
+        });
+      });
+    }
+
+    if ($('fp-submit-reset')) {
+      $('fp-submit-reset').addEventListener('click', function () {
+        var code = $('fp-code').value.trim();
+        var newPass = $('fp-newpass').value;
+        var errEl = $('fp2-err');
+        errEl.textContent = '';
+        if (!code) { errEl.textContent = 'Veuillez saisir le code reçu.'; return; }
+        if (!newPass || newPass.length < 6) { errEl.textContent = 'Mot de passe : 6 caractères min.'; return; }
+
+        api('/api/auth/reset-password', {
+          method: 'POST',
+          body: JSON.stringify({ code: code, new_password: newPass })
+        }).then(function () {
+          showToast('Mot de passe mis à jour avec succès !', 'success');
+          if ($('gff')) $('gff').hidden = true;
+          $('glf').hidden = false;
+          $('li-name').value = $('fp-name').value.trim();
+          $('li-pass').value = '';
+          $('li-pass').focus();
+        }).catch(function (er) {
+          errEl.textContent = er.message || 'Erreur lors de la réinitialisation.';
+        });
+      });
+    }
+
+    // ---- Connexion avec Google ----
+    function handleGoogleAuth(credential, fallbackEmail, fallbackName) {
+      api('/api/auth/google/token', {
+        method: 'POST',
+        body: JSON.stringify({
+          credential: credential || '',
+          email: fallbackEmail || '',
+          name: fallbackName || ''
+        })
+      }).then(function (res) {
+        if ($('google-config-dialog')) $('google-config-dialog').close();
+        afterAuth(res);
+        showToast('Connecté avec Google avec succès !', 'success');
+      }).catch(function (err) {
+        showToast(err.message || 'Erreur de connexion Google', 'err');
+      });
+    }
+
+    function triggerGoogleLogin() {
+      api('/api/auth/google/config').then(function (cfg) {
+        if (cfg.enabled && cfg.client_id) {
+          if (window.google && google.accounts && google.accounts.id) {
+            google.accounts.id.initialize({
+              client_id: cfg.client_id,
+              callback: function (resp) {
+                if (resp.credential) handleGoogleAuth(resp.credential);
+              }
+            });
+            google.accounts.id.prompt();
+          } else {
+            var s = document.createElement('script');
+            s.src = 'https://accounts.google.com/gsi/client';
+            s.async = true;
+            s.defer = true;
+            s.onload = function () {
+              google.accounts.id.initialize({
+                client_id: cfg.client_id,
+                callback: function (resp) {
+                  if (resp.credential) handleGoogleAuth(resp.credential);
+                }
+              });
+              google.accounts.id.prompt();
+            };
+            document.head.appendChild(s);
+          }
+        } else {
+          if ($('google-config-dialog')) $('google-config-dialog').showModal();
+        }
+      }).catch(function () {
+        if ($('google-config-dialog')) $('google-config-dialog').showModal();
+      });
+    }
+
+    if ($('btn-google-login')) $('btn-google-login').addEventListener('click', triggerGoogleLogin);
+    if ($('btn-google-signup')) $('btn-google-signup').addEventListener('click', triggerGoogleLogin);
+
+    if ($('google-dialog-close')) {
+      $('google-dialog-close').addEventListener('click', function () {
+        $('google-config-dialog').close();
+      });
+    }
+    if ($('btn-google-dialog-cancel')) {
+      $('btn-google-dialog-cancel').addEventListener('click', function () {
+        $('google-config-dialog').close();
+      });
+    }
+    if ($('btn-google-simulate-login')) {
+      $('btn-google-simulate-login').addEventListener('click', function () {
+        handleGoogleAuth('demo', 'mel.test@gmail.com', 'Mel Utilisateur');
+      });
+    }
+
+    // ---- Mode Découverte / Test & Réinitialisation ----
+    if ($('btn-guest-reset')) {
+      $('btn-guest-reset').addEventListener('click', function () {
+        var gid = getGuestId();
+        api('/api/guest/reset', { method: 'POST', headers: { 'X-Guest-Id': gid } }).then(function (res) {
+          if (res.guest_id) {
+            localStorage.setItem('mel_guest_id', res.guest_id);
+          }
+          currentSession = 'default';
+          localStorage.setItem('mel_session', 'default');
+          $('msgs').innerHTML = '';
+          showEmpty();
+          loadSessions();
+          showToast('Historique du mode test effacé ! Session propre prête.', 'success');
+        }).catch(function (er) {
+          showToast(er.message || 'Erreur lors de l\'effacement.', 'err');
+        });
       });
     }
 
@@ -6609,7 +7560,8 @@
       localStorage.setItem('mel_session', 'default');
       loadSessions();
       load();
-      openGate('login');
+      showToast('Vous êtes déconnecté', 'info');
+      updateQuotaUI();
     });
 
     // ---- Paramètres : clés & modèles ----

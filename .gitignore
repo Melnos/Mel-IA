@@ -13,6 +13,8 @@ __pycache__/
 
 # Scripts temporaires créés pendant les réglages
 scripts/archive/
+scratch/
+mel.db
 _*.py
 _*.ps1
 quick_sql.py

@@ -52,6 +52,13 @@ MODEL = os.getenv("GEMINI_MODEL", "auto")
 API_BASE = os.getenv("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta")
 NAME = os.getenv("ASSISTANT_NAME", "MEL-IA")
 OWNER = os.getenv("OWNER_NAME", "")
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "").strip()
+SMTP_HOST = os.getenv("SMTP_HOST", "").strip()
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587") or "587")
+SMTP_USER = os.getenv("SMTP_USER", "").strip()
+SMTP_PASS = os.getenv("SMTP_PASS", "").strip()
+SMTP_FROM = os.getenv("SMTP_FROM", "").strip() or SMTP_USER
 
 app = FastAPI(title=NAME)
 
@@ -322,6 +329,7 @@ def _hash_pw(pw: str, salt: str) -> str:
 class Credentials(BaseModel):
     username: str
     password: str
+    email: str = ""
     api_key: str = ""
     interests: str = ""  # centres d'intérêt séparés par des virgules (optionnel)
 
@@ -349,8 +357,11 @@ def current_user(token: str | None) -> dict | None:
 @app.post("/api/auth/register")
 def register(body: Credentials):
     username = (body.username or "").strip().lower()
+    email = (body.email or "").strip().lower()
     if not re.fullmatch(r"[a-z0-9._-]{3,30}", username):
         raise HTTPException(400, "Identifiant : 3 à 30 caractères (lettres, chiffres, . _ -).")
+    if email and not re.match(r"^[^@]+@[^@]+\.[^@]+$", email):
+        raise HTTPException(400, "Adresse e-mail invalide.")
     if len(body.password or "") < 6:
         raise HTTPException(400, "Mot de passe : 6 caractères minimum.")
     key = (body.api_key or "").strip()
@@ -361,23 +372,23 @@ def register(body: Credentials):
     with db() as c:
         try:
             cur = c.execute(
-                "INSERT INTO users(username, pass_hash, salt, api_key, model_pref, persona, interests, created_at) VALUES(?,?,?,?,?,?,?,?)",
-                (username, _hash_pw(body.password, salt), salt, enc_k, "auto", "", interests, time.time()),
+                "INSERT INTO users(username, pass_hash, salt, api_key, model_pref, persona, interests, email, email_verified, created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+                (username, _hash_pw(body.password, salt), salt, enc_k, "auto", "", interests, email, 1 if email else 0, time.time()),
             )
         except DBIntegrityError:
-            raise HTTPException(400, "Cet identifiant est déjà pris.")
+            raise HTTPException(400, "Cet identifiant ou cette adresse e-mail est déjà prise.")
         uid = cur.lastrowid
         c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, uid, time.time()))
-    return {"token": token, "username": username, "api_key": _mask_key(key) if key else ""}
+    return {"token": token, "username": username, "email": email, "api_key": _mask_key(key) if key else ""}
 
 
 @app.post("/api/auth/login")
 def login(body: Credentials):
-    username = (body.username or "").strip().lower()
+    login_id = (body.username or body.email or "").strip().lower()
     with db() as c:
-        row = c.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        row = c.execute("SELECT * FROM users WHERE username = ? OR (email != '' AND email = ?)", (login_id, login_id)).fetchone()
     if not row:
-        raise HTTPException(404, "Identifiant inconnu. Veuillez créer un compte si vous n'en avez pas.")
+        raise HTTPException(404, "Identifiant ou e-mail inconnu. Veuillez créer un compte.")
     if not secrets.compare_digest(_hash_pw(body.password, row["salt"]), row["pass_hash"]):
         raise HTTPException(401, "Mot de passe incorrect.")
     token = secrets.token_hex(24)
@@ -386,7 +397,194 @@ def login(body: Credentials):
     with db() as c:
         c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, row["id"], time.time()))
 
-    return {"token": token, "username": username, "api_key": _mask_key(saved_key)}
+    user_dict = dict(row)
+    return {"token": token, "username": user_dict["username"], "email": user_dict.get("email") or "", "api_key": _mask_key(saved_key)}
+
+
+def _send_reset_email(to_email: str, code: str) -> bool:
+    if not (SMTP_HOST and SMTP_USER and SMTP_PASS and to_email):
+        return False
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    try:
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = "Réinitialisation de votre mot de passe MEL-IA"
+        msg["From"] = SMTP_FROM
+        msg["To"] = to_email
+        text_content = f"Bonjour,\n\nVotre code de réinitialisation MEL-IA est : {code}\nCe code est valable pendant 30 minutes.\n\nL'équipe MEL-IA"
+        html_content = f"""
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 520px; margin: 0 auto; padding: 28px; background: #080C14; color: #F8FAFC; border-radius: 16px; border: 1px solid #1E293B;">
+            <div style="font-size: 20px; font-weight: 800; color: #22D3EE; margin-bottom: 16px;">MEL-IA</div>
+            <p style="font-size: 15px; line-height: 1.6; color: #E2E8F0; margin: 0 0 16px;">Bonjour,</p>
+            <p style="font-size: 15px; line-height: 1.6; color: #94A3B8; margin: 0 0 20px;">Vous avez demandé la réinitialisation de votre mot de passe MEL-IA. Utilisez le code de sécurité suivant :</p>
+            <div style="font-size: 26px; font-weight: 800; letter-spacing: 5px; padding: 16px; background: #111827; border: 1px solid #06B6D4; border-radius: 12px; text-align: center; color: #06B6D4; margin: 0 0 20px;">{code}</div>
+            <p style="font-size: 13px; line-height: 1.5; color: #64748B; margin: 0;">Ce code est valable pendant 30 minutes. Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail.</p>
+        </div>
+        """
+        msg.attach(MIMEText(text_content, "plain", "utf-8"))
+        msg.attach(MIMEText(html_content, "html", "utf-8"))
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as s:
+            s.starttls()
+            s.login(SMTP_USER, SMTP_PASS)
+            s.send_message(msg)
+        return True
+    except Exception as ex:
+        logger.warning(f"Impossible d'envoyer l'e-mail de réinitialisation ({ex})")
+        return False
+
+
+class ForgotPasswordRequest(BaseModel):
+    email_or_username: str = ""
+    username_or_email: str = ""
+
+
+@app.post("/api/auth/forgot-password")
+def forgot_password(body: ForgotPasswordRequest):
+    identifier = (body.email_or_username or body.username_or_email or "").strip().lower()
+    if not identifier:
+        raise HTTPException(400, "Veuillez renseigner votre adresse e-mail ou identifiant.")
+    with db() as c:
+        row = c.execute("SELECT id, username, email FROM users WHERE username = ? OR (email != '' AND email = ?)", (identifier, identifier)).fetchone()
+    if not row:
+        return {"ok": True, "message": "Si ce compte existe, un code de réinitialisation a été généré.", "code": None}
+    reset_tok = secrets.token_hex(4).upper()
+    exp = time.time() + 1800
+    with db() as c:
+        c.execute("UPDATE users SET reset_token = ?, reset_token_exp = ? WHERE id = ?", (reset_tok, exp, row["id"]))
+    email_sent = False
+    user_email = (row["email"] or "").strip() if ("email" in row.keys() and row["email"]) else ""
+    if user_email and SMTP_HOST:
+        email_sent = _send_reset_email(user_email, reset_tok)
+    return {
+        "ok": True,
+        "code": reset_tok,
+        "reset_token": reset_tok,
+        "email_sent": email_sent,
+        "message": f"Code de sécurité : {reset_tok}" if not email_sent else f"Un e-mail contenant votre code a été envoyé à {user_email}."
+    }
+
+
+class ResetPasswordRequest(BaseModel):
+    code: str = ""
+    token: str = ""
+    new_password: str
+
+
+@app.post("/api/auth/reset-password")
+def reset_password(body: ResetPasswordRequest):
+    code = (body.code or body.token or "").strip().upper()
+    if not code:
+        raise HTTPException(400, "Code de réinitialisation requis.")
+    if len(body.new_password or "") < 6:
+        raise HTTPException(400, "Le mot de passe doit contenir au moins 6 caractères.")
+    now = time.time()
+    with db() as c:
+        row = c.execute("SELECT id, salt FROM users WHERE reset_token = ? AND reset_token_exp > ?", (code, now)).fetchone()
+        if not row:
+            raise HTTPException(400, "Code de réinitialisation invalide ou expiré.")
+        salt = row["salt"] or secrets.token_hex(16)
+        c.execute("UPDATE users SET pass_hash = ?, reset_token = NULL, reset_token_exp = NULL WHERE id = ?", (_hash_pw(body.new_password, salt), row["id"]))
+    return {"ok": True, "message": "Mot de passe réinitialisé avec succès ! Vous pouvez maintenant vous connecter."}
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: str = ""
+    email: str = ""
+    name: str = ""
+    picture: str = ""
+
+
+@app.get("/api/auth/google/config")
+def google_auth_config():
+    return {
+        "enabled": bool(GOOGLE_CLIENT_ID),
+        "client_id": GOOGLE_CLIENT_ID,
+        "has_secret": bool(GOOGLE_CLIENT_SECRET),
+    }
+
+
+@app.post("/api/auth/google/token")
+async def google_auth_token(body: GoogleAuthRequest):
+    email = (body.email or "").strip().lower()
+    name = (body.name or "").strip()
+    picture = (body.picture or "").strip()
+    google_id = ""
+
+    # Si un credential JWT officiel Google est fourni
+    if body.credential and body.credential != "demo":
+        try:
+            import urllib.request, json
+            url = f"https://oauth2.googleapis.com/tokeninfo?id_token={body.credential}"
+            req = urllib.request.Request(url, headers={"User-Agent": "MEL-IA-Auth/2.0"})
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                if resp.status == 200:
+                    info = json.loads(resp.read().decode("utf-8"))
+                    email = (info.get("email") or email).lower().strip()
+                    name = info.get("name") or name
+                    picture = info.get("picture") or picture
+                    google_id = info.get("sub") or ""
+        except Exception as e:
+            logger.warning(f"Erreur de validation Google Token: {e}")
+            if not email:
+                raise HTTPException(400, "Validation du jeton Google échouée.")
+
+    if not email:
+        raise HTTPException(400, "Adresse e-mail Google manquante.")
+
+    token = secrets.token_hex(24)
+    with db() as c:
+        row = c.execute(
+            "SELECT * FROM users WHERE (google_id != '' AND google_id = ?) OR (email != '' AND email = ?)",
+            (google_id, email)
+        ).fetchone()
+
+        if row:
+            uid = row["id"]
+            username = row["username"]
+            c.execute(
+                "UPDATE users SET google_id = COALESCE(NULLIF(google_id, ''), ?), avatar_url = COALESCE(NULLIF(avatar_url, ''), ?), email_verified = 1 WHERE id = ?",
+                (google_id, picture, uid)
+            )
+        else:
+            base_user = re.sub(r"[^a-z0-9._-]", "", email.split("@")[0].lower())[:20] or "user"
+            username = base_user
+            idx = 1
+            while c.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone():
+                username = f"{base_user}{secrets.randbelow(9999):04d}"
+                idx += 1
+                if idx > 10:
+                    username = f"user_{secrets.token_hex(4)}"
+                    break
+
+            salt = secrets.token_hex(16)
+            cur = c.execute(
+                "INSERT INTO users(username, pass_hash, salt, api_key, model_pref, persona, interests, email, email_verified, google_id, avatar_url, auth_provider, created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (username, "", salt, "", "auto", "", "", email, 1, google_id, picture, "google", time.time())
+            )
+            uid = cur.lastrowid
+
+        c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, uid, time.time()))
+
+    return {
+        "ok": True,
+        "token": token,
+        "username": username,
+        "email": email,
+        "avatar_url": picture,
+        "auth_provider": "google"
+    }
+
+
+@app.post("/api/guest/reset")
+def reset_guest_history(x_guest_id: str | None = Header(None)):
+    gid = (x_guest_id or "").strip()
+    if gid:
+        with db() as c:
+            c.execute("DELETE FROM messages WHERE user_id IS NULL AND guest_id = ?", (gid,))
+            c.execute("DELETE FROM sessions WHERE user_id IS NULL AND guest_id = ?", (gid,))
+    new_gid = f"guest_{secrets.token_hex(8)}"
+    return {"ok": True, "guest_id": new_gid, "message": "Discussions du mode test effacées avec succès."}
 
 
 @app.post("/api/auth/logout")
@@ -749,6 +947,8 @@ def _history_parts(m: dict) -> list[dict]:
             if file_path.exists():
                 raw = file_path.read_bytes()
                 mime = m.get("media_mime") or "application/octet-stream"
+                if kind == "audio" and (mime.startswith("video/") or mime == "application/octet-stream"):
+                    mime = "audio/webm"
                 if kind == "document" and not mime.startswith("application/pdf"):
                     try:
                         text_content = raw.decode("utf-8", errors="replace")
@@ -997,6 +1197,60 @@ def get_quota(x_auth_token: str | None = Header(None), x_guest_id: str | None = 
     return get_user_quota_info(user, x_guest_id)
 
 
+class ProjectCreateRequest(BaseModel):
+    name: str
+    description: str = ""
+    icon: str = "folder"
+
+
+@app.get("/api/projects")
+def get_projects(x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip()
+    with db() as c:
+        if uid is not None:
+            rows = c.execute("SELECT * FROM projects WHERE user_id = ? ORDER BY updated_at DESC", (uid,)).fetchall()
+        else:
+            rows = c.execute("SELECT * FROM projects WHERE user_id IS NULL AND guest_id = ? ORDER BY updated_at DESC", (gid,)).fetchall()
+    return {"projects": [dict(r) for r in rows]}
+
+
+@app.post("/api/projects")
+def create_project(body: ProjectCreateRequest, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip() if not uid else None
+    pid = f"proj_{secrets.token_hex(6)}"
+    now = time.time()
+    name = (body.name or "Nouveau Projet").strip()
+    with db() as c:
+        c.execute(
+            "INSERT INTO projects (id, name, description, icon, user_id, guest_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (pid, name, body.description.strip(), body.icon, uid, gid, now, now)
+        )
+    return {"id": pid, "name": name, "description": body.description, "icon": body.icon, "created_at": now}
+
+
+@app.delete("/api/projects/{pid}")
+def delete_project(pid: str, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    uid = user["id"] if user else None
+    gid = (x_guest_id or "").strip() if not uid else None
+    with db() as c:
+        if uid is not None:
+            c.execute("DELETE FROM projects WHERE id = ? AND user_id = ?", (pid, uid))
+            c.execute("UPDATE sessions SET project_id = NULL WHERE project_id = ? AND user_id = ?", (pid, uid))
+        else:
+            c.execute("DELETE FROM projects WHERE id = ? AND user_id IS NULL AND guest_id = ?", (pid, gid))
+            c.execute("UPDATE sessions SET project_id = NULL WHERE project_id = ? AND user_id IS NULL AND guest_id = ?", (pid, gid))
+    return {"ok": True, "deleted": True}
+
+
+class CreateSessionRequest(BaseModel):
+    project_id: str | None = None
+
+
 @app.get("/api/sessions")
 def get_sessions(x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
@@ -1005,33 +1259,38 @@ def get_sessions(x_auth_token: str | None = Header(None), x_guest_id: str | None
     with db() as c:
         if uid is not None:
             rows = c.execute(
-                "SELECT id, title, created_at, updated_at FROM sessions WHERE user_id = ? ORDER BY updated_at DESC",
+                "SELECT id, title, created_at, updated_at, project_id FROM sessions WHERE user_id = ? ORDER BY updated_at DESC",
                 (uid,),
             ).fetchall()
         else:
             rows = c.execute(
-                "SELECT id, title, created_at, updated_at FROM sessions WHERE user_id IS NULL AND guest_id = ? ORDER BY updated_at DESC",
+                "SELECT id, title, created_at, updated_at, project_id FROM sessions WHERE user_id IS NULL AND guest_id = ? ORDER BY updated_at DESC",
                 (gid,),
             ).fetchall()
         res = [dict(r) for r in rows]
         if not res:
-            res = [{"id": "default", "title": "Discussion principale", "created_at": time.time(), "updated_at": time.time()}]
+            res = [{"id": "default", "title": "Discussion principale", "created_at": time.time(), "updated_at": time.time(), "project_id": None}]
         return {"sessions": res}
 
 
 @app.post("/api/sessions")
-def create_session(x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
+def create_session(
+    req: CreateSessionRequest | None = None,
+    x_auth_token: str | None = Header(None),
+    x_guest_id: str | None = Header(None),
+):
     user = current_user(x_auth_token)
     sid = secrets.token_hex(6)
     now = time.time()
     uid = user["id"] if user else None
     gid = (x_guest_id or "").strip() if not uid else None
+    pid = req.project_id if req else None
     with db() as c:
         c.execute(
-            "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id) VALUES (?, 'Nouvelle conversation', ?, ?, ?, ?)",
-            (sid, now, now, uid, gid),
+            "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id, project_id) VALUES (?, 'Nouvelle conversation', ?, ?, ?, ?, ?)",
+            (sid, now, now, uid, gid, pid),
         )
-    return {"session_id": sid, "title": "Nouvelle conversation"}
+    return {"session_id": sid, "title": "Nouvelle conversation", "project_id": pid}
 
 
 @app.delete("/api/sessions/{session_id}")
@@ -1244,8 +1503,6 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str 
 async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     """Streaming SSE : envoie les tokens en temps réel au client."""
     user = current_user(x_auth_token)
-    if x_auth_token and not user:
-        raise HTTPException(401, "Session expirée. Veuillez vous reconnecter.")
     uid = user["id"] if user else None
     text = body.message.strip()
     sid = body.session_id or "default"
@@ -1521,13 +1778,15 @@ def _kind_of(filename: str, mime: str) -> str | None:
     fn = (filename or "").lower()
     ext = Path(fn).suffix.lower()
     mime = (mime or "").lower()
-    # 1. Enregistrements vocaux du micro navigateur (souvent en .webm)
-    if fn.startswith("vocal-") or fn.startswith("voice-") or fn.startswith("audio-"):
+    # 1. Enregistrements vocaux et tous conteneurs audio (Correction Prioritaire)
+    if any(fn.startswith(p) for p in ("vocal-", "voice-", "audio-", "memo-", "rec-", "blob")):
         return "audio"
-    if mime.startswith("audio/") or ext in AUDIO_EXTS:
+    if mime.startswith("audio/") or ext in {".mp3", ".wav", ".ogg", ".oga", ".m4a", ".aac", ".flac", ".opus", ".weba"}:
         return "audio"
-    if ext == ".webm" and "video" not in mime:
-        return "audio"
+    if ext == ".webm":
+        # Dans le contexte d'un assistant conversationnel, les .webm créés par capture micro sont des messages vocaux
+        if "audio" in mime or not ("video/mp4" in mime or "mkv" in fn or "avi" in fn):
+            return "audio"
     if mime.startswith("image/") or ext in IMAGE_EXTS:
         return "image"
     if mime.startswith("video/") or ext in VIDEO_EXTS:
@@ -1547,8 +1806,6 @@ async def chat_media(
 ):
     """Envoie un message avec image / vocal / vidéo / document. Le fichier est stocké et analysé par Gemini."""
     user = current_user(x_auth_token)
-    if x_auth_token and not user:
-        raise HTTPException(401, "Session expirée. Veuillez vous reconnecter.")
     q_info = get_user_quota_info(user, x_guest_id)
     if q_info["questions_limit"] is not None and q_info["questions_remaining"] <= 0:
         raise HTTPException(429, f"Limite quotidienne de {q_info['questions_limit']} questions atteinte. Renseignez votre propre clé Gemini dans Paramètres pour un accès illimité !")
@@ -1566,12 +1823,17 @@ async def chat_media(
     kind = _kind_of(file.filename or "", mime)
     if not kind:
         raise HTTPException(400, "Type de fichier non pris en charge (image, audio, vidéo ou document).")
+    if kind == "audio":
+        if mime.startswith("video/") or mime == "application/octet-stream":
+            mime = "audio/webm"
     raw = await file.read()
     if not raw:
         raise HTTPException(400, "Fichier vide.")
     if len(raw) > MEDIA_LIMITS[kind]:
         raise HTTPException(400, f"Fichier trop lourd (max {MEDIA_LIMITS[kind] // (1024 * 1024)} Mo).")
     ext = Path(file.filename or "").suffix.lower() or {"image": ".jpg", "audio": ".webm", "video": ".mp4", "document": ".bin"}[kind]
+    if kind == "audio" and ext in (".bin", ".tmp", ""):
+        ext = ".webm"
     fname = f"{uuid.uuid4().hex}{ext}"
     try:
         (MEDIA_DIR / fname).write_bytes(raw)
@@ -1636,6 +1898,69 @@ async def chat_media(
         "images": result.get("images", []),
         "ts": time.time(),
     }
+
+
+@app.post("/api/audio/transcribe")
+async def transcribe_audio(
+    file: UploadFile | None = File(None),
+    url: str | None = Form(None),
+    x_auth_token: str | None = Header(None),
+    x_guest_id: str | None = Header(None),
+):
+    """Transcrit fidèlement un fichier audio ou message vocal via le modèle multimodal Gemini."""
+    user = current_user(x_auth_token)
+    user_keys = get_user_keys(user)
+    keys = [k for k in user_keys if _key_usable(k)] or user_keys
+    if not keys:
+        raise HTTPException(400, "Clé API non disponible.")
+    
+    raw = b""
+    mime = "audio/webm"
+    if file:
+        raw = await file.read()
+        mime = (file.content_type or "").split(";")[0].strip().lower()
+    elif url:
+        fname = os.path.basename(url.split("?")[0])
+        fpath = MEDIA_DIR / fname
+        if fpath.exists():
+            raw = fpath.read_bytes()
+            ext = fpath.suffix.lower()
+            mime = "audio/webm" if ext in (".webm", ".weba") else ("audio/mp3" if ext == ".mp3" else ("audio/wav" if ext == ".wav" else "audio/webm"))
+    
+    if not raw or len(raw) < 50:
+        return {"transcript": ""}
+    if not mime.startswith("audio/"):
+        mime = "audio/webm"
+    b64 = base64.b64encode(raw).decode("ascii")
+    prompt = "Transcris intégralement et fidèlement les paroles prononcées dans cet enregistrement audio en français. Ne retourne QUE la transcription brute, sans guillemets, sans politesse ni commentaire."
+    body = {
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {"inlineData": {"mimeType": mime, "data": b64}},
+                {"text": prompt}
+            ]
+        }],
+        "generationConfig": {"temperature": 0.1}
+    }
+    candidates = list(get_model_candidates())
+    for key in keys:
+        for model in candidates:
+            try:
+                r = httpx.post(
+                    f"{API_BASE}/models/{model}:generateContent",
+                    headers={"x-goog-api-key": key, "Content-Type": "application/json"},
+                    json=body,
+                    timeout=20,
+                )
+                if r.status_code == 200:
+                    cand = (r.json().get("candidates") or [{}])[0]
+                    parts = cand.get("content", {}).get("parts", [])
+                    txt = "".join(p.get("text", "") for p in parts if "text" in p).strip()
+                    return {"transcript": txt}
+            except Exception:
+                continue
+    return {"transcript": ""}
 
 
 @app.get("/api/media/{fname}")

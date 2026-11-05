@@ -1,61 +1,64 @@
-// Logo & Emblème Officiel MEL-IA : Noyau quantique haute densité, anneaux orbitaux épais et lumineux
-var atomCount = 0;
-function atom() {
-  var n = ++atomCount, s = "";
-  var path = "M -76 0 A 76 28 0 1 1 76 0 A 76 28 0 1 1 -76 0";
-  [ -32, 38, 90 ].forEach(function (r, i) {
-    s += '<g transform="rotate(' + r + ')">' +
-      // Glow externe de l'anneau
-      '<ellipse rx="76" ry="28" fill="none" stroke="url(#ring' + n + ')" stroke-opacity=".25" stroke-width="8"/>' +
-      // Anneau épais principal
-      '<ellipse rx="76" ry="28" fill="none" stroke="url(#ring' + n + ')" stroke-width="4.2" stroke-linecap="round"/>' +
-      // Électron / particule orbitale lumineuse
-      '<circle r="4.8" fill="#ffffff" filter="url(#glow' + n + ')">' +
-      '<animateMotion dur="' + [3.2, 4.0, 4.8][i] + 's" repeatCount="indefinite" path="' + path + '"/>' +
-      '</circle></g>';
-  });
-  return '<svg viewBox="-105 -105 210 210" width="100%" height="100%" role="img" aria-label="Logo MEL-IA : Noyau Quantique">' +
+// Logo Officiel MEL-IA 2.0 : Vgex Studio (Argent Platine, Cyan Ocanique & Teal Luminescent)
+function atom(size, opts) {
+  var s = size || 32;
+  var o = opts || {};
+  var id = 'm-' + Math.random().toString(36).substr(2, 6);
+  
+  return '<svg viewBox="0 0 256 256" width="' + s + '" height="' + s + '" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo MEL-IA 2.0">' +
     '<defs>' +
-    '<linearGradient id="core' + n + '" x1="0" y1="0" x2="1" y2="1">' +
-    '<stop offset="0%" stop-color="#38bdf8"/><stop offset="60%" stop-color="#00e5ff"/><stop offset="100%" stop-color="#0284c7"/></linearGradient>' +
-    '<linearGradient id="ring' + n + '" x1="0" y1="0" x2="1" y2="1">' +
-    '<stop offset="0%" stop-color="#00e5ff"/><stop offset="50%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>' +
-    '<radialGradient id="halo' + n + '">' +
-    '<stop offset="0%" stop-color="#00e5ff" stop-opacity=".55"/>' +
-    '<stop offset="50%" stop-color="#0284c7" stop-opacity=".25"/>' +
-    '<stop offset="100%" stop-color="#060b17" stop-opacity="0"/></radialGradient>' +
-    '<filter id="glow' + n + '" x="-50%" y="-50%" width="200%" height="200%">' +
-    '<feGaussianBlur stdDeviation="3" result="blur"/>' +
-    '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
-    '</filter>' +
+      '<filter id="sh-' + id + '" x="-20%" y="-20%" width="150%" height="150%">' +
+        '<feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.35" />' +
+      '</filter>' +
+      '<linearGradient id="st-' + id + '" x1="160" y1="40" x2="310" y2="280" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0%" stop-color="#FFFFFF" />' +
+        '<stop offset="30%" stop-color="#E2E8F0" />' +
+        '<stop offset="68%" stop-color="#94A3B8" />' +
+        '<stop offset="100%" stop-color="#475569" />' +
+      '</linearGradient>' +
+      '<linearGradient id="sb-' + id + '" x1="150" y1="360" x2="320" y2="430" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0%" stop-color="#F8FAFC" />' +
+        '<stop offset="45%" stop-color="#CBD5E1" />' +
+        '<stop offset="100%" stop-color="#64748B" />' +
+      '</linearGradient>' +
+      '<linearGradient id="sr-' + id + '" x1="330" y1="170" x2="415" y2="420" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0%" stop-color="#F1F5F9" />' +
+        '<stop offset="50%" stop-color="#94A3B8" />' +
+        '<stop offset="100%" stop-color="#475569" />' +
+      '</linearGradient>' +
+      '<linearGradient id="tw1-' + id + '" x1="110" y1="160" x2="230" y2="390" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0%" stop-color="#22D3EE" />' +
+        '<stop offset="40%" stop-color="#0D9488" />' +
+        '<stop offset="100%" stop-color="#044E54" />' +
+      '</linearGradient>' +
+      '<linearGradient id="tw2-' + id + '" x1="90" y1="260" x2="310" y2="380" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0%" stop-color="#06B6D4" />' +
+        '<stop offset="55%" stop-color="#0F766E" />' +
+        '<stop offset="100%" stop-color="#023E42" />' +
+      '</linearGradient>' +
+      '<linearGradient id="rc-' + id + '" x1="340" y1="170" x2="300" y2="420" gradientUnits="userSpaceOnUse">' +
+        '<stop offset="0%" stop-color="#67E8F9" />' +
+        '<stop offset="70%" stop-color="#06B6D4" />' +
+        '<stop offset="100%" stop-color="#0891B2" />' +
+      '</linearGradient>' +
     '</defs>' +
-    // Halo d'énergie pulsé
-    '<circle r="46" fill="url(#halo' + n + ')">' +
-    '<animate attributeName="r" values="36;52;36" dur="3s" repeatCount="indefinite"/>' +
-    '<animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>' +
-    '</circle>' +
-    // Anneaux orbitaux
-    s +
-    // Noyau central solide et éclatant
-    '<circle r="18" fill="url(#core' + n + ')" filter="url(#glow' + n + ')"/>' +
-    '<circle r="14" fill="#00e5ff"/>' +
-    '<circle cx="-4" cy="-4" r="5" fill="#ffffff" opacity=".85"/>' +
+    '<g transform="translate(128, 128) scale(0.52) translate(-256, -256)" filter="url(#sh-' + id + ')">' +
+      '<path d="M 84 262 C 86 312, 136 376, 218 395 C 265 405, 305 385, 318 376 C 248 372, 185 334, 150 286 C 122 248, 106 200, 112 152 C 90 200, 82 232, 84 262 Z" fill="url(#tw2-' + id + ')" />' +
+      '<path d="M 112 150 C 96 215, 120 288, 172 328 C 220 365, 276 355, 312 338 C 240 338, 182 292, 162 234 C 146 188, 158 136, 178 94 C 138 106, 118 126, 112 150 Z" fill="url(#tw1-' + id + ')" />' +
+      '<path d="M 144 384 C 196 424, 268 428, 314 416 C 352 406, 386 374, 404 336 C 362 382, 296 408, 232 400 C 188 394, 158 376, 144 384 Z" fill="url(#sb-' + id + ')" />' +
+      '<path d="M 256 42 C 172 44, 130 92, 130 160 C 130 236, 194 286, 268 284 C 304 283, 310 262, 292 258 C 238 246, 184 204, 184 146 C 184 96, 222 62, 276 62 C 316 62, 338 84, 344 112 C 342 78, 314 44, 256 42 Z" fill="url(#st-' + id + ')" />' +
+      '<path d="M 334 162 C 352 232, 350 334, 300 422 C 374 382, 412 306, 412 242 C 412 178, 384 136, 334 162 Z" fill="url(#sr-' + id + ')" />' +
+      '<path d="M 336 172 C 350 238, 348 334, 302 420" stroke="url(#rc-' + id + ')" stroke-width="4.5" stroke-linecap="round" fill="none" opacity="0.95" />' +
+    '</g>' +
     '</svg>';
 }
 
-function mountAtom(id, size) {
+function mountAtom(id, size, opts) {
   var el = document.getElementById(id);
   if (!el) return;
-  el.innerHTML = atom();
-  if (size) { 
-    el.style.width = el.style.height = size + "px"; 
-    el.style.display = "inline-flex"; 
-    el.style.alignItems = "center";
-    el.style.justifyContent = "center";
-  }
-  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    var v = el.querySelector("svg"); v && v.pauseAnimations && v.pauseAnimations();
-  }
+  var sz = size || 32;
+  el.innerHTML = atom(sz, opts);
+  el.style.width = el.style.height = sz + "px";
+  el.style.display = "inline-flex";
+  el.style.alignItems = "center";
+  el.style.justifyContent = "center";
 }
-
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(function () {});

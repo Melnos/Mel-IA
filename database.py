@@ -301,6 +301,26 @@ def init_db():
             try:
                 c.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS guest_id TEXT")
                 c.execute("ALTER TABLE messages ADD COLUMN IF NOT EXISTS guest_id TEXT")
+                c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT")
+                c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified INTEGER DEFAULT 0")
+                c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT")
+                c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_exp DOUBLE PRECISION")
+                c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS auth_provider TEXT DEFAULT 'local'")
+                c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT")
+                c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT")
+                c.execute("ALTER TABLE sessions ADD COLUMN IF NOT EXISTS project_id TEXT")
+                c.execute("""
+                    CREATE TABLE IF NOT EXISTS projects (
+                        id TEXT PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        description TEXT,
+                        icon TEXT DEFAULT 'folder',
+                        user_id INTEGER,
+                        guest_id TEXT,
+                        created_at DOUBLE PRECISION,
+                        updated_at DOUBLE PRECISION
+                    )
+                """)
             except Exception:
                 pass
             c.execute("CREATE INDEX IF NOT EXISTS idx_messages_user_sid ON messages(user_id, session_id)")
@@ -377,6 +397,37 @@ def init_db():
             ucols = [r["name"] for r in c.execute("PRAGMA table_info(users)").fetchall()]
             if "interests" not in ucols:
                 c.execute("ALTER TABLE users ADD COLUMN interests TEXT")
+            if "email" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN email TEXT")
+            if "email_verified" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0")
+            if "reset_token" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN reset_token TEXT")
+            if "reset_token_exp" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN reset_token_exp REAL")
+            if "auth_provider" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN auth_provider TEXT DEFAULT 'local'")
+            if "google_id" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN google_id TEXT")
+            if "avatar_url" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
+
+            scols = [r["name"] for r in c.execute("PRAGMA table_info(sessions)").fetchall()]
+            if "project_id" not in scols:
+                c.execute("ALTER TABLE sessions ADD COLUMN project_id TEXT")
+
+            c.execute("""
+                CREATE TABLE IF NOT EXISTS projects (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    description TEXT,
+                    icon TEXT DEFAULT 'folder',
+                    user_id INTEGER,
+                    guest_id TEXT,
+                    created_at REAL,
+                    updated_at REAL
+                )
+            """)
             c.execute("""
                 CREATE TABLE IF NOT EXISTS auth_tokens (
                     token TEXT PRIMARY KEY,
