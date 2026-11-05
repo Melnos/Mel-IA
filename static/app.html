@@ -39,126 +39,121 @@
     /* ==========================================================================
    DESIGN SYSTEM PREMIUM — VARIABLES & THEMES (LIGHT & DARK)
    ========================================================================== */
-    :root {
+        :root {
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       --font-serif: 'Source Serif 4', Georgia, serif;
       --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
 
-      /* THÈME BLEU NUIT & CYAN ÉLECTRIQUE (PAR DÉFAUT - STYLE LINEAR / CLAUDE) */
-      --bg: #060b17;
-      --bg2: #0b1326;
-      --bg-gradient: radial-gradient(1200px 700px at 50% -120px, rgba(6, 182, 212, 0.16), transparent 70%),
-        radial-gradient(900px 500px at 85% 250px, rgba(37, 99, 235, 0.12), transparent 70%),
-        #060b17;
-      --surface: #0f182e;
-      --surface-elevated: #14203d;
-      --surface-hover: #19274a;
-      --glass: rgba(11, 19, 38, 0.88);
-      --glass-border: rgba(56, 189, 248, 0.18);
-      --line: rgba(56, 189, 248, 0.12);
-      --line-strong: rgba(56, 189, 248, 0.25);
-      --fg: #f1f5f9;
+      /* PALETTE OFFICIELLE MEL-IA — OBSIDIAN & ÉMERAUDE-CYAN MINÉRAL */
+      --bg: #111113;
+      --bg2: #18181b;
+      --bg-gradient: radial-gradient(900px 500px at 50% -120px, rgba(13, 148, 136, 0.12), transparent 70%), #111113;
+      --surface: #1e1e22;
+      --surface-elevated: #242429;
+      --surface-hover: #2a2a30;
+      --glass: rgba(18, 18, 20, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.16);
+      --fg: #f4f4f5;
       --fg-heading: #ffffff;
-      --muted: #94a3b8;
-      --muted-light: #64748b;
-      --a1: #06b6d4;
-      /* Cyan Électrique */
-      --a2: #0284c7;
-      /* Deep Sky Blue */
-      --a3: #38bdf8;
-      /* Bright Cyan */
-      --soft: rgba(6, 182, 212, 0.12);
-      --soft-border: rgba(6, 182, 212, 0.30);
-      --glow: rgba(6, 182, 212, 0.32);
-      --glow-strong: rgba(6, 182, 212, 0.55);
-      --accent-grad: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
-      --user-bubble: #0e244d;
-      --user-bubble-fg: #f8fafc;
-      --code-bg: #040813;
-      --code-fg: #f1f5f9;
-      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-      --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.45);
-      --shadow-lg: 0 16px 44px rgba(0, 0, 0, 0.65);
+      --muted: #a1a1aa;
+      --muted-light: #71717a;
+      
+      /* Accents Émeraude & Titane (alignés sur le logo officiel) */
+      --a1: #14b8a6;
+      --a2: #0d9488;
+      --a3: #2dd4bf;
+      --soft: rgba(20, 184, 166, 0.10);
+      --soft-border: rgba(20, 184, 166, 0.25);
+      --glow: rgba(20, 184, 166, 0.18);
+      --glow-strong: rgba(20, 184, 166, 0.35);
+      --accent-grad: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      
+      --user-bubble: #27272a;
+      --user-bubble-fg: #f4f4f5;
+      --code-bg: #09090b;
+      --code-fg: #f4f4f5;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
       --err: #f87171;
-      --err-bg: rgba(239, 68, 68, 0.16);
+      --err-bg: rgba(239, 68, 68, 0.14);
       --success: #34d399;
-      --success-bg: rgba(16, 185, 129, 0.16);
-      --sidebar-w: 290px;
-      --header-h: 64px;
+      --success-bg: rgba(16, 185, 129, 0.14);
+      --sidebar-w: 260px;
+      --header-h: 54px;
       color-scheme: dark;
     }
 
     [data-theme="dark"] {
-      /* DARK THEME IDENTIQUE BLEU NUIT & CYAN ÉLECTRIQUE */
-      --bg: #060b17;
-      --bg2: #0b1326;
-      --bg-gradient: radial-gradient(1200px 700px at 50% -120px, rgba(6, 182, 212, 0.16), transparent 70%),
-        radial-gradient(900px 500px at 85% 250px, rgba(37, 99, 235, 0.12), transparent 70%),
-        #060b17;
-      --surface: #0f182e;
-      --surface-elevated: #14203d;
-      --surface-hover: #19274a;
-      --glass: rgba(11, 19, 38, 0.88);
-      --glass-border: rgba(56, 189, 248, 0.18);
-      --line: rgba(56, 189, 248, 0.12);
-      --line-strong: rgba(56, 189, 248, 0.25);
-      --fg: #f1f5f9;
+      --bg: #111113;
+      --bg2: #18181b;
+      --bg-gradient: radial-gradient(900px 500px at 50% -120px, rgba(13, 148, 136, 0.12), transparent 70%), #111113;
+      --surface: #1e1e22;
+      --surface-elevated: #242429;
+      --surface-hover: #2a2a30;
+      --glass: rgba(18, 18, 20, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.16);
+      --fg: #f4f4f5;
       --fg-heading: #ffffff;
-      --muted: #94a3b8;
-      --muted-light: #64748b;
-      --a1: #06b6d4;
-      --a2: #0284c7;
-      --a3: #38bdf8;
-      --soft: rgba(6, 182, 212, 0.12);
-      --soft-border: rgba(6, 182, 212, 0.30);
-      --glow: rgba(6, 182, 212, 0.32);
-      --glow-strong: rgba(6, 182, 212, 0.55);
-      --accent-grad: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%);
-      --user-bubble: #0e244d;
-      --user-bubble-fg: #f8fafc;
-      --code-bg: #040813;
-      --code-fg: #f1f5f9;
-      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
-      --shadow-md: 0 4px 18px rgba(0, 0, 0, 0.45);
-      --shadow-lg: 0 16px 44px rgba(0, 0, 0, 0.65);
+      --muted: #a1a1aa;
+      --muted-light: #71717a;
+      --a1: #14b8a6;
+      --a2: #0d9488;
+      --a3: #2dd4bf;
+      --soft: rgba(20, 184, 166, 0.10);
+      --soft-border: rgba(20, 184, 166, 0.25);
+      --glow: rgba(20, 184, 166, 0.18);
+      --glow-strong: rgba(20, 184, 166, 0.35);
+      --accent-grad: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+      --user-bubble: #27272a;
+      --user-bubble-fg: #f4f4f5;
+      --code-bg: #09090b;
+      --code-fg: #f4f4f5;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
       --err: #f87171;
-      --err-bg: rgba(239, 68, 68, 0.16);
+      --err-bg: rgba(239, 68, 68, 0.14);
       --success: #34d399;
-      --success-bg: rgba(16, 185, 129, 0.16);
+      --success-bg: rgba(16, 185, 129, 0.14);
       color-scheme: dark;
     }
 
     [data-theme="light"] {
-      /* LIGHT THEME (Glace & Cyan Doux) */
-      --bg: #f0f7ff;
-      --bg2: #e3effc;
-      --bg-gradient: radial-gradient(1200px 800px at 50% -120px, rgba(6, 182, 212, 0.12), transparent 70%), #f0f7ff;
+      /* THÈME CLAIR HAUT DE GAMME — BLANC PUR & GRIS DOUX ARCHITECTURAL */
+      --bg: #ffffff;
+      --bg2: #f7f7f8;
+      --bg-gradient: radial-gradient(800px 400px at 50% -100px, rgba(13, 148, 136, 0.05), transparent 70%), #ffffff;
       --surface: #ffffff;
       --surface-elevated: #ffffff;
-      --surface-hover: #eaf3fe;
-      --glass: rgba(255, 255, 255, 0.88);
-      --glass-border: rgba(6, 182, 212, 0.15);
-      --line: rgba(6, 182, 212, 0.14);
-      --line-strong: rgba(6, 182, 212, 0.28);
-      --fg: #0c1c38;
-      --fg-heading: #061124;
-      --muted: #475569;
-      --muted-light: #64748b;
-      --a1: #0284c7;
-      --a2: #0369a1;
-      --a3: #0ea5e9;
-      --soft: rgba(2, 132, 199, 0.10);
-      --soft-border: rgba(2, 132, 199, 0.25);
-      --glow: rgba(2, 132, 199, 0.25);
-      --glow-strong: rgba(2, 132, 199, 0.45);
-      --accent-grad: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-      --user-bubble: #dbeafe;
-      --user-bubble-fg: #1e3a8a;
-      --code-bg: #091325;
-      --code-fg: #f8fafc;
-      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
-      --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
-      --shadow-lg: 0 14px 36px rgba(15, 23, 42, 0.12);
+      --surface-hover: #f1f2f4;
+      --glass: rgba(255, 255, 255, 0.92);
+      --glass-border: rgba(0, 0, 0, 0.08);
+      --line: #e5e7eb;
+      --line-strong: #d1d5db;
+      --fg: #111827;
+      --fg-heading: #09090b;
+      --muted: #6b7280;
+      --muted-light: #9ca3af;
+      --a1: #0d9488;
+      --a2: #0f766e;
+      --a3: #14b8a6;
+      --soft: rgba(13, 148, 136, 0.07);
+      --soft-border: rgba(13, 148, 136, 0.20);
+      --glow: rgba(13, 148, 136, 0.15);
+      --glow-strong: rgba(13, 148, 136, 0.28);
+      --accent-grad: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+      --user-bubble: #f3f4f6;
+      --user-bubble-fg: #111827;
+      --code-bg: #18181b;
+      --code-fg: #f4f4f5;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.08);
       --err: #ef4444;
       --err-bg: #fef2f2;
       --success: #10b981;
@@ -2984,351 +2979,6 @@
     }
 
     /* ==========================================================================
-   RESPONSIVE DESIGN (TABLETTES ET MOBILES)
-   ========================================================================== */
-    @media (max-width: 768px) {
-      :root {
-        --header-h: 58px;
-        --sidebar-w: 84%;
-      }
-
-      #menu-toggle {
-        display: inline-flex !important
-      }
-
-      .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        width: var(--sidebar-w);
-        max-width: 320px;
-        transform: translateX(-100%);
-        box-shadow: var(--shadow-lg);
-        z-index: 1000;
-      }
-
-      .sidebar.open {
-        transform: translateX(0)
-      }
-
-      header {
-        padding: 0 14px;
-        gap: 8px
-      }
-
-      .header-title {
-        font-size: 16px;
-        max-width: 180px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap
-      }
-
-      .header-tools {
-        gap: 6px
-      }
-
-      .icon-btn {
-        width: 36px;
-        height: 36px
-      }
-
-      #list {
-        padding: 16px 12px 8px
-      }
-
-      .msg-wrap {
-        margin-bottom: 16px;
-        gap: 10px
-      }
-
-      .msg-wrap .avatar {
-        width: 30px;
-        height: 30px
-      }
-
-      .msg-wrap .avatar svg {
-        width: 16px;
-        height: 16px
-      }
-
-      .msg {
-        max-width: 92%;
-        font-size: 14px;
-        padding: 12px 16px
-      }
-
-      .msg-wrap.user .msg {
-        max-width: 88%
-      }
-
-      .input-area {
-        padding: 8px 12px max(12px, env(safe-area-inset-bottom))
-      }
-
-      #f {
-        padding: 6px 8px;
-        border-radius: 22px;
-        gap: 6px
-      }
-
-      #in {
-        font-size: 16px;
-        padding: 6px 8px
-      }
-
-      /* évite zoom auto iOS */
-      #send {
-        width: 38px;
-        height: 38px
-      }
-
-      .mode-toggles {
-        gap: 6px;
-        padding: 6px 0 2px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch
-      }
-
-      .mode-toggles::-webkit-scrollbar {
-        display: none
-      }
-
-      .mode-toggle {
-        padding: 5px 10px;
-        font-size: 11.5px;
-        flex-shrink: 0
-      }
-
-      .input-hint {
-        display: none
-      }
-
-      /* Section Code & Drawer style DeepSeek sur Téléphone */
-      .codebox {
-        margin: 10px 0 !important;
-        border-radius: 12px !important;
-        max-width: 100% !important;
-      }
-
-      .codebox-bar {
-        padding: 6px 10px !important;
-        gap: 6px !important;
-        flex-wrap: wrap !important;
-      }
-
-      .codebox-lang {
-        font-size: 11px !important;
-        font-weight: 700 !important;
-      }
-
-      .codebox-btns {
-        gap: 4px !important;
-        margin-left: auto !important;
-      }
-
-      .cb-btn {
-        padding: 4px 8px !important;
-        font-size: 11px !important;
-        border-radius: 6px !important;
-      }
-
-      .codebox pre {
-        padding: 12px 10px !important;
-        font-size: 12px !important;
-        line-height: 1.55 !important;
-        max-height: 360px !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-      }
-
-      .claude-drawer {
-        top: 6% !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100vw !important;
-        max-width: 100vw !important;
-        border-radius: 20px 20px 0 0 !important;
-        border-top: 1px solid var(--line) !important;
-        border-left: 0 !important;
-        transform: translateY(100%) !important;
-        box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.55) !important;
-      }
-
-      .claude-drawer.open {
-        transform: translateY(0) !important
-      }
-
-      .drawer-head {
-        padding: 12px 16px !important;
-        border-radius: 20px 20px 0 0 !important;
-      }
-
-      .artifact-card {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 12px 14px
-      }
-
-      .artifact-actions {
-        width: 100%;
-        display: flex;
-        gap: 8px;
-        margin-top: 6px
-      }
-
-      .art-btn {
-        flex: 1;
-        justify-content: center;
-        padding: 7px 10px;
-        font-size: 12px
-      }
-
-      #toast-container {
-        top: 12px;
-        right: 12px;
-        left: 12px
-      }
-
-      .toast {
-        max-width: none
-      }
-
-      .modal-settings-redesign {
-        width: 95vw !important;
-        max-width: 95vw !important;
-        padding: 18px !important;
-        margin: 10px auto !important;
-      }
-
-      .set-nav {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-      }
-
-      .set-nav::-webkit-scrollbar {
-        display: none;
-      }
-
-      .set-nav .tab {
-        flex: 0 0 auto;
-        padding: 8px 12px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      header {
-        padding: 0 8px;
-        gap: 6px;
-      }
-
-      .header-title {
-        font-size: 14.5px;
-        max-width: 100px;
-      }
-
-      .header-tools {
-        gap: 4px !important;
-      }
-
-      .quota-pill {
-        padding: 4px 8px;
-        font-size: 11px;
-        gap: 5px;
-        max-width: 135px;
-      }
-
-      #quota-pill-text {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .qc-metrics {
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
-      }
-
-      .set-header-bar h2 {
-        font-size: 16px !important;
-      }
-
-      .codebox-bar {
-        gap: 4px !important;
-      }
-
-      .msg {
-        max-width: 96%;
-        padding: 10px 14px;
-        font-size: 13.5px
-      }
-
-      .msg-wrap.user .msg {
-        max-width: 92%
-      }
-
-      .input-area {
-        padding: 6px 8px max(10px, env(safe-area-inset-bottom))
-      }
-
-      #f {
-        padding: 4px 6px
-      }
-
-      .gate-card {
-        padding: 24px 16px 20px;
-        border-radius: 20px
-      }
-
-      .gate-card h1 {
-        font-size: 28px
-      }
-    }
-
-    @media (max-width: 360px) {
-      .header-title {
-        display: none !important;
-      }
-      .quota-pill {
-        max-width: 110px;
-      }
-    }
-
-    @media (max-height: 520px) and (orientation: landscape) {
-      :root {
-        --header-h: 46px;
-      }
-
-      header {
-        padding: 0 12px;
-      }
-
-      .header-status {
-        display: none;
-      }
-
-      .input-area {
-        padding: 4px 8px max(4px, env(safe-area-inset-bottom));
-      }
-
-      #list {
-        padding: 8px 10px 4px;
-      }
-
-      .msg-wrap {
-        margin-bottom: 10px;
-      }
-
-      .sidebar {
-        width: 300px;
-        max-width: 80%;
-      }
-    }
-
-    /* ==========================================================================
    BOÎTE DE RAISONNEMENT / THINKING ACCORDION (DEEPSEEK / GEMINI THINKING)
    ========================================================================== */
     .think-box {
@@ -3548,299 +3198,65 @@
     }
   
     /* ==========================================================================
-       STUDIO HOME EXPERIENCE & 3D VISUAL DEPTH (MEL-IA 2.0)
+       DESIGN SYSTEM STUDIO PRO — MEL-IA 2.0 (DIRECTION ARTISTIQUE MINIMALISTE)
        ========================================================================== */
-    .studio-home {
-      max-width: 860px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 32px 20px 24px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      animation: fadeUp .32s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .home-ambient-glow {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 520px;
-      height: 300px;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.16) 0%, rgba(13, 148, 136, 0.08) 45%, transparent 70%);
-      filter: blur(48px);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .home-hero-head {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
-    .home-hero-emblem-wrap {
-      position: relative;
-      width: 80px;
-      height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 14px;
-    }
-
-    .home-emblem-halo {
-      position: absolute;
-      inset: -6px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(6, 182, 212, 0.32) 0%, transparent 70%);
-      filter: blur(10px);
-      animation: pulseHalo 4s ease-in-out infinite alternate;
-    }
-
-    @keyframes pulseHalo {
-      0% { opacity: 0.5; transform: scale(0.95); }
-      100% { opacity: 0.9; transform: scale(1.05); }
-    }
-
-    .home-hero-title {
-      font: 800 clamp(28px, 4.2vw, 38px)/1.2 var(--font-sans);
-      letter-spacing: -0.03em;
-      color: var(--fg-heading);
-      margin: 0 0 10px;
-      text-align: center;
-    }
-
-    .home-hero-name {
-      background: linear-gradient(135deg, #FFFFFF 0%, #CBD5E1 50%, #94A3B8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    [data-theme="light"] .home-hero-name {
-      background: linear-gradient(135deg, #0F172A 0%, #334155 50%, #64748B 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .home-hero-sub {
-      font: 400 15px/1.6 var(--font-sans);
-      color: var(--muted);
-      max-width: 580px;
-      margin: 0;
-      text-align: center;
-    }
-
-    /* Sélecteur de Spécialités / Filtres */
-    .home-pills-bar {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      gap: 8px;
-      margin-bottom: 22px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .home-cat-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 7px 14px;
-      border-radius: 999px;
-      background: var(--surface-elevated);
-      border: 1px solid var(--line);
-      color: var(--muted);
-      font: 500 12.5px var(--font-sans);
-      cursor: pointer;
-      transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .home-cat-pill svg {
-      width: 14px;
-      height: 14px;
-      flex-shrink: 0;
-    }
-
-    .home-cat-pill:hover {
+    
+    /* Layout Global & Canvas */
+    body {
+      background: var(--bg);
       color: var(--fg);
-      border-color: var(--line-strong);
-      background: var(--surface-hover);
-      transform: translateY(-1px);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    .home-cat-pill.active {
-      color: var(--a1);
-      background: var(--soft);
-      border-color: var(--soft-border);
-      font-weight: 600;
-      box-shadow: 0 2px 12px var(--glow);
-    }
-
-    /* Grille de Cartes d'Inspiration Studio */
-    .home-grid {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      width: 100%;
-      max-width: 820px;
-      margin-bottom: 22px;
-    }
-
-    @media (max-width: 640px) {
-      .home-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .home-card {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding: 16px 18px;
-      border-radius: 18px;
-      border: 1px solid var(--line);
-      background: var(--surface-elevated);
-      cursor: pointer;
-      transition: all .22s cubic-bezier(0.16, 1, 0.3, 1);
-      text-align: left;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    }
-
-    .home-card:hover {
-      border-color: var(--a1);
-      background: var(--surface-hover);
-      transform: translateY(-3px);
-      box-shadow: 0 10px 32px -4px var(--glow), 0 4px 14px rgba(0, 0, 0, 0.35);
-    }
-
-    [data-theme="light"] .home-card {
-      background: #FFFFFF;
-      border-color: #E2E8F0;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-    }
-
-    [data-theme="light"] .home-card:hover {
-      border-color: #0891B2;
-      background: #FFFFFF;
-      box-shadow: 0 8px 24px -2px rgba(8, 145, 178, 0.16);
-    }
-
-    .home-card-top {
+    /* En-tête Principal (Header) */
+    header#chat-header {
+      height: var(--header-h);
+      padding: 0 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      width: 100%;
+      border-bottom: 1px solid var(--line);
+      background: var(--glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
 
-    .home-card-tag {
-      font: 700 10.5px/1 var(--font-sans);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      padding: 3px 8px;
-      border-radius: 6px;
-      background: var(--soft);
-      color: var(--a1);
-      border: 1px solid var(--soft-border);
-    }
-
-    .home-card-icon-box {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
-      background: var(--surface);
-      border: 1px solid var(--line);
+    .header-left {
       display: flex;
       align-items: center;
-      justify-content: center;
-      color: var(--fg);
-      transition: all .2s ease;
+      gap: 12px;
     }
 
-    .home-card:hover .home-card-icon-box {
-      background: var(--soft);
-      color: var(--a1);
-      border-color: var(--soft-border);
-    }
-
-    .home-card-icon-box svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .home-card-body {
+    .header-brand-wrap {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      align-items: center;
+      gap: 9px;
+      user-select: none;
     }
 
-    .home-card-title {
-      font: 600 14px/1.35 var(--font-sans);
+    .header-title {
+      font: 600 15px/1 var(--font-sans);
       color: var(--fg-heading);
-      margin: 0;
+      letter-spacing: -0.01em;
     }
 
-    .home-card-desc {
-      font: 400 12.5px/1.5 var(--font-sans);
-      color: var(--muted);
-      margin: 0;
-    }
-
-    .home-card-arrow {
-      align-self: flex-end;
-      width: 16px;
-      height: 16px;
-      color: var(--muted);
-      transition: all .2s ease;
-      opacity: 0.6;
-    }
-
-    .home-card:hover .home-card-arrow {
-      color: var(--a1);
-      opacity: 1;
-      transform: translateX(3px);
-    }
-
-    /* Raccourcis Rapides (Actions Dock) */
-    .home-shortcuts-row {
-      position: relative;
-      z-index: 1;
+    .header-tools {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding-top: 8px;
-      border-top: 1px solid var(--line);
-      width: 100%;
-      max-width: 820px;
     }
 
-    .shortcuts-label {
-      font: 600 11.5px var(--font-sans);
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-right: 4px;
-    }
-
-    .home-quick-pill {
+    .quota-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 5px 11px;
-      border-radius: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
       background: var(--surface);
       border: 1px solid var(--line);
       color: var(--muted);
@@ -3849,230 +3265,865 @@
       transition: all .16s ease;
     }
 
-    .home-quick-pill svg {
-      width: 13px;
-      height: 13px;
+    .quota-pill:hover {
+      border-color: var(--line-strong);
+      color: var(--fg);
+    }
+
+    .quota-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--a1);
+      box-shadow: 0 0 8px var(--a1);
+    }
+
+    /* Barre Latérale (Sidebar) */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg2);
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sidebar-head {
+      height: var(--header-h);
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font: 700 15px var(--font-sans);
+      color: var(--fg-heading);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-dot {
+      color: var(--a1);
+    }
+
+    .sidebar-search {
+      padding: 10px 14px;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .sidebar-search input {
+      width: 100%;
+      height: 34px;
+      padding: 0 12px 0 32px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--fg);
+      font: 400 13px var(--font-sans);
+      outline: none;
+      transition: border-color .15s ease;
+    }
+
+    .sidebar-search input:focus {
+      border-color: var(--a1);
+    }
+
+    .sidebar-search svg {
+      position: absolute;
+      left: 24px;
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .session-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .sidebar-bottom {
+      padding: 10px 12px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .sidebar-btn {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      font: 500 13px var(--font-sans);
+      cursor: pointer;
+      text-align: left;
+      transition: all .15s ease;
+    }
+
+    .sidebar-btn svg {
+      width: 15px;
+      height: 15px;
       flex-shrink: 0;
     }
 
-    .home-quick-pill:hover {
+    .sidebar-btn:hover {
       background: var(--surface-hover);
       color: var(--fg);
-      border-color: var(--line-strong);
-      transform: translateY(-1px);
     }
 
-    /* ==========================================================================
-       ZONE DE SAISIE PREMIUM (COMPOSER 3D)
-       ========================================================================== */
-    .input-area {
-      padding: 12px 20px 20px !important;
-      background: linear-gradient(180deg, transparent 0%, var(--bg) 28%) !important;
+    .sidebar-btn.danger:hover {
+      background: var(--err-bg);
+      color: var(--err);
     }
 
-    .input-wrap {
-      border-radius: 20px !important;
-      border-color: var(--line-strong) !important;
-      background: var(--surface-elevated) !important;
-      box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    /* Container de Conversation */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-width: 0;
+      position: relative;
+      background: var(--bg);
     }
 
-    [data-theme="light"] .input-wrap {
-      background: #FFFFFF !important;
-      border-color: #CBD5E1 !important;
-      box-shadow: 0 10px 28px -6px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+    #list {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      padding: 24px 20px 140px;
     }
 
-    .input-wrap:focus-within {
-      border-color: var(--a1) !important;
-      box-shadow: 0 12px 40px -4px var(--glow), 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-    }
-
-    /* Message Utilisateur Raffiné 3D */
-    .msg-wrap.user .msg {
-      background: var(--user-bubble) !important;
-      color: var(--user-bubble-fg) !important;
-      border-radius: 20px 20px 6px 20px !important;
-      border: 1px solid var(--line-strong) !important;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-      font-size: 14.5px !important;
-      line-height: 1.6 !important;
-    }
-
-    [data-theme="light"] .msg-wrap.user .msg {
-      background: #F1F5F9 !important;
-      border-color: #CBD5E1 !important;
-      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
-      color: #0F172A !important;
-    }
-
-    /* Blocs de code & barres */
-    .codebox {
-      border-radius: 16px !important;
-      border-color: var(--line-strong) !important;
-      box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-    }
-
-    .codebox-bar {
-      padding: 10px 16px !important;
-      background: var(--surface-elevated) !important;
-    }
-
-    /* Bouton d'envoi Studio */
-    #send {
-      width: 36px !important;
-      height: 36px !important;
-      border-radius: 11px !important;
-      background: var(--accent-grad) !important;
-      box-shadow: 0 3px 12px var(--glow) !important;
-      transition: all .18s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }
-
-    #send:hover {
-      transform: translateY(-1px) scale(1.04) !important;
-      box-shadow: 0 6px 18px var(--glow-strong) !important;
-    }
-
-    #send.generating {
-      background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
-      box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4) !important;
-    }
-
-    /* ==========================================================================
-       GOOGLE AUTH & ADVANCED AUTH GATE (MEL-IA 2.0)
-       ========================================================================== */
-    .google-auth-btn {
+    #msgs {
+      max-width: 800px;
+      margin: 0 auto;
       width: 100%;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      padding: 11px 18px;
-      border-radius: 14px;
-      background: var(--surface-elevated);
-      border: 1px solid var(--line-strong);
-      color: var(--fg);
-      font: 600 13.5px var(--font-sans);
-      cursor: pointer;
-      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      margin-bottom: 12px;
+      flex-direction: column;
+      gap: 20px;
     }
 
-    .google-auth-btn svg {
-      width: 18px;
-      height: 18px;
+    /* Bulles de Messages */
+    .msg-wrap {
+      display: flex;
+      gap: 14px;
+      width: 100%;
+      animation: fadeIn .2s ease-out;
+    }
+
+    .msg-wrap.assistant {
+      align-items: flex-start;
+    }
+
+    .msg-wrap.assistant .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
+      margin-top: 2px;
     }
 
-    .google-auth-btn:hover {
-      background: var(--surface-hover);
-      border-color: var(--a1);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 18px var(--glow);
-    }
-
-    [data-theme="light"] .google-auth-btn {
-      background: #FFFFFF;
-      border-color: #CBD5E1;
-      color: #0F172A;
-      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
-    }
-
-    [data-theme="light"] .google-auth-btn:hover {
-      border-color: #0891B2;
-      box-shadow: 0 4px 14px rgba(8, 145, 178, 0.16);
-    }
-
-    .auth-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 8px 0 14px;
-      color: var(--muted);
-      font: 600 11px var(--font-sans);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .auth-divider::before,
-    .auth-divider::after {
-      content: '';
+    .msg-wrap.assistant .msg {
       flex: 1;
-      height: 1px;
-      background: var(--line);
+      min-width: 0;
+      color: var(--fg);
+      font: 400 15px/1.65 var(--font-sans);
     }
 
-    .auth-row-actions {
-      display: flex;
-      align-items: center;
+    .msg-wrap.user {
       justify-content: flex-end;
-      margin-top: 4px;
-      margin-bottom: 8px;
     }
 
-    .auth-link {
-      background: none;
-      border: 0;
-      color: var(--a1);
-      font: 500 12.5px var(--font-sans);
-      cursor: pointer;
-      padding: 2px 4px;
-      transition: color .15s ease;
-      text-decoration: none;
+    .msg-wrap.user .msg {
+      max-width: 78%;
+      background: var(--user-bubble);
+      color: var(--user-bubble-fg);
+      padding: 11px 17px;
+      border-radius: 18px 18px 4px 18px;
+      border: 1px solid var(--line);
+      font: 400 15px/1.55 var(--font-sans);
+      box-shadow: var(--shadow-sm);
+      word-break: break-word;
     }
 
-    .auth-link:hover {
-      color: var(--fg-heading);
-      text-decoration: underline;
-    }
-
-    .auth-link.bold {
-      font-weight: 700;
-    }
-
-    .auth-switch-prompt {
-      margin-top: 14px;
-      font: 400 13px var(--font-sans);
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .auth-hint {
-      font: 400 13px/1.5 var(--font-sans);
-      color: var(--muted);
-      margin-bottom: 12px;
-      text-align: left;
-    }
-
-    .guest-actions-sub {
+    /* ==========================================================================
+       NOUVEL ACCUEIL MINIMALISTE — PUR & INTELLIGENT (SANS BLOCS BLANCS GÉANTS)
+       ========================================================================== */
+    .welcome-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 5px;
-      margin-top: 10px;
-      font-size: 11.5px;
-      color: var(--muted);
+      justify-content: center;
+      min-height: 52vh;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 16px 12px;
+      text-align: center;
+      animation: fadeIn .25s ease-out;
     }
 
-    .btn-reset-guest {
-      background: none;
-      border: 0;
+    .welcome-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .welcome-emblem-wrap {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2px;
+      filter: drop-shadow(0 2px 10px var(--glow));
+    }
+
+    .welcome-title {
+      font: 600 24px/1.3 var(--font-sans);
+      color: var(--fg-heading);
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .welcome-name {
+      color: var(--a1);
+    }
+
+    .welcome-sub {
+      font: 400 15px/1.5 var(--font-sans);
       color: var(--muted);
-      font: 500 11.5px var(--font-sans);
+      margin: 0;
+      max-width: 440px;
+    }
+
+    .welcome-suggestions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+      max-width: 680px;
+      box-sizing: border-box;
+    }
+
+    .suggestion-tile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      text-align: left;
       cursor: pointer;
-      text-decoration: underline;
-      padding: 3px 6px;
-      transition: color .15s ease;
+      transition: all .18s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
     }
 
-    .btn-reset-guest:hover {
-      color: #EF4444;
+    .suggestion-tile:hover {
+      border-color: var(--line-strong);
+      background: var(--surface-hover);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
     }
+
+    .tile-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--a1);
+      flex-shrink: 0;
+      transition: transform .18s ease;
+    }
+
+    .suggestion-tile:hover .tile-icon-box {
+      transform: scale(1.05);
+    }
+
+    .tile-icon-box svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .tile-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .tile-title {
+      font: 600 13px/1.3 var(--font-sans);
+      color: var(--fg-heading);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tile-desc {
+      font: 400 11.5px/1.35 var(--font-sans);
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ==========================================================================
+       ZONE DE SAISIE MODERNE (OMNIBAR INTÉGRÉ STYLE CLAUDE / CHATGPT)
+       ========================================================================== */
+    .input-area {
+      position: relative;
+      flex-shrink: 0;
+      z-index: 90;
+      padding: 0 20px 16px;
+      background: linear-gradient(180deg, transparent 0%, var(--bg) 35%);
+    }
+
+    .composer-container {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      width: 100%;
+    }
+
+    .composer-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow-md);
+      transition: border-color .18s ease, box-shadow .18s ease;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    .composer-card:focus-within {
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 1px var(--line-strong), var(--shadow-md);
+    }
+
+    .composer-form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Zone de texte plein champ */
+    #in {
+      width: 100%;
+      padding: 13px 16px 8px;
+      border: 0;
+      background: transparent;
+      color: var(--fg);
+      font: 400 15px/1.55 var(--font-sans);
+      resize: none;
+      outline: none;
+      min-height: 44px;
+      max-height: 180px;
+      box-sizing: border-box;
+    }
+
+    #in::placeholder {
+      color: var(--muted-light);
+    }
+
+    /* Barre d'outils interne intégrée en bas du composer */
+    .composer-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 10px 8px;
+      gap: 8px;
+      border-top: 1px solid transparent;
+    }
+
+    .composer-tools-left {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .composer-tools-right {
+      display: flex;
+      align-items: center;
+    }
+
+    .tool-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s ease;
+      flex-shrink: 0;
+      padding: 0;
+    }
+
+    .tool-btn svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    .tool-btn:hover {
+      color: var(--fg);
+      background: var(--surface-hover);
+    }
+
+    .tool-btn.active,
+    .tool-btn[aria-pressed="true"] {
+      color: var(--a1);
+      background: var(--soft);
+    }
+
+    /* Tool-Pills pour Recherche et Image */
+    .tool-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font: 500 12px var(--font-sans);
+      cursor: pointer;
+      transition: all .15s ease;
+      flex-shrink: 0;
+      height: 28px;
+    }
+
+    .tool-pill svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .tool-pill:hover {
+      color: var(--fg);
+      background: var(--surface-hover);
+      border-color: var(--line-strong);
+    }
+
+    .tool-pill.active,
+    .tool-pill[aria-pressed="true"] {
+      color: var(--a1);
+      background: var(--soft);
+      border-color: var(--soft-border);
+      font-weight: 600;
+    }
+
+    /* Bouton d'Envoi */
+    #send {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 0;
+      background: var(--a1);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .16s ease;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px var(--glow);
+    }
+
+    #send:hover {
+      background: var(--a2);
+      transform: scale(1.04);
+      box-shadow: 0 4px 14px var(--glow-strong);
+    }
+
+    #send svg.send-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    #send svg.stop-icon {
+      width: 14px;
+      height: 14px;
+      display: none;
+    }
+
+    #send.generating {
+      background: var(--err);
+      border-radius: 8px;
+    }
+
+    #send.generating svg.send-icon {
+      display: none;
+    }
+
+    #send.generating svg.stop-icon {
+      display: block;
+    }
+
+    .composer-disclaimer {
+      text-align: center;
+      font: 400 11px/1.4 var(--font-sans);
+      color: var(--muted-light);
+      margin-top: 6px;
+      user-select: none;
+    }
+
+    /* Aperçu de Fichier Joint */
+    .preview {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .preview.show {
+      display: flex;
+    }
+
+    
+    /* ==========================================================================
+       RESPONSIVE DESIGN DEFINITIF & MOBILE-FIRST STRICT (PLACÉ EN FIN DE STYLE)
+       ========================================================================== */
+    @media (max-width: 768px) {
+      :root {
+        --header-h: 52px;
+        --sidebar-w: 280px;
+      }
+
+      html {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+
+      body {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+        position: relative !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      #menu-toggle {
+        display: inline-flex !important;
+      }
+
+      /* Sidebar Mobile (Tiroir Coulissant avec Isolation Stricte) */
+      .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: min(290px, 80vw) !important;
+        max-width: 300px !important;
+        transform: translateX(-100%) !important;
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5) !important;
+        z-index: 1000 !important;
+      }
+
+      .sidebar.open {
+        transform: translateX(0) !important;
+      }
+
+      .sidebar-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
+        z-index: 999 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity .25s ease !important;
+      }
+
+      .sidebar-overlay.open {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+      }
+
+      /* En-tête Compact 52px */
+      header#chat-header, header {
+        padding: 0 12px !important;
+        height: 52px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        flex-shrink: 0 !important;
+      }
+
+      .header-title {
+        font-size: 14px !important;
+        max-width: 120px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+
+      .quota-pill {
+        padding: 3px 8px !important;
+        font-size: 11px !important;
+        max-width: 130px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      /* Container Principal Mobile (Prend Tout l'Espace Restant) */
+      .main {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        min-width: 0 !important;
+        flex: 1 1 0% !important;
+        height: calc(100% - 52px) !important;
+        position: relative !important;
+        overflow: hidden !important;
+      }
+
+      #list {
+        display: block !important;
+        flex: 1 1 auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        padding: 14px 12px 140px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      #msgs {
+        width: 100% !important;
+        max-width: 100% !important;
+        gap: 12px !important;
+        box-sizing: border-box !important;
+      }
+
+      .msg-wrap.assistant .avatar {
+        width: 26px !important;
+        height: 26px !important;
+        border-radius: 8px !important;
+      }
+
+      .msg-wrap.assistant .msg {
+        font-size: 14.5px !important;
+        line-height: 1.55 !important;
+        max-width: calc(100% - 36px) !important;
+      }
+
+      .msg-wrap.user .msg {
+        max-width: 88% !important;
+        font-size: 14px !important;
+        padding: 9px 13px !important;
+      }
+
+      /* Accueil Mobile Epuré & Pro */
+      .welcome-container {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        min-height: auto !important;
+        padding: 16px 4px 10px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .welcome-hero {
+        margin-bottom: 20px !important;
+        gap: 8px !important;
+      }
+
+      .welcome-emblem-wrap {
+        width: 44px !important;
+        height: 44px !important;
+      }
+
+      .welcome-title {
+        font-size: 20px !important;
+      }
+
+      .welcome-sub {
+        font-size: 13.5px !important;
+        padding: 0 8px !important;
+      }
+
+      .welcome-suggestions {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 8px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .suggestion-tile {
+        padding: 10px 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        min-width: 0 !important;
+      }
+
+      .tile-text {
+        min-width: 0 !important;
+        flex: 1 !important;
+      }
+
+      .tile-title {
+        font-size: 13px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      .tile-desc {
+        font-size: 11.5px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+      }
+
+      /* Composer Mobile Fixé avec Zéro Débordement */
+      .input-area {
+        position: fixed !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        padding: 6px 10px max(8px, env(safe-area-inset-bottom)) !important;
+        background: linear-gradient(180deg, transparent 0%, var(--bg) 28%) !important;
+        z-index: 90 !important;
+      }
+
+      .composer-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .composer-card {
+        border-radius: 16px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      #in {
+        font-size: 16px !important; /* Empêche le zoom désagréable sur iOS */
+        padding: 9px 12px 6px !important;
+        min-height: 38px !important;
+        max-height: 120px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      .composer-toolbar {
+        padding: 2px 8px 6px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        gap: 6px !important;
+      }
+
+      .composer-tools-left {
+        gap: 3px !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+      }
+
+      .tool-btn {
+        width: 30px !important;
+        height: 30px !important;
+      }
+
+      .tool-pill {
+        width: 30px !important;
+        height: 30px !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border: 0 !important;
+      }
+
+      .tool-pill span {
+        display: none !important;
+      }
+
+      .composer-tools-right {
+        flex-shrink: 0 !important;
+      }
+
+      #send {
+        width: 32px !important;
+        height: 32px !important;
+      }
+
+      .composer-disclaimer {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .header-title {
+        display: none !important;
+      }
+      .quota-pill {
+        max-width: 100px !important;
+      }
+    }
+
   </style>
 </head>
 
@@ -4372,13 +4423,13 @@
     </main>
 
     <div class="input-area">
-      <div class="input-wrap">
+      <div class="composer-container">
         <!-- Aperçu de fichier joint -->
         <div class="preview" id="preview">
           <img id="preview-img" alt="" style="display:none">
           <audio id="preview-audio" controls style="display:none"></audio>
           <div id="preview-doc" style="display:none;align-items:center;gap:8px">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2f5fd6" stroke-width="2">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
             </svg>
@@ -4391,11 +4442,8 @@
         <div class="attach-menu" id="attach-menu" hidden>
           <div class="attach-menu-head">Ajouter un contenu</div>
           <button type="button" class="attach-opt" data-type="img">
-            <div class="opt-icon img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="1.8">
-                <rect x="3" y="3" width="18" height="18" rx="3" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="m21 15-5-5L5 21" />
+            <div class="opt-icon img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="m21 15-5-5L5 21" />
               </svg></div>
             <div>
               <div class="opt-title">Photos & Images</div>
@@ -4403,12 +4451,8 @@
             </div>
           </button>
           <button type="button" class="attach-opt" data-type="doc">
-            <div class="opt-icon doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="1.8">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
+            <div class="opt-icon doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" />
               </svg></div>
             <div>
               <div class="opt-title">Documents</div>
@@ -4416,10 +4460,8 @@
             </div>
           </button>
           <button type="button" class="attach-opt" data-type="code">
-            <div class="opt-icon code-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="1.8">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
+            <div class="opt-icon code-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
               </svg></div>
             <div>
               <div class="opt-title">Fichiers de Code</div>
@@ -4427,8 +4469,7 @@
             </div>
           </button>
           <button type="button" class="attach-opt" data-type="folder">
-            <div class="opt-icon folder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="1.8">
+            <div class="opt-icon folder-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
               </svg></div>
             <div>
@@ -4437,11 +4478,8 @@
             </div>
           </button>
           <button type="button" class="attach-opt" data-type="audio">
-            <div class="opt-icon audio-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="1.8">
-                <path d="M9 18V5l12-2v13" />
-                <circle cx="6" cy="18" r="3" />
-                <circle cx="18" cy="16" r="3" />
+            <div class="opt-icon audio-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
               </svg></div>
             <div>
               <div class="opt-title">Fichier Audio</div>
@@ -4453,14 +4491,12 @@
         <!-- Inputs fichiers masqués -->
         <input type="file" id="file-img" accept="image/*" hidden>
         <input type="file" id="file-doc" accept=".pdf,.doc,.docx,.txt,.md,.csv,.json,.xlsx,.pptx" hidden>
-        <input type="file" id="file-code" accept=".py,.c,.cpp,.h,.java,.js,.ts,.html,.css,.json,.sql,.sh,.rs,.go,.php"
-          hidden>
+        <input type="file" id="file-code" accept=".py,.c,.cpp,.h,.java,.js,.ts,.html,.css,.json,.sql,.sh,.rs,.go,.php" hidden>
         <input type="file" id="file-folder" webkitdirectory directory multiple hidden>
         <input type="file" id="file-audio" accept="audio/*" hidden>
-        <input type="file" id="file" accept="image/*,audio/*,video/*,.pdf,.txt,.md,.csv,.json,.py,.js,.html,.css"
-          hidden>
+        <input type="file" id="file" accept="image/*,audio/*,video/*,.pdf,.txt,.md,.csv,.json,.py,.js,.html,.css" hidden>
 
-        <!-- Barre d'enregistrement vocal avec visualiseur tirets/equalizer -->
+        <!-- Barre d'enregistrement vocal -->
         <div class="vrec-bar" id="vrec-bar" style="display:none">
           <div class="vrec-info">
             <span class="vrec-pulse"></span>
@@ -4469,79 +4505,75 @@
           <div class="vrec-waveform" id="vrec-waveform"></div>
           <div class="vrec-btns">
             <button type="button" class="vrec-action-btn cancel" id="vrec-cancel" title="Annuler" aria-label="Annuler">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
             <button type="button" class="vrec-action-btn done" id="vrec-done" title="Terminer et écouter">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                <rect x="6" y="6" width="12" height="12" rx="2" />
-              </svg>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
               <span>Terminer</span>
             </button>
           </div>
         </div>
 
-        <form id="f">
-          <button type="button" class="icon-btn in-bar-btn" id="attach"
-            title="Joindre une photo, document, code ou dossier" aria-label="Joindre un fichier"
-            style="margin-left:2px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path
-                d="M21.4 11.05 12.3 20.2a5.5 5.5 0 0 1-7.8-7.8l9.2-9.2a3.7 3.7 0 0 1 5.2 5.2l-9.1 9.2a1.8 1.8 0 0 1-2.6-2.6l8.5-8.4" />
-            </svg></button>
-          <button type="button" class="icon-btn in-bar-btn" id="mic"
-            title="Microphone : Parler à MEL-IA (Dictée vocale)" aria-label="Dicter un message"><svg viewBox="0 0 24 24"
-              fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-              aria-hidden="true">
-              <rect x="9" y="2.5" width="6" height="11" rx="3" />
-              <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" />
-              <path d="M12 18v3.5" />
-            </svg></button>
-          <button type="button" class="icon-btn in-bar-btn" id="voice"
-            title="Haut-parleur : Lecture automatique des réponses à voix haute" aria-pressed="false"
-            aria-label="Lecture vocale"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M11 5 6.5 9H3v6h3.5L11 19z" />
-              <path d="M15 9a4.2 4.2 0 0 1 0 6" />
-              <path d="M17.8 6.2a8 8 0 0 1 0 11.6" />
-            </svg></button>
-          <textarea id="in" rows="1" placeholder="Écris ton message à MEL-IA…" aria-label="Message"></textarea>
-          <button id="send" type="submit" aria-label="Envoyer" title="Envoyer">
-            <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 19V5" />
-              <path d="m5 12 7-7 7 7" />
-            </svg>
-            <svg class="stop-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <rect x="6" y="6" width="12" height="12" rx="2" />
-            </svg>
-          </button>
-        </form>
-        <div class="mode-toggles">
-          <button type="button" class="mode-toggle" id="tg-search" title="Recherche web avec sources"
-            aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-3.5-3.5" />
-            </svg>Recherche web</button>
-          <button type="button" class="mode-toggle" id="tg-image" title="Générer une image avec IA"
-            aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <rect x="3" y="4" width="18" height="16" rx="3" />
-              <circle cx="9" cy="10" r="1.8" />
-              <path d="m4 18 5-5 4 4 3-3 4 4" />
-            </svg>Générer image</button>
-          <button type="button" class="mode-toggle" id="tg-rec" title="Enregistrer une note vocale"
-            aria-pressed="false"><span class="rec-dot" style="display:none"></span><svg viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
-              aria-hidden="true">
-              <rect x="9" y="2.5" width="6" height="11" rx="3" />
-              <path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" />
-              <path d="M12 18v3.5" />
-            </svg><span id="rec-label">Note vocale</span></button>
+        <!-- Le Boîtier Unifié du Composer (Style Claude / ChatGPT) -->
+        <div class="composer-card">
+          <form id="f" class="composer-form">
+            <textarea id="in" rows="1" placeholder="Demandez n'importe quoi à MEL-IA…" aria-label="Message"></textarea>
+            
+            <div class="composer-toolbar">
+              <div class="composer-tools-left">
+                <button type="button" class="tool-btn" id="attach" title="Joindre une photo, document, code ou dossier" aria-label="Joindre un fichier">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.4 11.05 12.3 20.2a5.5 5.5 0 0 1-7.8-7.8l9.2-9.2a3.7 3.7 0 0 1 5.2 5.2l-9.1 9.2a1.8 1.8 0 0 1-2.6-2.6l8.5-8.4" />
+                  </svg>
+                </button>
+
+                <button type="button" class="mode-toggle tool-pill" id="tg-search" title="Recherche web avec sources" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+                  </svg>
+                  <span>Recherche</span>
+                </button>
+
+                <button type="button" class="mode-toggle tool-pill" id="tg-image" title="Générer une image avec IA" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="16" rx="3" /><circle cx="9" cy="10" r="1.8" /><path d="m4 18 5-5 4 4 3-3 4 4" />
+                  </svg>
+                  <span>Image</span>
+                </button>
+
+                <button type="button" class="tool-btn" id="mic" title="Microphone : Parler à MEL-IA (Dictée vocale)" aria-label="Dicter un message">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="2.5" width="6" height="11" rx="3" /><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0" /><path d="M12 18v3.5" />
+                  </svg>
+                </button>
+
+                <button type="button" class="tool-btn" id="voice" title="Haut-parleur : Lecture automatique des réponses" aria-pressed="false" aria-label="Lecture vocale">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 5 6.5 9H3v6h3.5L11 19z" /><path d="M15 9a4.2 4.2 0 0 1 0 6" /><path d="M17.8 6.2a8 8 0 0 1 0 11.6" />
+                  </svg>
+                </button>
+
+                <button type="button" class="mode-toggle tool-btn" id="tg-rec" title="Enregistrer une note vocale" aria-pressed="false" style="display:none">
+                  <span class="rec-dot" style="display:none"></span><span id="rec-label" style="display:none">Note vocale</span>
+                </button>
+              </div>
+
+              <div class="composer-tools-right">
+                <button id="send" type="submit" aria-label="Envoyer" title="Envoyer">
+                  <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 19V5" /><path d="m5 12 7-7 7 7" />
+                  </svg>
+                  <svg class="stop-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12" rx="2" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="composer-disclaimer">
+          MEL-IA peut faire des erreurs. Vérifiez les informations importantes.
         </div>
       </div>
     </div>
@@ -6291,138 +6323,73 @@
     function showEmpty() {
       var greetingName = owner ? esc(owner) : 'Mel';
       $('msgs').innerHTML =
-        '<div class="studio-home">' +
-        '<div class="home-ambient-glow"></div>' +
-        '<div class="home-hero-head">' +
-        '  <div class="home-hero-emblem-wrap">' +
-        '    <div class="home-emblem-halo"></div>' +
-        '    <div id="home-big-emblem"></div>' +
-        '  </div>' +
-        '  <h1 class="home-hero-title">Bonjour, <span class="home-hero-name">' + greetingName + '</span></h1>' +
-        '  <p class="home-hero-sub">Que créons-nous aujourd\'hui ? Choisissez une spécialité ou décrivez votre projet.</p>' +
-        '</div>' +
-
-        '<div class="home-pills-bar">' +
-        '  <button type="button" class="home-cat-pill active" data-filter="all"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 16 12 12 8"/></svg><span>Vue d\'ensemble</span></button>' +
-        '  <button type="button" class="home-cat-pill" data-filter="code"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><span>Développement & Code</span></button>' +
-        '  <button type="button" class="home-cat-pill" data-filter="image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Création Visuelle</span></button>' +
-        '  <button type="button" class="home-cat-pill" data-filter="docs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Synthèse & Documents</span></button>' +
-        '  <button type="button" class="home-cat-pill" data-filter="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Recherche Web</span></button>' +
-        '</div>' +
-
-        '<div class="home-grid">' +
-        '  <div class="home-card" data-cat="code" data-prompt="Conçois une architecture logicielle moderne et complète pour un projet web full-stack, avec structure modulaire, API RESTful et composants réutilisables.">' +
-        '    <div class="home-card-top">' +
-        '      <span class="home-card-tag">Ingénierie & Code</span>' +
-        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>' +
-        '    </div>' +
-        '    <div class="home-card-body">' +
-        '      <h3 class="home-card-title">Architecture Full-Stack & Clean Code</h3>' +
-        '      <p class="home-card-desc">Architecture découplée, modèles de données, sécurité et patterns réutilisables.</p>' +
-        '    </div>' +
-        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
+        '<div class="welcome-container">' +
+        '  <div class="welcome-hero">' +
+        '    <div class="welcome-emblem-wrap" id="welcome-emblem"></div>' +
+        '    <h1 class="welcome-title">Bonjour, <span class="welcome-name">' + greetingName + '</span></h1>' +
+        '    <p class="welcome-sub">Comment puis-je vous aider aujourd\'hui ?</p>' +
         '  </div>' +
 
-        '  <div class="home-card" data-cat="image" data-prompt="Génère une illustration cinématique 3D photoréaliste d\'une métropole futuriste épurée avec architecture organique, néons diffus et atmosphère crépusculaire, ultra-détaillée 8k.">' +
-        '    <div class="home-card-top">' +
-        '      <span class="home-card-tag">Studio Visuel</span>' +
-        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>' +
-        '    </div>' +
-        '    <div class="home-card-body">' +
-        '      <h3 class="home-card-title">Direction Artistique & Prompt Studio</h3>' +
-        '      <p class="home-card-desc">Composition cinématique, éclairage volumétrique et génération d\'images IA haute fidélité.</p>' +
-        '    </div>' +
-        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
-        '  </div>' +
+        '  <div class="welcome-suggestions">' +
+        '    <button type="button" class="suggestion-tile" data-prompt="Rédige une synthèse stratégique claire et percutante pour structurer un projet d\'envergure.">' +
+        '      <div class="tile-icon-box">' +
+        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+        '      </div>' +
+        '      <div class="tile-text">' +
+        '        <span class="tile-title">Rédiger & Synthétiser</span>' +
+        '        <span class="tile-desc">Plan d\'action, synthèse exécutive ou document</span>' +
+        '      </div>' +
+        '    </button>' +
 
-        '  <div class="home-card" data-cat="docs" data-prompt="Rédige un rapport exécutif exhaustif et structuré sur le déploiement et la gouvernance de l\'intelligence artificielle en entreprise, incluant risques, KPIs et roadmap d\'adoption.">' +
-        '    <div class="home-card-top">' +
-        '      <span class="home-card-tag">Documents & Stratégie</span>' +
-        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>' +
-        '    </div>' +
-        '    <div class="home-card-body">' +
-        '      <h3 class="home-card-title">Rapport Stratégique & Documents</h3>' +
-        '      <p class="home-card-desc">Synthèses exécutives, roadmaps, documentation technique et analyses comparatives.</p>' +
-        '    </div>' +
-        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
-        '  </div>' +
+        '    <button type="button" class="suggestion-tile" data-prompt="Conçois une architecture logicielle propre et modulaire avec structure de code, API RESTful et bonnes pratiques.">' +
+        '      <div class="tile-icon-box">' +
+        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>' +
+        '      </div>' +
+        '      <div class="tile-text">' +
+        '        <span class="tile-title">Coder & Concevoir</span>' +
+        '        <span class="tile-desc">Architecture full-stack, refonte ou débogage</span>' +
+        '      </div>' +
+        '    </button>' +
 
-        '  <div class="home-card" data-cat="search" data-prompt="Effectue une recherche approfondie sur les ruptures technologiques récentes en IA, cite les sources précises et synthétise les points majeurs.">' +
-        '    <div class="home-card-top">' +
-        '      <span class="home-card-tag">Veille & Analyse</span>' +
-        '      <div class="home-card-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
-        '    </div>' +
-        '    <div class="home-card-body">' +
-        '      <h3 class="home-card-title">Recherche Approfondie & Synthèse</h3>' +
-        '      <p class="home-card-desc">Exploration du web en direct, vérification factuelle et citations des sources vérifiées.</p>' +
-        '    </div>' +
-        '    <svg class="home-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>' +
-        '  </div>' +
-        '</div>' +
+        '    <button type="button" class="suggestion-tile" data-prompt="Génère une illustration cinématique 3D photoréaliste et élégante avec éclairage volumétrique et atmosphère épurée.">' +
+        '      <div class="tile-icon-box">' +
+        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+        '      </div>' +
+        '      <div class="tile-text">' +
+        '        <span class="tile-title">Créer une Image</span>' +
+        '        <span class="tile-desc">Direction artistique et génération visuelle IA</span>' +
+        '      </div>' +
+        '    </button>' +
 
-        '<div class="home-shortcuts-row">' +
-        '  <span class="shortcuts-label">Actions rapides :</span>' +
-        '  <button type="button" class="home-quick-pill" data-quick="doc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg><span>Analyser un fichier</span></button>' +
-        '  <button type="button" class="home-quick-pill" data-quick="fastapi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>API FastAPI Python</span></button>' +
-        '  <button type="button" class="home-quick-pill" data-quick="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Dashboard interactif</span></button>' +
-        '  <button type="button" class="home-quick-pill" data-quick="voice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg><span>Note vocale</span></button>' +
-        '</div>' +
+        '    <button type="button" class="suggestion-tile" data-prompt="Effectue une recherche approfondie sur les ruptures technologiques récentes en IA et cite les sources vérifiées.">' +
+        '      <div class="tile-icon-box">' +
+        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
+        '      </div>' +
+        '      <div class="tile-text">' +
+        '        <span class="tile-title">Recherche Web Directe</span>' +
+        '        <span class="tile-desc">Exploration factuelle avec sources sourcées</span>' +
+        '      </div>' +
+        '    </button>' +
+        '  </div>' +
         '</div>';
 
-      mountAtom('home-big-emblem', 64);
+      mountAtom('welcome-emblem', 48);
 
-      var cards = $('msgs').querySelectorAll('.home-card');
-      cards.forEach(function (c) {
-        c.addEventListener('click', function () {
-          var p = c.getAttribute('data-prompt');
+      var tiles = $('msgs').querySelectorAll('.suggestion-tile');
+      tiles.forEach(function (tile) {
+        tile.addEventListener('click', function () {
+          var p = tile.getAttribute('data-prompt');
           var input = $('in');
           input.value = p;
           input.style.height = 'auto';
-          input.style.height = Math.min(input.scrollHeight, 150) + 'px';
+          input.style.height = Math.min(input.scrollHeight, 180) + 'px';
           input.focus();
         });
       });
-
-      var filterPills = $('msgs').querySelectorAll('.home-cat-pill');
-      filterPills.forEach(function (pill) {
-        pill.addEventListener('click', function () {
-          filterPills.forEach(function (p) { p.classList.remove('active'); });
-          pill.classList.add('active');
-          var filter = pill.getAttribute('data-filter');
-          cards.forEach(function (card) {
-            if (filter === 'all' || card.getAttribute('data-cat') === filter) {
-              card.style.display = 'flex';
-            } else {
-              card.style.display = 'none';
-            }
-          });
-        });
-      });
-
-      var quickPills = $('msgs').querySelectorAll('.home-quick-pill');
-      quickPills.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var act = btn.getAttribute('data-quick');
-          if (act === 'doc') {
-            if ($('file-doc')) $('file-doc').click();
-          } else if (act === 'fastapi') {
-            var inp = $('in');
-            inp.value = "Développe une API REST complète et professionnelle en Python avec FastAPI, validation Pydantic, modèles SQLite et routes CRUD complètes.";
-            inp.style.height = 'auto';
-            inp.style.height = Math.min(inp.scrollHeight, 150) + 'px';
-            inp.focus();
-          } else if (act === 'dashboard') {
-            var inp = $('in');
-            inp.value = "Crée un tableau de bord analytique moderne avec graphiques dynamiques en SVG/Canvas, métriques interactives et filtres temps-réel.";
-            inp.style.height = 'auto';
-            inp.style.height = Math.min(inp.scrollHeight, 150) + 'px';
-            inp.focus();
-          } else if (act === 'voice') {
-            if ($('tg-rec')) $('tg-rec').click();
-          }
-        });
-      });
     }
+
+    // Affichage immédiat dès le chargement
+    showEmpty();
 
     // ---- Sessions ----
     // ---- Sessions avec Recherche et Groupement Temporel ----
@@ -7889,32 +7856,24 @@
         } else {
           token = '';
           localStorage.removeItem('mel_token');
-          if (localStorage.getItem('mel_guest') === '1') {
-            showUserChip('Invité (Mode Test)');
-            updateQuotaUI();
-          } else {
-            showUserChip('');
-            openGate('login');
-          }
-        }
-      }).catch(function () {
-        if (localStorage.getItem('mel_guest') === '1') {
+          localStorage.setItem('mel_guest', '1');
           showUserChip('Invité (Mode Test)');
           updateQuotaUI();
-        } else {
-          openGate('login');
         }
-      });
-    } else {
-      if (localStorage.getItem('mel_guest') === '1' || isTestParam) {
+      }).catch(function () {
+        localStorage.setItem('mel_guest', '1');
         showUserChip('Invité (Mode Test)');
         updateQuotaUI();
-      } else {
-        showUserChip('');
-        openGate('login');
-      }
+      });
+    } else {
+      localStorage.setItem('mel_guest', '1');
+      showUserChip('Invité (Mode Test)');
+      updateQuotaUI();
     }
   </script>
+
+
 </body>
+
 
 </html>
