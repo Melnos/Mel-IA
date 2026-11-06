@@ -4124,6 +4124,237 @@
       }
     }
 
+  
+    
+    /* ==========================================================================
+       SIDEBAR NAVIGATION & ACCOUNT POPOVER (CHATGPT-STYLE)
+       ========================================================================== */
+    .sidebar-primary-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 0 10px 10px;
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--fg);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-nav-item:hover {
+      background: var(--surface-hover);
+      color: var(--fg-heading);
+    }
+
+    .sidebar-nav-item.active {
+      background: var(--surface-elevated);
+      border-color: var(--line);
+      color: var(--a1);
+    }
+
+    .sidebar-nav-item svg {
+      flex-shrink: 0;
+      color: var(--muted);
+      transition: color 0.15s ease;
+    }
+
+    .sidebar-nav-item:hover svg,
+    .sidebar-nav-item.active svg {
+      color: var(--a1);
+    }
+
+    .sidebar-section-title {
+      padding: 10px 16px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-light);
+    }
+
+    .sidebar-search-box {
+      margin: 0 10px 8px;
+      display: flex;
+      align-items: center;
+      background: var(--surface-elevated);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 10px;
+      gap: 8px;
+    }
+
+    .sidebar-search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--fg);
+      font-size: 13px;
+      width: 100%;
+    }
+
+    .user-account-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      margin: 0 10px 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-elevated);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+      position: relative;
+    }
+
+    .user-account-bar:hover {
+      background: var(--surface-hover);
+      border-color: var(--line-strong);
+    }
+
+    .user-info-cluster {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .user-account-bar .u-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--a1), var(--a2));
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .user-account-bar .u-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .user-account-bar .u-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-account-bar .u-status {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-account-bar .u-more-icon {
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    /* Popover Menu Déroulant du Compte */
+    .account-menu-popover {
+      position: absolute;
+      bottom: 60px;
+      left: 10px;
+      right: 10px;
+      background: var(--surface);
+      border: 1px solid var(--line-strong);
+      border-radius: 14px;
+      box-shadow: var(--shadow-lg);
+      padding: 6px;
+      z-index: 1000;
+      backdrop-filter: blur(16px);
+      animation: popoverFadeIn 0.15s ease-out;
+    }
+
+    @keyframes popoverFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .popover-user-summary {
+      padding: 8px 10px;
+      font-size: 11.5px;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    .popover-divider {
+      height: 1px;
+      background: var(--line);
+      margin: 4px 0;
+    }
+
+    .popover-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 12px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--fg);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.12s ease;
+    }
+
+    .popover-item:hover {
+      background: var(--surface-hover);
+      color: var(--fg-heading);
+    }
+
+    .popover-item svg {
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .popover-item:hover svg {
+      color: var(--fg-heading);
+    }
+
+    .popover-item.danger {
+      color: var(--err);
+    }
+
+    .popover-item.danger:hover {
+      background: var(--err-bg);
+      color: var(--err);
+    }
+
+    .popover-item.danger svg {
+      color: var(--err);
+    }
+
+  
+
   </style>
 </head>
 
@@ -4229,7 +4460,7 @@
         <input id="su-name" type="text" autocomplete="username" placeholder="Identifiant unique (3 à 30 caractères)" aria-label="Identifiant" required>
         <input id="su-pass" type="password" autocomplete="new-password" placeholder="Mot de passe (6 caractères min.)" aria-label="Mot de passe" required>
         <div class="form-err" id="su1-err"></div>
-        <button class="dialog-btn" type="submit">Continuer</button>
+        <button class="dialog-btn" type="submit">Créer mon compte</button>
 
         <div class="auth-switch-prompt">
           <span>Vous avez déjà un compte ?</span>
@@ -4238,25 +4469,7 @@
       </form>
 
       <!-- Inscription étape 2 (Optionnel) -->
-      <form class="gate-form" id="gsf2" hidden>
-        <span class="label-mini">Clé API Gemini (Optionnel · Illimité si renseignée, ou 30 req/j offertes)</span>
-        <input id="su-key" type="password" autocomplete="off" placeholder="AIzaSy… (optionnel)" aria-label="Clé d'activation API">
-        <span class="label-mini">Centres d'intérêt (optionnel)</span>
-        <div class="gate-chips" id="int-chips">
-          <button type="button" class="gchip">Technologie</button>
-          <button type="button" class="gchip">Science</button>
-          <button type="button" class="gchip">Business</button>
-          <button type="button" class="gchip">Cuisine</button>
-          <button type="button" class="gchip">Sport</button>
-          <button type="button" class="gchip">Musique</button>
-          <button type="button" class="gchip">Jeux vidéo</button>
-          <button type="button" class="gchip">Voyage</button>
-        </div>
-        <input id="su-int" type="text" placeholder="Autres (séparés par virgules)" aria-label="Autres centres d'intérêt">
-        <div class="form-err" id="su2-err"></div>
-        <button class="dialog-btn" type="submit">Créer mon compte gratuit</button>
-        <button class="dialog-btn secondary" type="button" id="su-back">← Retour</button>
-      </form>
+      
 
       <!-- Mode Découverte / Test -->
       <div class="gate-guest-zone" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);text-align:center">
@@ -4265,7 +4478,7 @@
             <circle cx="12" cy="12" r="10" />
             <polygon points="10 8 16 12 10 16 10 8" />
           </svg>
-          <span>Tester sans compte (Mode Découverte · 20 req/j)</span>
+          <span>Continuer en tant qu'invité</span>
         </button>
         <div class="guest-actions-sub">
           <span>Accès immédiat sans mot de passe · 20 questions + 3 images offertes par jour</span>
@@ -4319,65 +4532,101 @@
     <div class="sidebar-head">
       <div class="sidebar-brand"><span id="logo"></span>MEL-IA<span class="logo-dot">.</span></div>
       <div class="sidebar-actions">
-        <button class="icon-btn" id="new-chat" title="Nouvelle conversation" aria-label="Nouvelle conversation"><svg
-            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-            aria-hidden="true">
-            <path d="M12 5v14" />
-            <path d="M5 12h14" />
-          </svg></button>
+        <button class="icon-btn" id="sidebar-collapse-btn" title="Réduire la barre latérale" aria-label="Réduire la barre latérale">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+            <line x1="9" y1="3" x2="9" y2="21"/>
+            <path d="m14 15-3-3 3-3"/>
+          </svg>
+        </button>
       </div>
     </div>
-    <div class="sidebar-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-        stroke-linejoin="round" aria-hidden="true">
+
+    <!-- Navigation Principale -->
+    <div class="sidebar-primary-nav">
+      <button type="button" class="sidebar-nav-item active" id="btn-nav-new-chat">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        <span>Nouveau chat</span>
+      </button>
+      <button type="button" class="sidebar-nav-item" id="btn-nav-search">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span>Rechercher</span>
+      </button>
+      <button type="button" class="sidebar-nav-item" id="btn-nav-library">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+        <span>Bibliothèque</span>
+      </button>
+      <button type="button" class="sidebar-nav-item" id="btn-nav-projects">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span>Projets</span>
+      </button>
+    </div>
+
+    <div class="sidebar-search-box" id="sidebar-search-container" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
-      <input type="text" id="session-search" placeholder="Rechercher une discussion…"
-        aria-label="Rechercher une discussion">
+      <input type="text" id="session-search" placeholder="Rechercher dans les discussions…" aria-label="Rechercher une discussion">
       <button type="button" id="session-search-clear" style="display:none" aria-label="Effacer recherche">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>
       </button>
     </div>
+
+    <!-- Discussions Récentes -->
+    <div class="sidebar-section-title">Récents</div>
     <div class="session-list" id="sessions"></div>
+
+    <!-- Partie Inférieure : Carte Utilisateur & Menu Contextuel Déroulant -->
     <div class="sidebar-bottom">
-      <div id="user-chip" style="display:none">
-        <div class="chip-user">
-          <span class="u-avatar" id="u-avatar">M</span>
-          <span class="u-name" id="u-name">—</span>
-          <button class="icon-btn" id="logout" title="Se déconnecter" aria-label="Se déconnecter"
-            style="width:30px;height:30px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <path d="m16 17 5-5-5-5" />
-              <path d="M21 12H9" />
-            </svg></button>
+      <div class="user-account-bar" id="user-account-bar" role="button" tabindex="0" title="Options du compte">
+        <div class="user-info-cluster">
+          <span class="u-avatar" id="u-avatar">I</span>
+          <div class="u-meta">
+            <span class="u-name" id="u-name">Invité</span>
+            <span class="u-status" id="u-status">Accès immédiat</span>
+          </div>
+        </div>
+        <div class="u-more-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
         </div>
       </div>
-      <button class="sidebar-btn" id="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="8" r="4" />
-          <path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5" />
-        </svg>Mon compte</button>
-      <button class="sidebar-btn" id="settings"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>Paramètres</button>
-      <button class="sidebar-btn" id="mem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z" />
-        </svg>Mémoire</button>
-      <button class="sidebar-btn danger" id="clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 7h16" />
-          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-          <path d="M6.5 7l.8 12a2 2 0 0 0 2 1.8h5.4a2 2 0 0 0 2-1.8l.8-12" />
-        </svg>Tout effacer</button>
+
+      <!-- Menu Déroulant Élégant Style ChatGPT / Claude -->
+      <div class="account-menu-popover" id="account-menu-popover" hidden>
+        <div class="popover-user-summary">
+          <span class="popover-email" id="popover-email">Non connecté</span>
+        </div>
+        <div class="popover-divider"></div>
+        <button type="button" class="popover-item" id="pop-profil">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          <span>Mon Profil</span>
+        </button>
+        <button type="button" class="popover-item" id="pop-custom">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 15-6-6-6 6"/></svg>
+          <span>Personnalisation</span>
+        </button>
+        <button type="button" class="popover-item" id="pop-mem">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>
+          <span>Mémoire</span>
+        </button>
+        <button type="button" class="popover-item" id="pop-settings">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Paramètres</span>
+        </button>
+        <button type="button" class="popover-item" id="pop-plan">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>Offres & Utilisation</span>
+        </button>
+        <div class="popover-divider"></div>
+        <button type="button" class="popover-item danger" id="pop-auth-action">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span id="pop-auth-text">Se connecter ou créer un compte</span>
+        </button>
+      </div>
     </div>
   </aside>
 
@@ -4397,15 +4646,12 @@
           <span class="header-title" id="header-title">MEL-IA</span>
         </div>
       </div>
-      <div class="header-tools" style="display:flex;align-items:center;gap:10px">
-        <div class="quota-pill" id="quota-pill" title="Quota quotidien d'utilisation">
-          <span class="quota-dot"></span>
-          <span id="quota-pill-text">Mode Test : 20/20</span>
-        </div>
-        <button class="icon-btn" id="header-theme-toggle" title="Changer de thème (Clair / Sombre)"
-          style="width:34px;height:34px">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
+      <div class="header-tools" style="display:flex;align-items:center;gap:8px">
+        <button class="icon-btn" id="header-new-chat" title="Nouvelle discussion" aria-label="Nouvelle discussion" style="width:34px;height:34px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        </button>
+        <button class="icon-btn" id="header-theme-toggle" title="Changer de thème (Clair / Sombre)" style="width:34px;height:34px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5" />
             <line x1="12" y1="1" x2="12" y2="3" />
             <line x1="12" y1="21" x2="12" y2="23" />
@@ -4419,7 +4665,57 @@
     </header>
 
     <main id="list">
-      <div class="col" id="msgs"></div>
+      <div class="col" id="msgs">
+        <div class="welcome-container" id="welcome-view">
+          <div class="welcome-hero">
+            <div class="welcome-emblem-wrap" id="welcome-emblem"><svg viewBox="0 0 256 256" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo MEL-IA 2.0"><defs><filter id="sh-welcome" x="-20%" y="-20%" width="150%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.35" /></filter><linearGradient id="st-welcome" x1="160" y1="40" x2="310" y2="280" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FFFFFF" /><stop offset="30%" stop-color="#E2E8F0" /><stop offset="68%" stop-color="#94A3B8" /><stop offset="100%" stop-color="#475569" /></linearGradient><linearGradient id="sb-welcome" x1="150" y1="360" x2="320" y2="430" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F8FAFC" /><stop offset="45%" stop-color="#CBD5E1" /><stop offset="100%" stop-color="#64748B" /></linearGradient><linearGradient id="sr-welcome" x1="330" y1="170" x2="415" y2="420" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F1F5F9" /><stop offset="50%" stop-color="#94A3B8" /><stop offset="100%" stop-color="#475569" /></linearGradient><linearGradient id="tw1-welcome" x1="110" y1="160" x2="230" y2="390" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#22D3EE" /><stop offset="40%" stop-color="#0D9488" /><stop offset="100%" stop-color="#044E54" /></linearGradient><linearGradient id="tw2-welcome" x1="90" y1="260" x2="310" y2="380" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#06B6D4" /><stop offset="55%" stop-color="#0F766E" /><stop offset="100%" stop-color="#023E42" /></linearGradient><linearGradient id="rc-welcome" x1="340" y1="170" x2="300" y2="420" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#67E8F9" /><stop offset="70%" stop-color="#06B6D4" /><stop offset="100%" stop-color="#0891B2" /></linearGradient></defs><g transform="translate(128, 128) scale(0.52) translate(-256, -256)" filter="url(#sh-welcome)"><path d="M 84 262 C 86 312, 136 376, 218 395 C 265 405, 305 385, 318 376 C 248 372, 185 334, 150 286 C 122 248, 106 200, 112 152 C 90 200, 82 232, 84 262 Z" fill="url(#tw2-welcome)" /><path d="M 112 150 C 96 215, 120 288, 172 328 C 220 365, 276 355, 312 338 C 240 338, 182 292, 162 234 C 146 188, 158 136, 178 94 C 138 106, 118 126, 112 150 Z" fill="url(#tw1-welcome)" /><path d="M 144 384 C 196 424, 268 428, 314 416 C 352 406, 386 374, 404 336 C 362 382, 296 408, 232 400 C 188 394, 158 376, 144 384 Z" fill="url(#sb-welcome)" /><path d="M 256 42 C 172 44, 130 92, 130 160 C 130 236, 194 286, 268 284 C 304 283, 310 262, 292 258 C 238 246, 184 204, 184 146 C 184 96, 222 62, 276 62 C 316 62, 338 84, 344 112 C 342 78, 314 44, 256 42 Z" fill="url(#st-welcome)" /><path d="M 334 162 C 352 232, 350 334, 300 422 C 374 382, 412 306, 412 242 C 412 178, 384 136, 334 162 Z" fill="url(#sr-welcome)" /><path d="M 336 172 C 350 238, 348 334, 302 420" stroke="url(#rc-welcome)" stroke-width="4.5" stroke-linecap="round" fill="none" opacity="0.95" /></g></svg></div>
+            <h1 class="welcome-title">Bonjour, <span class="welcome-name" id="welcome-user-name">Mel</span></h1>
+            <p class="welcome-sub">Comment puis-je vous aider aujourd'hui ?</p>
+          </div>
+
+          <div class="welcome-suggestions">
+            <button type="button" class="suggestion-tile" data-prompt="Explique-moi un concept complexe de manière simple, imagée et pédagogique.">
+              <div class="tile-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="tile-text">
+                <span class="tile-title">Expliquer un concept</span>
+                <span class="tile-desc">Synthèse claire, analogies et vulgarisation accessible</span>
+              </div>
+            </button>
+
+            <button type="button" class="suggestion-tile" data-prompt="Aide-moi à organiser et enrichir mes idées pour structurer un projet ou une réflexion.">
+              <div class="tile-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
+              </div>
+              <div class="tile-text">
+                <span class="tile-title">Structurer mes idées</span>
+                <span class="tile-desc">Brainstorming, analyse d'options et plan d'action</span>
+              </div>
+            </button>
+
+            <button type="button" class="suggestion-tile" data-prompt="Rédige un message clair, diplomate et percutant adapté à une communication importante.">
+              <div class="tile-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div class="tile-text">
+                <span class="tile-title">Rédiger un message</span>
+                <span class="tile-desc">E-mail, synthèse, proposition ou communication</span>
+              </div>
+            </button>
+
+            <button type="button" class="suggestion-tile" data-prompt="Explore des solutions innovantes et des perspectives originales pour aborder une question délicate.">
+              <div class="tile-icon-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <div class="tile-text">
+                <span class="tile-title">Perspectives créatives</span>
+                <span class="tile-desc">Solutions inédites, angles morts et visions comparées</span>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <div class="input-area">
@@ -4582,184 +4878,192 @@
   <!-- Paramètres Modal Redessinée & Épurée -->
   <dialog id="setd" class="modal-settings-redesign">
     <div class="set-header-bar">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="set-icon-glow"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
-            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="set-icon-glow">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg></div>
+          </svg>
+        </div>
         <div>
-          <h2 style="margin:0;font-size:18px;font-weight:700">Paramètres & Quotas</h2>
-          <span style="font-size:12px;color:var(--muted)">Gestion de vos accès, limites et personnalisation</span>
+          <h2 style="margin:0;font-size:18px;font-weight:700">Paramètres & Préférences</h2>
+          <span style="font-size:12px;color:var(--muted)">Contrôlez votre expérience, vos modèles et votre compte</span>
         </div>
       </div>
-      <button type="button" class="icon-btn" id="set-close-x" style="width:34px;height:34px;border-radius:10px"
-        aria-label="Fermer">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
+      <button type="button" class="icon-btn" id="set-close-x" style="width:34px;height:34px;border-radius:10px" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
       </button>
     </div>
 
-    <!-- Carte Résumé Quotas Quotidiens -->
-    <div class="quota-card-box" id="set-quota-card">
-      <div class="qc-top">
-        <div class="qc-badge" id="qc-mode-badge"><span class="qc-dot"></span><span id="qc-mode-title">Mode Test
-            (Invité)</span></div>
-        <span class="qc-reset-info">Réinitialisation quotidienne à 00:00 UTC</span>
-      </div>
-      <div class="qc-metrics">
-        <div class="qc-metric">
-          <span class="qcm-label">Questions restantes aujourd\'hui</span>
-          <div class="qcm-val" id="qc-questions-val">20 / 20</div>
-          <div class="qcm-bar-wrap">
-            <div class="qcm-bar" id="qc-questions-bar" style="width:100%"></div>
-          </div>
-        </div>
-        <div class="qc-metric">
-          <span class="qcm-label">Générations d\'images</span>
-          <div class="qcm-val" id="qc-images-val">3 / 3</div>
-          <div class="qcm-bar-wrap">
-            <div class="qcm-bar" id="qc-images-bar" style="width:100%"></div>
-          </div>
-        </div>
-      </div>
-      <div class="qc-footer" id="qc-upgrade-hint">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-        <span>Connectez-vous pour obtenir <strong>30 questions</strong> ou ajoutez votre propre clé Gemini pour un
-          <strong>accès Illimité</strong>.</span>
-      </div>
-    </div>
-
-    <!-- Onglets Segmentés -->
+    <!-- Navigation par Onglets -->
     <div class="tabs set-nav" role="tablist">
-      <button type="button" class="tab on" id="set-tab-keys" data-sec="sec-keys">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="7.5" cy="15.5" r="5.5" />
-          <path d="m11.5 11.5 8.5-8.5a2.12 2.12 0 0 1 3 3l-8.5 8.5" />
-          <path d="m15.5 4.5 3 3" />
-          <path d="m18.5 7.5 2 2" />
-        </svg>
-        Clé API Personnelle
-      </button>
-      <button type="button" class="tab" id="set-tab-persona" data-sec="sec-persona">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <line x1="4" y1="21" x2="4" y2="14" />
-          <line x1="4" y1="10" x2="4" y2="3" />
-          <line x1="12" y1="21" x2="12" y2="12" />
-          <line x1="12" y1="8" x2="12" y2="3" />
-          <line x1="20" y1="21" x2="20" y2="16" />
-          <line x1="20" y1="12" x2="20" y2="3" />
-          <line x1="1" y1="14" x2="7" y2="14" />
-          <line x1="9" y1="8" x2="15" y2="8" />
-          <line x1="17" y1="16" x2="23" y2="16" />
-        </svg>
-        Personnalisation
-      </button>
-      <button type="button" class="tab" id="set-tab-look" data-sec="sec-look">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 3a9 9 0 0 0 0 18V3z" fill="currentColor" fill-opacity="0.3" />
-        </svg>
-        Apparence
-      </button>
-      <button type="button" class="tab" id="set-tab-security" data-sec="sec-security">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <path d="m9 12 2 2 4-4" />
-        </svg>
-        Sécurité
-      </button>
+      <button type="button" class="tab on" id="set-tab-general" data-sec="sec-general">Général</button>
+      <button type="button" class="tab" id="set-tab-look" data-sec="sec-look">Apparence</button>
+      <button type="button" class="tab" id="set-tab-persona" data-sec="sec-persona">Personnalisation</button>
+      <button type="button" class="tab" id="set-tab-memory" data-sec="sec-memory">Mémoire</button>
+      <button type="button" class="tab" id="set-tab-quotas" data-sec="sec-quotas">Quotas</button>
+      <button type="button" class="tab" id="set-tab-keys" data-sec="sec-keys">Modèles & Clés API</button>
+      <button type="button" class="tab" id="set-tab-security" data-sec="sec-security">Compte</button>
     </div>
 
-    <!-- Section 1 : Clés & Accès Illimité -->
-    <div class="set-sec" id="sec-keys">
+    <!-- Section 1 : Général -->
+    <div class="set-sec" id="sec-general">
       <div class="set-card-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span class="label-mini" style="margin:0">Votre clé Google Gemini privée</span>
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="scp-link">Obtenir une
-            clé gratuite ↗</a>
-        </div>
-        <p class="settings-note" style="margin:0 0 12px">En ajoutant votre propre clé API Gemini, votre accès devient
-          <strong>100% illimité</strong> sans restriction de quota.</p>
-        <div id="key-list"></div>
-        <div class="key-add">
-          <input id="key-input" type="password" placeholder="Collez votre clé API (AIzaSy…)"
-            aria-label="Nouvelle clé API">
-          <button class="dialog-btn" id="key-add-btn" type="button">Enregistrer</button>
-        </div>
+        <span class="label-mini" style="margin-top:0">Langue principale</span>
+        <select id="set-lang-select" class="persona" style="height:40px;padding:8px 12px;margin-bottom:14px">
+          <option value="fr" selected>Français (par défaut)</option>
+          <option value="en">English</option>
+        </select>
+
+        <span class="label-mini">Nom d'affichage</span>
+        <input id="set-user-call-name" type="text" placeholder="Comment MEL-IA doit vous appeler (ex: Mel, Alex, Dr. Martin…)">
+        <p class="settings-note">Ce nom est utilisé pour personnaliser l'accueil et les échanges.</p>
       </div>
     </div>
 
-    <!-- Section 2 : Personnalisation -->
-    <div class="set-sec" id="sec-persona" style="display:none">
-      <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Instructions personnalisées (Comportement)</span>
-        <textarea class="persona" id="persona-in" rows="4"
-          placeholder="Ex : réponds toujours en français, sois rigoureux, fournis du code complet et structuré…"></textarea>
-        <span class="label-mini" style="margin-top:14px">Centres d'intérêt & sujets d'études</span>
-        <input id="int-in" type="text"
-          placeholder="Ex : Programmation, Design UI/UX, Python, Intelligence Artificielle…">
-        <p class="settings-note">Ces informations permettent à MEL-IA d'adapter ses explications à votre profil.</p>
-      </div>
-    </div>
-
-    <!-- Section 3 : Apparence & Thème -->
+    <!-- Section 2 : Apparence -->
     <div class="set-sec" id="sec-look" style="display:none">
       <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Thème de l'interface</span>
+        <span class="label-mini" style="margin-top:0">Thème visuel</span>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
-          <button type="button" class="dialog-btn secondary" id="theme-btn-dark"
-            style="margin:0;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
+          <button type="button" class="dialog-btn secondary" id="theme-btn-dark" style="margin:0;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
             <span>Mode Sombre</span>
           </button>
-          <button type="button" class="dialog-btn secondary" id="theme-btn-light"
-            style="margin:0;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="5" />
-              <line x1="12" y1="1" x2="12" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="23" />
-            </svg>
+          <button type="button" class="dialog-btn secondary" id="theme-btn-light" style="margin:0;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /></svg>
             <span>Mode Clair</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Section 4 : Sécurité & Compte -->
-    <div class="set-sec" id="sec-security" style="display:none">
+    <!-- Section 3 : Personnalisation (Instructions Personnalisées) -->
+    <div class="set-sec" id="sec-persona" style="display:none">
       <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Modifier votre mot de passe</span>
-        <div class="pwd-box">
-          <input id="pwd-curr" type="password" placeholder="Mot de passe actuel" autocomplete="current-password">
-          <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (6 car. min)"
-            autocomplete="new-password">
-          <input id="pwd-conf" type="password" placeholder="Confirmer le nouveau mot de passe"
-            autocomplete="new-password">
-          <button class="dialog-btn secondary" id="btn-change-pwd" type="button"
-            style="margin-top:4px;width:100%">Changer mon mot de passe</button>
-          <div id="pwd-msg" style="font-size:12.5px;margin-top:6px;display:none;padding:8px 12px;border-radius:8px">
+        <span class="label-mini" style="margin-top:0">Instructions personnalisées</span>
+        <textarea class="persona" id="persona-in" rows="4" placeholder="Que souhaitez-vous que MEL-IA sache sur vous ou prenne en compte dans toutes ses réponses ? (contexte, préférences, objectifs…)"></textarea>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
+          <div>
+            <span class="label-mini">Ton de communication</span>
+            <select id="persona-tone-select" class="persona" style="height:40px;padding:8px 12px">
+              <option value="naturel" selected>Naturel & bienveillant</option>
+              <option value="professionnel">Professionnel & rigoureux</option>
+              <option value="direct">Direct & concis</option>
+              <option value="academique">Académique & approfondi</option>
+            </select>
           </div>
+          <div>
+            <span class="label-mini">Style des réponses</span>
+            <select id="persona-style-select" class="persona" style="height:40px;padding:8px 12px">
+              <option value="equilibre" selected>Équilibré</option>
+              <option value="concis">Concis & synthétique</option>
+              <option value="detaille">Détaillé & exhaustif</option>
+            </select>
+          </div>
+        </div>
+        <p class="settings-note" style="margin-top:12px">Ces préférences orientent les réponses de MEL-IA tout au long de vos conversations.</p>
+      </div>
+    </div>
+
+    <!-- Section 4 : Mémoire -->
+    <div class="set-sec" id="sec-memory" style="display:none">
+      <div class="set-card-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <span style="font-weight:600;font-size:14px">Activer la mémoire</span>
+            <div style="font-size:12px;color:var(--muted)">Permet à MEL-IA de retenir les faits importants au fil des échanges</div>
+          </div>
+          <input type="checkbox" id="memory-toggle-chk" checked style="width:20px;height:20px;accent-color:var(--a1);cursor:pointer">
+        </div>
+        <div class="popover-divider" style="margin:12px 0"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span class="label-mini" style="margin:0">Souvenirs enregistrés</span>
+          <button type="button" class="auth-link" id="btn-clear-all-mem" style="font-size:12px;color:var(--err)">Tout effacer</button>
+        </div>
+        <div id="memory-facts-list" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
+          <div style="color:var(--muted);font-size:13px;padding:12px 0;text-align:center">Chargement des souvenirs…</div>
         </div>
       </div>
     </div>
 
-    <div style="margin-top:20px;display:flex;gap:10px">
-      <button class="dialog-btn" id="set-save" type="button" style="flex:1">Enregistrer</button>
-      <button class="dialog-btn secondary" id="set-close" type="button" style="flex:1;margin-top:0">Fermer</button>
+    <!-- Section 5 : Quotas & Utilisation -->
+    <div class="set-sec" id="sec-quotas" style="display:none">
+      <div class="set-card-panel">
+        <div class="qc-metrics" style="margin:0">
+          <div class="qc-metric">
+            <span class="qcm-label">Questions restantes aujourd'hui</span>
+            <div class="qcm-val" id="qc-questions-val">-- / --</div>
+            <div class="qcm-bar-wrap">
+              <div class="qcm-bar" id="qc-questions-bar" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="qc-metric">
+            <span class="qcm-label">Générations d'images restantes</span>
+            <div class="qcm-val" id="qc-images-val">-- / --</div>
+            <div class="qcm-bar-wrap">
+              <div class="qcm-bar" id="qc-images-bar" style="width:100%"></div>
+            </div>
+          </div>
+        </div>
+        <p class="settings-note" style="margin-top:14px">Les quotas se réinitialisent chaque jour à 00:00 UTC. L'ajout d'une clé API Gemini personnelle permet d'utiliser vos propres capacités Google AI Studio.</p>
+      </div>
+    </div>
+
+    <!-- Section 6 : Modèles & Clés API -->
+    <div class="set-sec" id="sec-keys" style="display:none">
+      <div class="set-card-panel">
+        <span class="label-mini" style="margin-top:0">Modèle de langage</span>
+        <select id="model-pref-select" class="persona" style="height:40px;padding:8px 12px;margin-bottom:14px">
+          <option value="auto" selected>Gemini 2.5 Flash (Rapide & Polyvalent - Recommandé)</option>
+          <option value="gemini-2.5-pro">Gemini 2.5 Pro (Raisonnement Complexe & Rigueur)</option>
+        </select>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span class="label-mini" style="margin:0">Clé API Google Gemini</span>
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="scp-link">Google AI Studio ↗</a>
+        </div>
+        <p class="settings-note" style="margin:0 0 10px">Enregistrez votre clé personnelle pour interroger les serveurs Google avec vos propres limites d'utilisation.</p>
+        
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="key-input" type="password" placeholder="AIzaSy…" aria-label="Clé API Gemini" style="flex:1">
+          <button type="button" class="dialog-btn secondary" id="btn-toggle-key-visibility" style="padding:0 12px;margin:0" title="Afficher/Masquer">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+
+        <div id="key-test-feedback" style="display:none;font-size:12.5px;padding:8px 12px;border-radius:8px;margin-bottom:10px"></div>
+
+        <div style="display:flex;gap:8px">
+          <button class="dialog-btn secondary" id="btn-test-key-live" type="button" style="flex:1;margin:0">⚡ Tester la connexion</button>
+          <button class="dialog-btn" id="key-add-btn" type="button" style="flex:1;margin:0">Enregistrer</button>
+          <button class="dialog-btn secondary" id="btn-remove-key" type="button" style="padding:0 14px;margin:0;color:var(--err)" title="Supprimer la clé">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 7 : Sécurité & Compte -->
+    <div class="set-sec" id="sec-security" style="display:none">
+      <div class="set-card-panel">
+        <span class="label-mini" style="margin-top:0">Modifier le mot de passe</span>
+        <div class="pwd-box">
+          <input id="pwd-curr" type="password" placeholder="Mot de passe actuel" autocomplete="current-password">
+          <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (6 car. min)" autocomplete="new-password">
+          <input id="pwd-conf" type="password" placeholder="Confirmer le nouveau mot de passe" autocomplete="new-password">
+          <button class="dialog-btn secondary" id="btn-change-pwd" type="button" style="margin-top:6px;width:100%">Mettre à jour le mot de passe</button>
+          <div id="pwd-msg" style="font-size:12.5px;margin-top:6px;display:none;padding:8px 12px;border-radius:8px"></div>
+        </div>
+
+        <div class="popover-divider" style="margin:16px 0"></div>
+        <span class="label-mini">Exportation des données</span>
+        <button class="dialog-btn secondary" id="btn-export-data" type="button" style="width:100%;margin:0">Télécharger mes conversations (.JSON)</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <button class="dialog-btn" id="set-save" type="button" style="flex:1;margin:0">Enregistrer les modifications</button>
+      <button class="dialog-btn secondary" id="set-close" type="button" style="flex:1;margin:0">Fermer</button>
     </div>
   </dialog>
 
@@ -4775,6 +5079,8 @@
 
   <script src="/static/atom.js"></script>
   <script>
+
+    
     mountAtom('logo', 28);
 
     var $ = function (id) { return document.getElementById(id); };
@@ -6218,7 +6524,7 @@
               var it = codeStore[cid];
               var raw = it ? it.code : (box.querySelector('code') ? box.querySelector('code').textContent : '');
               if (!/<html/i.test(raw) && !/<svg/i.test(raw)) {
-                raw = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#fff;line-height:1.5}</style></head><body>' + raw + '</body></html>';
+                raw = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;padding:16px;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;color:#1e293b;background:#fff;line-height:1.5}</style>.popover-item.danger:hover {background: var(--err-bg);color: var(--err);}.popover-item.danger svg {color: var(--err);}</style></head><body>' + raw + '</body></html>';
               }
               frame.srcdoc = raw;
             }
@@ -6321,80 +6627,56 @@
 
 
     function showEmpty() {
-      var greetingName = owner ? esc(owner) : 'Mel';
-      $('msgs').innerHTML =
-        '<div class="welcome-container">' +
-        '  <div class="welcome-hero">' +
-        '    <div class="welcome-emblem-wrap" id="welcome-emblem"></div>' +
-        '    <h1 class="welcome-title">Bonjour, <span class="welcome-name">' + greetingName + '</span></h1>' +
-        '    <p class="welcome-sub">Comment puis-je vous aider aujourd\'hui ?</p>' +
-        '  </div>' +
-
-        '  <div class="welcome-suggestions">' +
-        '    <button type="button" class="suggestion-tile" data-prompt="Rédige une synthèse stratégique claire et percutante pour structurer un projet d\'envergure.">' +
-        '      <div class="tile-icon-box">' +
-        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
-        '      </div>' +
-        '      <div class="tile-text">' +
-        '        <span class="tile-title">Rédiger & Synthétiser</span>' +
-        '        <span class="tile-desc">Plan d\'action, synthèse exécutive ou document</span>' +
-        '      </div>' +
-        '    </button>' +
-
-        '    <button type="button" class="suggestion-tile" data-prompt="Conçois une architecture logicielle propre et modulaire avec structure de code, API RESTful et bonnes pratiques.">' +
-        '      <div class="tile-icon-box">' +
-        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>' +
-        '      </div>' +
-        '      <div class="tile-text">' +
-        '        <span class="tile-title">Coder & Concevoir</span>' +
-        '        <span class="tile-desc">Architecture full-stack, refonte ou débogage</span>' +
-        '      </div>' +
-        '    </button>' +
-
-        '    <button type="button" class="suggestion-tile" data-prompt="Génère une illustration cinématique 3D photoréaliste et élégante avec éclairage volumétrique et atmosphère épurée.">' +
-        '      <div class="tile-icon-box">' +
-        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
-        '      </div>' +
-        '      <div class="tile-text">' +
-        '        <span class="tile-title">Créer une Image</span>' +
-        '        <span class="tile-desc">Direction artistique et génération visuelle IA</span>' +
-        '      </div>' +
-        '    </button>' +
-
-        '    <button type="button" class="suggestion-tile" data-prompt="Effectue une recherche approfondie sur les ruptures technologiques récentes en IA et cite les sources vérifiées.">' +
-        '      <div class="tile-icon-box">' +
-        '        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>' +
-        '      </div>' +
-        '      <div class="tile-text">' +
-        '        <span class="tile-title">Recherche Web Directe</span>' +
-        '        <span class="tile-desc">Exploration factuelle avec sources sourcées</span>' +
-        '      </div>' +
-        '    </button>' +
-        '  </div>' +
-        '</div>';
-
-      mountAtom('welcome-emblem', 48);
-
-      var tiles = $('msgs').querySelectorAll('.suggestion-tile');
-      tiles.forEach(function (tile) {
-        tile.addEventListener('click', function () {
-          var p = tile.getAttribute('data-prompt');
-          var input = $('in');
-          input.value = p;
-          input.style.height = 'auto';
-          input.style.height = Math.min(input.scrollHeight, 180) + 'px';
-          input.focus();
-        });
+      var greetingName = (window.currentUser && window.currentUser.user_call_name) || (window.currentUser && window.currentUser.username) || (owner ? esc(owner) : 'Mel');
+      var msgs = $('msgs');
+      if (!msgs) return;
+      var existingWelcome = msgs.querySelector('#welcome-view, .welcome-container');
+      if (existingWelcome) {
+        var nameEl = msgs.querySelector('#welcome-user-name, .welcome-name');
+        if (nameEl) nameEl.textContent = greetingName;
+      } else {
+        var atomHtml = (typeof atom === 'function') ? atom(48) : '';
+        msgs.innerHTML =
+          '<div class="welcome-container" id="welcome-view">' +
+          '  <div class="welcome-hero">' +
+          '    <div class="welcome-emblem-wrap" id="welcome-emblem">' + atomHtml + '</div>' +
+          '    <h1 class="welcome-title">Bonjour, <span class="welcome-name" id="welcome-user-name">' + esc(greetingName) + '</span></h1>' +
+          '    <p class="welcome-sub">Comment puis-je vous aider aujourd\'hui ?</p>' +
+          '  </div>' +
+          '  <div class="welcome-suggestions">' +
+          '    <button type="button" class="suggestion-tile" data-prompt="Explique-moi un concept complexe de mani\u00e8re simple, imag\u00e9e et p\u00e9dagogique.">' +
+          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>' +
+          '      <div class="tile-text"><span class="tile-title">Expliquer un concept</span><span class="tile-desc">Synth\u00e8se claire, analogies et vulgarisation accessible</span></div>' +
+          '    </button>' +
+          '    <button type="button" class="suggestion-tile" data-prompt="Aide-moi \u00e0 organiser et enrichir mes id\u00e9es pour structurer un projet ou une r\u00e9flexion.">' +
+          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg></div>' +
+          '      <div class="tile-text"><span class="tile-title">Structurer mes id\u00e9es</span><span class="tile-desc">Brainstorming, analyse d\'options et plan d\'action</span></div>' +
+          '    </button>' +
+          '    <button type="button" class="suggestion-tile" data-prompt="R\u00e9dige un message clair, diplomate et percutant adapt\u00e9 \u00e0 une communication importante.">' +
+          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>' +
+          '      <div class="tile-text"><span class="tile-title">R\u00e9diger un message</span><span class="tile-desc">E-mail, synth\u00e8se, proposition ou communication</span></div>' +
+          '    </button>' +
+          '    <button type="button" class="suggestion-tile" data-prompt="Explore des solutions innovantes et des perspectives originales pour aborder une question d\u00e9licate.">' +
+          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>' +
+          '      <div class="tile-text"><span class="tile-title">Perspectives cr\u00e9atives</span><span class="tile-desc">Solutions in\u00e9dites, angles morts et visions compar\u00e9es</span></div>' +
+          '    </button>' +
+          '  </div>' +
+          '</div>';
+      }
+      if (typeof mountAtom === 'function' && !msgs.querySelector('#welcome-emblem svg')) {
+        mountAtom('welcome-emblem', 48);
+      }
+      document.querySelectorAll('.suggestion-tile').forEach(function (tile) {
+        tile.onclick = function () {
+          var p = this.getAttribute('data-prompt');
+          if (p && $('in')) {
+            $('in').value = p;
+            $('in').focus();
+            if (window.autoResizeInput) window.autoResizeInput();
+          }
+        };
       });
     }
-
-    // Affichage immédiat dès le chargement
-    showEmpty();
-
-    // ---- Sessions ----
-    // ---- Sessions avec Recherche et Groupement Temporel ----
-    var allLoadedSessions = [];
-    var sessionFilterText = '';
 
     function renderGroupedSessions(sessions, filter) {
       var sList = sessions || [];
@@ -6513,7 +6795,7 @@
     }
 
     if ($('session-search')) {
-      $('session-search').addEventListener('input', function () {
+      if ($('session-search')) $('session-search').addEventListener('input', function () {
         sessionFilterText = this.value.trim();
         if ($('session-search-clear')) {
           $('session-search-clear').style.display = sessionFilterText ? 'block' : 'none';
@@ -6523,11 +6805,17 @@
     }
 
     if ($('session-search-clear')) {
-      $('session-search-clear').addEventListener('click', function () {
+      if ($('session-search-clear')) $('session-search-clear').addEventListener('click', function () {
         $('session-search').value = '';
         sessionFilterText = '';
         this.style.display = 'none';
         renderGroupedSessions(allLoadedSessions, '');
+      });
+    }
+
+    function newChat() {
+      api('/api/sessions', { method: 'POST' }).then(function (j) {
+        switchSession(j.session_id);
       });
     }
 
@@ -6539,7 +6827,7 @@
       loadSessions();
     }
 
-    $('new-chat').addEventListener('click', function () {
+    if ($('new-chat')) $('new-chat').addEventListener('click', function () {
       api('/api/sessions', { method: 'POST' }).then(function (j) {
         switchSession(j.session_id);
       });
@@ -6547,12 +6835,12 @@
 
     // ---- Chargement des messages ----
     function load() {
-      api('/api/history?session_id=' + currentSession).then(function (j) {
+            api('/api/history?session_id=' + currentSession).then(function (j) {
         owner = j.owner || '';
         $('header-title').textContent = j.name;
         document.title = j.name;
         $('msgs').innerHTML = '';
-        if (!j.messages.length) showEmpty();
+        if (!j.messages.length) { showEmpty(); }
         else j.messages.forEach(function (m) {
           addMsg(m.role, m.content, { media_url: m.media_url, media_kind: m.media_kind, ts: m.ts });
         });
@@ -6653,7 +6941,7 @@
     });
 
     // Menu Trombone
-    $('attach').addEventListener('click', function (e) {
+    if ($('attach')) $('attach').addEventListener('click', function (e) {
       e.preventDefault();
       e.stopPropagation();
       var m = $('attach-menu');
@@ -6679,14 +6967,14 @@
       });
     });
 
-    $('file-img').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
-    $('file-doc').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
-    $('file-code').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
-    $('file-audio').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
-    $('file').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
+    if ($('file-img')) $('file-img').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
+    if ($('file-doc')) $('file-doc').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
+    if ($('file-code')) $('file-code').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
+    if ($('file-audio')) $('file-audio').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
+    if ($('file')) $('file').addEventListener('change', function () { handleChosenFile(this.files && this.files[0]); });
 
     // Import de dossier complet (webkitdirectory)
-    $('file-folder').addEventListener('change', function () {
+    if ($('file-folder')) $('file-folder').addEventListener('change', function () {
       var files = Array.from(this.files || []);
       if (!files.length) return;
       // Filtrer les fichiers texte/code utiles
@@ -6713,17 +7001,17 @@
       });
     });
 
-    $('preview-remove').addEventListener('click', clearFile);
+    if ($('preview-remove')) $('preview-remove').addEventListener('click', clearFile);
 
     // ---- Toggles recherche web et image ----
     var forceSearch = false, forceImage = false;
-    $('tg-search').addEventListener('click', function () {
+    if ($('tg-search')) $('tg-search').addEventListener('click', function () {
       forceSearch = !forceSearch;
       this.classList.toggle('on', forceSearch);
       this.setAttribute('aria-pressed', forceSearch);
       if (forceSearch && forceImage) { forceImage = false; $('tg-image').classList.remove('on'); $('tg-image').setAttribute('aria-pressed', false); }
     });
-    $('tg-image').addEventListener('click', function () {
+    if ($('tg-image')) $('tg-image').addEventListener('click', function () {
       forceImage = !forceImage;
       this.classList.toggle('on', forceImage);
       this.setAttribute('aria-pressed', forceImage);
@@ -6850,11 +7138,11 @@
 
     if (!navigator.mediaDevices || !window.MediaRecorder) $('tg-rec').style.display = 'none';
     else {
-      $('tg-rec').addEventListener('click', startVoiceRecording);
-      $('vrec-done').addEventListener('click', function () {
+      if ($('tg-rec')) $('tg-rec').addEventListener('click', startVoiceRecording);
+      if ($('vrec-done')) $('vrec-done').addEventListener('click', function () {
         if (mediaRec && mediaRec.state === 'recording') mediaRec.stop();
       });
-      $('vrec-cancel').addEventListener('click', function () {
+      if ($('vrec-cancel')) $('vrec-cancel').addEventListener('click', function () {
         if (mediaRec && mediaRec.state === 'recording') {
           mediaChunks = [];
           mediaRec.stop();
@@ -7123,11 +7411,11 @@
       doSendStream(text, null, false);
     }
 
-    $('f').addEventListener('submit', function (e) { e.preventDefault(); send($('in').value); });
-    $('in').addEventListener('keydown', function (e) {
+    if ($('f')) $('f').addEventListener('submit', function (e) { e.preventDefault(); send($('in').value); });
+    if ($('in')) $('in').addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send($('in').value); }
     });
-    $('in').addEventListener('input', function () {
+    if ($('in')) $('in').addEventListener('input', function () {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 150) + 'px';
     });
@@ -7229,39 +7517,41 @@
       if ($('fp2-err')) $('fp2-err').textContent = '';
     }
 
-    $('tab-login').addEventListener('click', function () { setAuthMode('login'); });
-    $('tab-signup').addEventListener('click', function () { setAuthMode('signup'); });
+    if ($('tab-login')) $('tab-login').addEventListener('click', function () { setAuthMode('login'); });
+    if ($('tab-signup')) $('tab-signup').addEventListener('click', function () { setAuthMode('signup'); });
     
     if ($('link-to-signup')) {
-      $('link-to-signup').addEventListener('click', function () { setAuthMode('signup'); });
+      if ($('link-to-signup')) $('link-to-signup').addEventListener('click', function () { setAuthMode('signup'); });
     }
     if ($('link-to-login')) {
-      $('link-to-login').addEventListener('click', function () { setAuthMode('login'); });
+      if ($('link-to-login')) $('link-to-login').addEventListener('click', function () { setAuthMode('login'); });
     }
 
-    $('su-back').addEventListener('click', function () {
+    if ($('su-back')) $('su-back').addEventListener('click', function () {
       $('gsf1').hidden = false;
       $('gsf2').hidden = true;
     });
 
-    function showUserChip(username) {
-      if (username) {
-        $('user-chip').style.display = 'block';
-        $('u-name').textContent = username;
-        $('u-avatar').textContent = username.charAt(0).toUpperCase();
-        $('account').style.display = 'none';
-        if ($('header-login-btn')) $('header-login-btn').style.display = 'none';
-        if ($('header-user-avatar')) {
-          $('header-user-avatar').style.display = 'inline-flex';
-          var span = $('header-user-avatar').querySelector('span');
-          if (span) span.textContent = username.charAt(0).toUpperCase();
-        }
-      } else {
-        $('user-chip').style.display = 'none';
-        $('account').style.display = 'flex';
-        if ($('header-login-btn')) $('header-login-btn').style.display = 'inline-flex';
-        if ($('header-user-avatar')) $('header-user-avatar').style.display = 'none';
-      }
+    function showUserChip(username, userObj) {
+      userObj = userObj || window.currentUser || {};
+      var uName = (userObj && userObj.user_call_name) || username || 'Invité';
+      var uEmail = (userObj && userObj.email) || (username ? 'Compte actif' : 'Accès immédiat');
+      var avatarLetter = (username ? username.charAt(0).toUpperCase() : 'I');
+
+      if ($('u-name')) $('u-name').textContent = uName;
+      if ($('u-status')) $('u-status').textContent = uEmail;
+      if ($('u-avatar')) $('u-avatar').textContent = avatarLetter;
+      if ($('popover-email')) $('popover-email').textContent = (userObj && userObj.email) ? userObj.email : (username ? username : 'Mode invité actif');
+      if ($('pop-auth-text')) $('pop-auth-text').textContent = username ? 'Se déconnecter' : 'Se connecter ou créer un compte';
+
+      // Remplir les champs des paramètres avec les infos utilisateur
+      if (userObj.user_call_name && $('set-user-call-name')) $('set-user-call-name').value = userObj.user_call_name;
+      if (userObj.persona && $('persona-in')) $('persona-in').value = userObj.persona;
+      if (userObj.communication_tone && $('persona-tone-select')) $('persona-tone-select').value = userObj.communication_tone;
+      if (userObj.response_style && $('persona-style-select')) $('persona-style-select').value = userObj.response_style;
+      if (userObj.model_pref && $('model-pref-select')) $('model-pref-select').value = userObj.model_pref;
+      if (typeof userObj.memory_enabled !== 'undefined' && $('memory-toggle-chk')) $('memory-toggle-chk').checked = Boolean(userObj.memory_enabled);
+      if (userObj.api_key && $('key-input')) $('key-input').value = userObj.api_key;
     }
 
     function openGate(mode) {
@@ -7276,16 +7566,17 @@
       token = j.token;
       localStorage.setItem('mel_token', token);
       localStorage.removeItem('mel_guest');
-      showUserChip(j.username);
+      window.currentUser = j;
+      showUserChip(j.username, j);
       currentSession = 'default';
       localStorage.setItem('mel_session', 'default');
       closeGate();
       loadSessions();
       load();
-      updateQuotaUI();
+      if (typeof updateQuotaUI === 'function') updateQuotaUI();
     }
 
-    $('glf').addEventListener('submit', function (e) {
+    if ($('glf')) $('glf').addEventListener('submit', function (e) {
       e.preventDefault();
       $('li-err').textContent = '';
       var loginVal = $('li-name').value.trim();
@@ -7299,7 +7590,7 @@
         .catch(function (err) { $('li-err').textContent = err.message; });
     });
 
-    $('gsf1').addEventListener('submit', function (e) {
+    if ($('gsf1')) $('gsf1').addEventListener('submit', function (e) {
       e.preventDefault();
       var email = $('su-email') ? $('su-email').value.trim() : '';
       var name = $('su-name').value.trim(), pw = $('su-pass').value;
@@ -7319,7 +7610,7 @@
       return picked.concat(extra).join(', ');
     }
 
-    $('gsf2').addEventListener('submit', function (e) {
+    if ($('gsf2')) $('gsf2').addEventListener('submit', function (e) {
       e.preventDefault();
       $('su2-err').textContent = '';
       var key = $('su-key').value.trim();
@@ -7341,7 +7632,7 @@
 
     // ---- Mot de passe oublié (Flux fluide en 2 étapes) ----
     if ($('btn-show-forgot')) {
-      $('btn-show-forgot').addEventListener('click', function () {
+      if ($('btn-show-forgot')) $('btn-show-forgot').addEventListener('click', function () {
         $('glf').hidden = true;
         $('gsf1').hidden = true;
         $('gsf2').hidden = true;
@@ -7354,21 +7645,21 @@
     }
 
     if ($('fp-back')) {
-      $('fp-back').addEventListener('click', function () {
+      if ($('fp-back')) $('fp-back').addEventListener('click', function () {
         if ($('gff')) $('gff').hidden = true;
         $('glf').hidden = false;
       });
     }
 
     if ($('fp-cancel')) {
-      $('fp-cancel').addEventListener('click', function () {
+      if ($('fp-cancel')) $('fp-cancel').addEventListener('click', function () {
         if ($('gff')) $('gff').hidden = true;
         $('glf').hidden = false;
       });
     }
 
     if ($('gff')) {
-      $('gff').addEventListener('submit', function (e) {
+      if ($('gff')) $('gff').addEventListener('submit', function (e) {
         e.preventDefault();
         var val = $('fp-name').value.trim();
         if (!val) return;
@@ -7400,7 +7691,7 @@
     }
 
     if ($('fp-submit-reset')) {
-      $('fp-submit-reset').addEventListener('click', function () {
+      if ($('fp-submit-reset')) $('fp-submit-reset').addEventListener('click', function () {
         var code = $('fp-code').value.trim();
         var newPass = $('fp-newpass').value;
         var errEl = $('fp2-err');
@@ -7481,24 +7772,24 @@
     if ($('btn-google-signup')) $('btn-google-signup').addEventListener('click', triggerGoogleLogin);
 
     if ($('google-dialog-close')) {
-      $('google-dialog-close').addEventListener('click', function () {
+      if ($('google-dialog-close')) $('google-dialog-close').addEventListener('click', function () {
         $('google-config-dialog').close();
       });
     }
     if ($('btn-google-dialog-cancel')) {
-      $('btn-google-dialog-cancel').addEventListener('click', function () {
+      if ($('btn-google-dialog-cancel')) $('btn-google-dialog-cancel').addEventListener('click', function () {
         $('google-config-dialog').close();
       });
     }
     if ($('btn-google-simulate-login')) {
-      $('btn-google-simulate-login').addEventListener('click', function () {
+      if ($('btn-google-simulate-login')) $('btn-google-simulate-login').addEventListener('click', function () {
         handleGoogleAuth('demo', 'mel.test@gmail.com', 'Mel Utilisateur');
       });
     }
 
     // ---- Mode Découverte / Test & Réinitialisation ----
     if ($('btn-guest-reset')) {
-      $('btn-guest-reset').addEventListener('click', function () {
+      if ($('btn-guest-reset')) $('btn-guest-reset').addEventListener('click', function () {
         var gid = getGuestId();
         api('/api/guest/reset', { method: 'POST', headers: { 'X-Guest-Id': gid } }).then(function (res) {
           if (res.guest_id) {
@@ -7516,9 +7807,9 @@
       });
     }
 
-    $('account').addEventListener('click', function () { closeSidebar(); openGate('login'); });
+    if ($('account')) $('account').addEventListener('click', function () { closeSidebar(); openGate('login'); });
 
-    $('logout').addEventListener('click', function () {
+    if ($('logout')) $('logout').addEventListener('click', function () {
       api('/api/auth/logout', { method: 'POST' }).catch(function () { });
       token = '';
       localStorage.removeItem('mel_token');
@@ -7553,7 +7844,7 @@
       }).catch(function () { });
     }
 
-    $('key-add-btn').addEventListener('click', function () {
+    if ($('key-add-btn')) $('key-add-btn').addEventListener('click', function () {
       var v = $('key-input').value.trim();
       if (!v) return;
       api('/api/keys', { method: 'POST', body: JSON.stringify({ label: 'Ma clé', api_key: v }) })
@@ -7561,7 +7852,7 @@
         .catch(function (e) { showToast(e.message, 'error'); });
     });
 
-    $('settings').addEventListener('click', function () {
+    if ($('settings')) $('settings').addEventListener('click', function () {
       closeSidebar();
       loadKeys();
       $('pwd-curr').value = '';
@@ -7577,7 +7868,7 @@
       }).catch(function () { $('setd').showModal(); });
     });
 
-    $('set-save').addEventListener('click', function () {
+    if ($('set-save')) $('set-save').addEventListener('click', function () {
       var payload = { model_pref: $('model-sel').value, persona: $('persona-in').value, interests: $('int-in').value };
       api('/api/auth/profile', { method: 'POST', body: JSON.stringify(payload) })
         .then(function () {
@@ -7587,7 +7878,7 @@
         })
         .catch(function (e) { showToast(e.message, 'error'); });
     });
-    $('set-close').addEventListener('click', function () { $('setd').close(); });
+    if ($('set-close')) $('set-close').addEventListener('click', function () { $('setd').close(); });
     if ($('set-close-x')) $('set-close-x').addEventListener('click', function () { $('setd').close(); });
 
     function switchSettingsTab(tabBtn) {
@@ -7603,20 +7894,20 @@
     });
 
     if ($('theme-btn-dark')) {
-      $('theme-btn-dark').addEventListener('click', function () {
+      if ($('theme-btn-dark')) $('theme-btn-dark').addEventListener('click', function () {
         applyTheme('dark');
         showToast('Mode sombre activé', 'info');
       });
     }
     if ($('theme-btn-light')) {
-      $('theme-btn-light').addEventListener('click', function () {
+      if ($('theme-btn-light')) $('theme-btn-light').addEventListener('click', function () {
         applyTheme('light');
         showToast('Mode clair activé', 'info');
       });
     }
 
     // ---- Modification du mot de passe ----
-    $('btn-change-pwd').addEventListener('click', function () {
+    if ($('btn-change-pwd')) $('btn-change-pwd').addEventListener('click', function () {
       var curr = $('pwd-curr').value;
       var newp = $('pwd-new').value;
       var conf = $('pwd-conf').value;
@@ -7680,7 +7971,7 @@
     });
 
     if ($('btn-export-db')) {
-      $('btn-export-db').addEventListener('click', function () {
+      if ($('btn-export-db')) $('btn-export-db').addEventListener('click', function () {
         api('/api/db/export').then(function (data) {
           var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
           var a = document.createElement('a');
@@ -7692,13 +7983,13 @@
     }
 
     if ($('btn-import-db')) {
-      $('btn-import-db').addEventListener('click', function () {
+      if ($('btn-import-db')) $('btn-import-db').addEventListener('click', function () {
         if ($('file-import-db')) $('file-import-db').click();
       });
     }
 
     if ($('file-import-db')) {
-      $('file-import-db').addEventListener('change', function () {
+      if ($('file-import-db')) $('file-import-db').addEventListener('change', function () {
         var file = this.files && this.files[0];
         if (!file) return;
         var reader = new FileReader();
@@ -7804,7 +8095,7 @@
     }
 
     if ($('quota-pill')) {
-      $('quota-pill').addEventListener('click', function () {
+      if ($('quota-pill')) $('quota-pill').addEventListener('click', function () {
         closeSidebar();
         loadKeys();
         updateQuotaUI();
@@ -7813,11 +8104,11 @@
     }
 
     if ($('header-theme-toggle')) {
-      $('header-theme-toggle').addEventListener('click', toggleTheme);
+      if ($('header-theme-toggle')) $('header-theme-toggle').addEventListener('click', toggleTheme);
     }
 
     if ($('btn-guest-test')) {
-      $('btn-guest-test').addEventListener('click', function () {
+      if ($('btn-guest-test')) $('btn-guest-test').addEventListener('click', function () {
         localStorage.setItem('mel_guest', '1');
         token = '';
         localStorage.removeItem('mel_token');
@@ -7836,9 +8127,10 @@
     initTheme();
     mountAtom('header-logo', 26);
     if ($('theme-toggle')) {
-      $('theme-toggle').addEventListener('click', toggleTheme);
+      if ($('theme-toggle')) $('theme-toggle').addEventListener('click', toggleTheme);
     }
 
+    showEmpty();
     load();
     loadSessions();
 
@@ -7870,6 +8162,295 @@
       showUserChip('Invité (Mode Test)');
       updateQuotaUI();
     }
+  
+    // ==========================================================================
+    // MEL-IA 2.0 — NAVIGATION, COMPTE, PERSONNALISATION, MÉMOIRE & CLÉS API
+    // ==========================================================================
+
+    // 1. Navigation Principale Barre Latérale
+    if ($('btn-nav-new-chat')) {
+      if ($('btn-nav-new-chat')) $('btn-nav-new-chat').addEventListener('click', function () {
+        if (typeof newChat === 'function') newChat();
+      });
+    }
+
+    if ($('header-new-chat')) {
+      if ($('header-new-chat')) $('header-new-chat').addEventListener('click', function () {
+        if (typeof newChat === 'function') newChat();
+      });
+    }
+
+    if ($('btn-nav-search')) {
+      if ($('btn-nav-search')) $('btn-nav-search').addEventListener('click', function () {
+        var sBox = $('sidebar-search-container');
+        if (sBox) {
+          var isHidden = sBox.style.display === 'none';
+          sBox.style.display = isHidden ? 'flex' : 'none';
+          if (isHidden && $('session-search')) $('session-search').focus();
+        }
+      });
+    }
+
+    if ($('btn-nav-library')) {
+      if ($('btn-nav-library')) $('btn-nav-library').addEventListener('click', function () {
+        showToast('Bibliothèque : vos documents et fichiers joints sont synchronisés.', 'info');
+      });
+    }
+
+    if ($('btn-nav-projects')) {
+      if ($('btn-nav-projects')) $('btn-nav-projects').addEventListener('click', function () {
+        showToast('Espaces & Projets : organisez vos contextes de travail.', 'info');
+      });
+    }
+
+    if ($('sidebar-collapse-btn')) {
+      if ($('sidebar-collapse-btn')) $('sidebar-collapse-btn').addEventListener('click', function () {
+        document.body.classList.toggle('sidebar-collapsed');
+      });
+    }
+
+    // 2. Menu Déroulant du Compte (Popover Style ChatGPT)
+    var accountPopover = $('account-menu-popover');
+    var accountBar = $('user-account-bar');
+
+    if (accountBar && accountPopover) {
+      accountBar.addEventListener('click', function (e) {
+        e.stopPropagation();
+        accountPopover.hidden = !accountPopover.hidden;
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!accountBar.contains(e.target) && !accountPopover.contains(e.target)) {
+          accountPopover.hidden = true;
+        }
+      });
+    }
+
+    // Fonction universelle de bascule des onglets de configuration
+    function switchSettingsTab(tabId, secId) {
+      document.querySelectorAll('.set-nav .tab').forEach(function (t) { t.classList.remove('on'); });
+      document.querySelectorAll('.set-sec').forEach(function (s) { s.style.display = 'none'; });
+      if ($(tabId)) $(tabId).classList.add('on');
+      if ($(secId)) $(secId).style.display = 'block';
+    }
+
+    document.querySelectorAll('.set-nav .tab').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var sec = this.getAttribute('data-sec');
+        switchSettingsTab(this.id, sec);
+      });
+    });
+
+    // Actions du Popover de compte
+    if ($('pop-profil')) {
+      if ($('pop-profil')) $('pop-profil').addEventListener('click', function () {
+        if (accountPopover) accountPopover.hidden = true;
+        switchSettingsTab('set-tab-general', 'sec-general');
+        if ($('setd')) $('setd').showModal();
+      });
+    }
+
+    if ($('pop-custom')) {
+      if ($('pop-custom')) $('pop-custom').addEventListener('click', function () {
+        if (accountPopover) accountPopover.hidden = true;
+        switchSettingsTab('set-tab-persona', 'sec-persona');
+        if ($('setd')) $('setd').showModal();
+      });
+    }
+
+    if ($('pop-mem')) {
+      if ($('pop-mem')) $('pop-mem').addEventListener('click', function () {
+        if (accountPopover) accountPopover.hidden = true;
+        switchSettingsTab('set-tab-memory', 'sec-memory');
+        loadMemoryFacts();
+        if ($('setd')) $('setd').showModal();
+      });
+    }
+
+    if ($('pop-settings')) {
+      if ($('pop-settings')) $('pop-settings').addEventListener('click', function () {
+        if (accountPopover) accountPopover.hidden = true;
+        switchSettingsTab('set-tab-general', 'sec-general');
+        if ($('setd')) $('setd').showModal();
+      });
+    }
+
+    if ($('pop-plan')) {
+      if ($('pop-plan')) $('pop-plan').addEventListener('click', function () {
+        if (accountPopover) accountPopover.hidden = true;
+        switchSettingsTab('set-tab-quotas', 'sec-quotas');
+        if (typeof updateQuotaUI === 'function') updateQuotaUI();
+        if ($('setd')) $('setd').showModal();
+      });
+    }
+
+    if ($('pop-auth-action')) {
+      if ($('pop-auth-action')) $('pop-auth-action').addEventListener('click', function () {
+        if (accountPopover) accountPopover.hidden = true;
+        if (token) {
+          // Déconnexion réelle
+          api('/api/auth/logout', { method: 'POST' }).finally(function () {
+            token = '';
+            window.currentUser = null;
+            localStorage.removeItem('mel_token');
+            showUserChip('');
+            showToast('Vous êtes à présent déconnecté.', 'info');
+            loadSessions();
+            showEmpty();
+          });
+        } else {
+          openGate('login');
+        }
+      });
+    }
+
+    // 3. Mémoire : Chargement, Ajout, Suppression
+    function loadMemoryFacts() {
+      var listEl = $('memory-facts-list');
+      if (!listEl) return;
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0;text-align:center">Chargement…</div>';
+      api('/api/facts').then(function (data) {
+        var facts = data.facts || [];
+        if (!facts.length) {
+          listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:14px;text-align:center;background:var(--bg2);border-radius:8px">Aucun souvenir enregistré pour le moment.</div>';
+          return;
+        }
+        var html = '';
+        facts.forEach(function (f) {
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface-hover);border-radius:8px;font-size:13px">' +
+                  '<span style="flex:1;margin-right:8px">' + esc(f.text) + '</span>' +
+                  '<button type="button" class="icon-btn del-fact-btn" data-fid="' + f.id + '" style="width:28px;height:28px;color:var(--err)" title="Supprimer">' +
+                  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+                  '</button></div>';
+        });
+        listEl.innerHTML = html;
+        listEl.querySelectorAll('.del-fact-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var fid = this.getAttribute('data-fid');
+            api('/api/facts/' + fid, { method: 'DELETE' }).then(function () {
+              loadMemoryFacts();
+              showToast('Souvenir supprimé.', 'info');
+            });
+          });
+        });
+      }).catch(function () {
+        listEl.innerHTML = '<div style="color:var(--err);font-size:13px;padding:12px 0;text-align:center">Impossible de charger la mémoire.</div>';
+      });
+    }
+
+    if ($('btn-clear-all-mem')) {
+      if ($('btn-clear-all-mem')) $('btn-clear-all-mem').addEventListener('click', function () {
+        if (!confirm('Voulez-vous vraiment effacer tous les souvenirs enregistrés ?')) return;
+        api('/api/facts', { method: 'DELETE' }).then(function () {
+          loadMemoryFacts();
+          showToast('Tous les souvenirs ont été effacés.', 'info');
+        });
+      });
+    }
+
+    // 4. Test en Direct de la Clé API Gemini
+    if ($('btn-test-key-live')) {
+      if ($('btn-test-key-live')) $('btn-test-key-live').addEventListener('click', function () {
+        var k = ($('key-input').value || '').trim();
+        var fb = $('key-test-feedback');
+        if (!k) {
+          if (fb) {
+            fb.style.display = 'block';
+            fb.style.background = 'var(--err-bg)';
+            fb.style.color = 'var(--err)';
+            fb.textContent = 'Veuillez saisir une clé API à tester.';
+          }
+          return;
+        }
+        if (fb) {
+          fb.style.display = 'block';
+          fb.style.background = 'var(--surface-hover)';
+          fb.style.color = 'var(--fg)';
+          fb.textContent = 'Test de connexion aux serveurs Google…';
+        }
+        fetch('/api/user/test-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: k })
+        }).then(function (r) { return r.json(); }).then(function (res) {
+          if (fb) {
+            fb.style.display = 'block';
+            if (res.ok && res.valid) {
+              fb.style.background = 'var(--success-bg)';
+              fb.style.color = 'var(--success)';
+              fb.textContent = '✓ ' + (res.message || 'Clé API valide et opérationnelle !');
+            } else {
+              fb.style.background = 'var(--err-bg)';
+              fb.style.color = 'var(--err)';
+              fb.textContent = '✗ ' + (res.error || 'Clé API refusée par Google.');
+            }
+          }
+        }).catch(function (err) {
+          if (fb) {
+            fb.style.display = 'block';
+            fb.style.background = 'var(--err-bg)';
+            fb.style.color = 'var(--err)';
+            fb.textContent = '✗ Erreur réseau : ' + (err.message || 'Serveur indisponible');
+          }
+        });
+      });
+    }
+
+    if ($('btn-toggle-key-visibility')) {
+      if ($('btn-toggle-key-visibility')) $('btn-toggle-key-visibility').addEventListener('click', function () {
+        var ki = $('key-input');
+        if (ki) {
+          ki.type = (ki.type === 'password') ? 'text' : 'password';
+        }
+      });
+    }
+
+    if ($('btn-remove-key')) {
+      if ($('btn-remove-key')) $('btn-remove-key').addEventListener('click', function () {
+        if (!confirm('Voulez-vous retirer votre clé API Gemini personnelle ?')) return;
+        api('/api/auth/profile', {
+          method: 'POST',
+          body: JSON.stringify({ api_key: '' })
+        }).then(function () {
+          if ($('key-input')) $('key-input').value = '';
+          var fb = $('key-test-feedback');
+          if (fb) { fb.style.display = 'none'; }
+          showToast('Clé API retirée avec succès.', 'info');
+        });
+      });
+    }
+
+    // 5. Sauvegarde Complète des Préférences & Personnalisation
+    if ($('set-save')) {
+      if ($('set-save')) $('set-save').addEventListener('click', function () {
+        var payload = {
+          user_call_name: ($('set-user-call-name') ? $('set-user-call-name').value : ''),
+          persona: ($('persona-in') ? $('persona-in').value : ''),
+          custom_instructions: ($('persona-in') ? $('persona-in').value : ''),
+          communication_tone: ($('persona-tone-select') ? $('persona-tone-select').value : 'naturel'),
+          response_style: ($('persona-style-select') ? $('persona-style-select').value : 'equilibre'),
+          memory_enabled: ($('memory-toggle-chk') ? $('memory-toggle-chk').checked : true),
+          model_pref: ($('model-pref-select') ? $('model-pref-select').value : 'auto')
+        };
+        api('/api/auth/profile', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        }).then(function () {
+          showToast('Préférences enregistrées avec succès !', 'success');
+          if (window.currentUser) {
+            Object.assign(window.currentUser, payload);
+          }
+          if ($('setd')) $('setd').close();
+          // Rafraîchir l'accueil si aucune discussion active
+          if (!currentSession || currentSession === 'default') {
+            showEmpty();
+          }
+        }).catch(function (err) {
+          showToast(err.message || 'Erreur lors de l\'enregistrement', 'err');
+        });
+      });
+    }
+
   </script>
 
 

@@ -62,3 +62,9 @@ function mountAtom(id, size, opts) {
   el.style.alignItems = "center";
   el.style.justifyContent = "center";
 }
+
+if (typeof window !== 'undefined') {
+  window.atom = atom;
+  window.mountAtom = mountAtom;
+}
+

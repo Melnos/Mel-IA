@@ -254,7 +254,8 @@ def init_db():
                     id SERIAL PRIMARY KEY,
                     text TEXT,
                     ts DOUBLE PRECISION,
-                    user_id INTEGER
+                    user_id INTEGER,
+                    guest_id TEXT
                 )
             """)
             c.execute("""
@@ -354,9 +355,11 @@ def init_db():
             """)
             c.execute("""
                 CREATE TABLE IF NOT EXISTS facts (
-                    id INTEGER PRIMARY KEY,
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
                     text TEXT,
-                    ts REAL
+                    ts REAL,
+                    user_id INTEGER,
+                    guest_id TEXT
                 )
             """)
             c.execute("""
@@ -411,6 +414,18 @@ def init_db():
                 c.execute("ALTER TABLE users ADD COLUMN google_id TEXT")
             if "avatar_url" not in ucols:
                 c.execute("ALTER TABLE users ADD COLUMN avatar_url TEXT")
+
+            if "custom_instructions" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN custom_instructions TEXT")
+            if "user_call_name" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN user_call_name TEXT")
+            if "communication_tone" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN communication_tone TEXT")
+            if "response_style" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN response_style TEXT")
+            if "memory_enabled" not in ucols:
+                c.execute("ALTER TABLE users ADD COLUMN memory_enabled INTEGER DEFAULT 1")
+
 
             scols = [r["name"] for r in c.execute("PRAGMA table_info(sessions)").fetchall()]
             if "project_id" not in scols:

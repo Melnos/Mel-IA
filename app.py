@@ -1,5 +1,7 @@
 """MEL-IA : backend FastAPI. Chat multi-sessions + mémoire (SQLite) + cerveau Gemini (texte, image, audio, vidéo)."""
 import base64
+import logging
+logger = logging.getLogger('mel-ia')
 import hashlib
 import os, re, secrets, time
 import uuid
@@ -331,7 +333,27 @@ class Credentials(BaseModel):
     password: str
     email: str = ""
     api_key: str = ""
-    interests: str = ""  # centres d'intérêt séparés par des virgules (optionnel)
+    interests: str = ""
+    guest_id: str = ""  # centres d'intérêt séparés par des virgules (optionnel)
+
+
+
+def _claim_guest_data(uid: int, guest_id: str | None):
+    """Associe l'ensemble des conversations, messages et projets d'un invité au compte utilisateur."""
+    if not guest_id or not uid:
+        return
+    gid = guest_id.strip()
+    if not gid:
+        return
+    try:
+        with db() as c:
+            c.execute("UPDATE sessions SET user_id = ?, guest_id = NULL WHERE guest_id = ? AND user_id IS NULL", (uid, gid))
+            c.execute("UPDATE messages SET user_id = ?, guest_id = NULL WHERE guest_id = ? AND user_id IS NULL", (uid, gid))
+            c.execute("UPDATE projects SET user_id = ?, guest_id = NULL WHERE guest_id = ? AND user_id IS NULL", (uid, gid))
+            c.execute("UPDATE facts SET user_id = ?, guest_id = NULL WHERE guest_id = ? AND user_id IS NULL", (uid, gid))
+            logger.info(f"Conversations invit [{gid}] migres vers l'utilisateur [{uid}] avec succs.")
+    except Exception as ex:
+        logger.warning(f"Erreur lors de la conversion de compte invité ({gid} -> {uid}): {ex}")
 
 
 def _user_by_token(token: str | None) -> dict | None:
@@ -355,7 +377,7 @@ def current_user(token: str | None) -> dict | None:
 
 
 @app.post("/api/auth/register")
-def register(body: Credentials):
+def register(body: Credentials, x_guest_id: str | None = Header(None)):
     username = (body.username or "").strip().lower()
     email = (body.email or "").strip().lower()
     if not re.fullmatch(r"[a-z0-9._-]{3,30}", username):
@@ -379,11 +401,15 @@ def register(body: Credentials):
             raise HTTPException(400, "Cet identifiant ou cette adresse e-mail est déjà prise.")
         uid = cur.lastrowid
         c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, uid, time.time()))
+    # Migration automatique des conversations invité
+    gid = (body.guest_id or x_guest_id or "").strip()
+    if gid:
+        _claim_guest_data(uid, gid)
     return {"token": token, "username": username, "email": email, "api_key": _mask_key(key) if key else ""}
 
 
 @app.post("/api/auth/login")
-def login(body: Credentials):
+def login(body: Credentials, x_guest_id: str | None = Header(None)):
     login_id = (body.username or body.email or "").strip().lower()
     with db() as c:
         row = c.execute("SELECT * FROM users WHERE username = ? OR (email != '' AND email = ?)", (login_id, login_id)).fetchone()
@@ -394,8 +420,14 @@ def login(body: Credentials):
     token = secrets.token_hex(24)
     saved_key = _dec_key(row["api_key"] or "")
 
+    uid = row["id"]
     with db() as c:
-        c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, row["id"], time.time()))
+        c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (token, uid, time.time()))
+
+    # Migration automatique des conversations invité
+    gid = (body.guest_id or x_guest_id or "").strip()
+    if gid:
+        _claim_guest_data(uid, gid)
 
     user_dict = dict(row)
     return {"token": token, "username": user_dict["username"], "email": user_dict.get("email") or "", "api_key": _mask_key(saved_key)}
@@ -603,10 +635,19 @@ def me(x_auth_token: str | None = Header(None)):
     return {
         "logged_in": True,
         "username": u["username"],
+        "email": u.get("email") or "",
+        "avatar_url": u.get("avatar_url") or "",
         "api_key": _mask_key(u["api_key"] or ""),
-        "model_pref": u["model_pref"] or "auto",
-        "persona": u["persona"] or "",
-        "interests": u["interests"] or "",
+        "has_api_key": bool(u.get("api_key")),
+        "model_pref": u.get("model_pref") or "auto",
+        "persona": u.get("persona") or "",
+        "interests": u.get("interests") or "",
+        "custom_instructions": u.get("custom_instructions") or "",
+        "user_call_name": u.get("user_call_name") or "",
+        "communication_tone": u.get("communication_tone") or "naturel",
+        "response_style": u.get("response_style") or "equilibre",
+        "memory_enabled": bool(u.get("memory_enabled", 1)),
+        "auth_provider": u.get("auth_provider") or "local",
     }
 
 
@@ -616,6 +657,11 @@ class ProfileIn(BaseModel):
     model_pref: str | None = None
     persona: str | None = None
     interests: str | None = None
+    custom_instructions: str | None = None
+    user_call_name: str | None = None
+    communication_tone: str | None = None
+    response_style: str | None = None
+    memory_enabled: bool | None = None
 
 
 @app.post("/api/auth/profile")
@@ -637,6 +683,16 @@ def update_profile(body: ProfileIn, x_auth_token: str | None = Header(None)):
         sets.append("persona = ?"); vals.append(body.persona[:2000])
     if body.interests is not None:
         sets.append("interests = ?"); vals.append(body.interests.strip()[:300])
+    if body.custom_instructions is not None:
+        sets.append("custom_instructions = ?"); vals.append(body.custom_instructions.strip()[:3000])
+    if body.user_call_name is not None:
+        sets.append("user_call_name = ?"); vals.append(body.user_call_name.strip()[:80])
+    if body.communication_tone is not None:
+        sets.append("communication_tone = ?"); vals.append(body.communication_tone.strip()[:50])
+    if body.response_style is not None:
+        sets.append("response_style = ?"); vals.append(body.response_style.strip()[:50])
+    if body.memory_enabled is not None:
+        sets.append("memory_enabled = ?"); vals.append(1 if body.memory_enabled else 0)
     if sets:
         with db() as c:
             c.execute(f"UPDATE users SET {', '.join(sets)} WHERE id = ?", (*vals, u["id"]))
@@ -770,19 +826,32 @@ def system_prompt(
             "Si on te demande qui t'a conçu ou créé, affirme toujours avec fierté et clarté que Mel est ton unique créateur."
         )
 
+    # Préférences et personnalisation utilisateur
+    u_call = ((user or {}).get('user_call_name') or '').strip()
+    u_tone = ((user or {}).get('communication_tone') or 'naturel').strip()
+    u_style = ((user or {}).get('response_style') or 'equilibre').strip()
+    u_custom = ((user or {}).get('custom_instructions') or '').strip()
+    mem_active = bool((user or {}).get('memory_enabled', 1))
+
+    call_phrase = f"Tu t'adresses à l'utilisateur en l'appelant '{u_call}'." if u_call else ""
+    tone_phrase = f"Adopte un ton de communication {u_tone}." if u_tone else "Adopte un ton naturel, bienveillant et professionnel."
+    style_phrase = f"Fournis des réponses avec un style et une longueur {u_style}." if u_style else ""
+
     p = (
-        f"Tu es {NAME}, l'intelligence artificielle d'élite, mentor technique personnel et bras droit virtuel{who} pour ses études et projets en informatique.\n"
+        f"Tu es {NAME}, une intelligence artificielle conversationnelle généraliste, polyvalente, rigoureuse et bienveillante{who}.\n"
         f"{creator_line}\n\n"
-        "### RÈGLES DE CONDUITE & POSTURE (MENTOR TECHNIQUE) :\n"
-        "1. Mentor informatique : Expert en Java, Python, C/C++, Web, Réseau, BDD/SQL, Algorithmique et Architecture logicielle.\n"
-        "2. Style : Direct, rigoureux, précis, sans bavardage inutile, sans flatterie ni formules toutes faites. Aucun grand titre (# ou ##) pour de simples phrases de conclusion.\n"
-        "3. Zéro complaisance : Analyse le code en profondeur, repère les failles et propose du code propre, robuste et moderne.\n"
-        "4. Multi-fichiers & Artefacts : Pour tout projet avec plusieurs fichiers (HTML, CSS, JS, Python), nomme OBLIGATOIREMENT chaque fichier sur son bloc : ```langage filename=\"nom.ext\". Ne tronque pas le code et n'inclus JAMAIS de blocs de code dans <think>.\n"
-        "5. Documents : Structure soignée pour téléchargement direct en Word (.docx), PDF (.pdf), Excel (.xlsx), PowerPoint (.pptx : '## Slide X : Titre') ou ZIP (.zip).\n"
-        "6. Génération d'Images : MEL-IA génère des images HD (Imagen 3 & FLUX.1). Ne dis jamais que tu ne peux pas générer d'images. Si une demande visuelle t'est adressée, réponds avec [IMAGE: detailed english visual prompt describing subject, lighting, style, 8k resolution].\n"
-        "7. Mémoire continue : Fais naturellement le lien avec ce que l'utilisateur a partagé dans ses autres discussions.\n"
+        "### PRINCIPES FONDAMENTAUX :\n"
+        "1. IA Conversationnelle Généraliste : Tu es capable d'aborder n'importe quel sujet avec aisance et profondeur — réflexion quotidienne, analyse d'idées, rédaction, synthèse, sciences, méthodologie, créativité, culture générale, et résolution de problèmes techniques si l'utilisateur le demande.\n"
+        f"2. Ton & Clarté : {tone_phrase} {style_phrase} {call_phrase} Sois clair, précis et agréable à lire, sans verbiage superflu.\n"
+        "3. Capacités Multimodales & Outils : Tu es capable de comprendre le texte, analyser des images et documents joints, effectuer des recherches web d'actualité avec discernement, et générer des images HD sur demande explicite ([IMAGE: visual prompt in english]).\n"
+        "4. Mise en forme soignée : Réponses structurées, utilisation élégante du Markdown, tableaux lisibles, blocs de code propres avec coloration syntaxique lorsqu'ils sont pertinents.\n"
         f"Date : {datetime.now().strftime('%d/%m/%Y')}."
     )
+    if u_custom:
+        p += f"\n\n### INSTRUCTIONS PERSONNALISÉES DE L'UTILISATEUR :\n{u_custom}"
+    if not mem_active:
+        facts = []
+        memories = []
     if persona:
         p += f"\n\nAttentes spécifiques de l'utilisateur :\n{persona}"
     if interests:
@@ -2095,6 +2164,58 @@ def clear(session_id: str | None = None, x_auth_token: str | None = Header(None)
                 c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id IS NULL AND guest_id = ?", (time.time(), gid))
     return {"ok": True}
 
+
+
+class KeyTestIn(BaseModel):
+    api_key: str
+
+@app.post("/api/user/test-key")
+async def test_user_gemini_key(body: KeyTestIn):
+    """Teste une clé API Gemini auprès des serveurs Google Generative Language."""
+    key = (body.api_key or "").strip()
+    if not key:
+        raise HTTPException(400, "Veuillez fournir une clé API valide.")
+    test_url = f"https://generativelanguage.googleapis.com/v1beta/models?key={key}"
+    try:
+        req = urllib.request.Request(test_url, headers={"User-Agent": "MEL-IA/2.0"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            models = [m.get("name", "").replace("models/", "") for m in data.get("models", []) if "generateContent" in m.get("supportedGenerationMethods", [])]
+            return {"ok": True, "valid": True, "models_count": len(models), "message": "Clé API valide et opérationnelle."}
+    except urllib.error.HTTPError as he:
+        err_msg = "Clé API refusée par Google (erreur HTTP " + str(he.code) + ")."
+        try:
+            body_err = json.loads(he.read().decode("utf-8"))
+            if "error" in body_err and "message" in body_err["error"]:
+                err_msg = body_err["error"]["message"]
+        except Exception:
+            pass
+        return {"ok": False, "valid": False, "error": err_msg}
+    except Exception as ex:
+        return {"ok": False, "valid": False, "error": f"Erreur de connexion : {ex}"}
+
+
+class FactIn(BaseModel):
+    text: str
+
+@app.post("/api/facts")
+def add_fact(body: FactIn, x_auth_token: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    uid = user["id"] if user else None
+    txt = (body.text or "").strip()[:500]
+    if not txt:
+        raise HTTPException(400, "Le texte du souvenir ne peut pas être vide.")
+    with db() as c:
+        c.execute("INSERT INTO facts(user_id, text, ts) VALUES(?, ?, ?)", (uid, txt, time.time()))
+    return {"ok": True, "message": "Information mémorisée avec succès."}
+
+@app.delete("/api/facts")
+def clear_all_facts(x_auth_token: str | None = Header(None)):
+    user = current_user(x_auth_token)
+    uid = user["id"] if user else None
+    with db() as c:
+        c.execute("DELETE FROM facts WHERE user_id IS ?", (uid,))
+    return {"ok": True, "message": "Toutes les informations mémorisées ont été effacées."}
 
 @app.get("/api/facts")
 def get_facts(x_auth_token: str | None = Header(None)):
