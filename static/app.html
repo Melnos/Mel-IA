@@ -4650,17 +4650,7 @@
         <button class="icon-btn" id="header-new-chat" title="Nouvelle discussion" aria-label="Nouvelle discussion" style="width:34px;height:34px">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         </button>
-        <button class="icon-btn" id="header-theme-toggle" title="Changer de thème (Clair / Sombre)" style="width:34px;height:34px">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="5" />
-            <line x1="12" y1="1" x2="12" y2="3" />
-            <line x1="12" y1="21" x2="12" y2="23" />
-            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-            <line x1="1" y1="12" x2="3" y2="12" />
-            <line x1="21" y1="12" x2="23" y2="12" />
-          </svg>
-        </button>
+        
       </div>
     </header>
 
@@ -4671,48 +4661,6 @@
             <div class="welcome-emblem-wrap" id="welcome-emblem"><svg viewBox="0 0 256 256" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Logo MEL-IA 2.0"><defs><filter id="sh-welcome" x="-20%" y="-20%" width="150%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000000" flood-opacity="0.35" /></filter><linearGradient id="st-welcome" x1="160" y1="40" x2="310" y2="280" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FFFFFF" /><stop offset="30%" stop-color="#E2E8F0" /><stop offset="68%" stop-color="#94A3B8" /><stop offset="100%" stop-color="#475569" /></linearGradient><linearGradient id="sb-welcome" x1="150" y1="360" x2="320" y2="430" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F8FAFC" /><stop offset="45%" stop-color="#CBD5E1" /><stop offset="100%" stop-color="#64748B" /></linearGradient><linearGradient id="sr-welcome" x1="330" y1="170" x2="415" y2="420" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#F1F5F9" /><stop offset="50%" stop-color="#94A3B8" /><stop offset="100%" stop-color="#475569" /></linearGradient><linearGradient id="tw1-welcome" x1="110" y1="160" x2="230" y2="390" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#22D3EE" /><stop offset="40%" stop-color="#0D9488" /><stop offset="100%" stop-color="#044E54" /></linearGradient><linearGradient id="tw2-welcome" x1="90" y1="260" x2="310" y2="380" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#06B6D4" /><stop offset="55%" stop-color="#0F766E" /><stop offset="100%" stop-color="#023E42" /></linearGradient><linearGradient id="rc-welcome" x1="340" y1="170" x2="300" y2="420" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#67E8F9" /><stop offset="70%" stop-color="#06B6D4" /><stop offset="100%" stop-color="#0891B2" /></linearGradient></defs><g transform="translate(128, 128) scale(0.52) translate(-256, -256)" filter="url(#sh-welcome)"><path d="M 84 262 C 86 312, 136 376, 218 395 C 265 405, 305 385, 318 376 C 248 372, 185 334, 150 286 C 122 248, 106 200, 112 152 C 90 200, 82 232, 84 262 Z" fill="url(#tw2-welcome)" /><path d="M 112 150 C 96 215, 120 288, 172 328 C 220 365, 276 355, 312 338 C 240 338, 182 292, 162 234 C 146 188, 158 136, 178 94 C 138 106, 118 126, 112 150 Z" fill="url(#tw1-welcome)" /><path d="M 144 384 C 196 424, 268 428, 314 416 C 352 406, 386 374, 404 336 C 362 382, 296 408, 232 400 C 188 394, 158 376, 144 384 Z" fill="url(#sb-welcome)" /><path d="M 256 42 C 172 44, 130 92, 130 160 C 130 236, 194 286, 268 284 C 304 283, 310 262, 292 258 C 238 246, 184 204, 184 146 C 184 96, 222 62, 276 62 C 316 62, 338 84, 344 112 C 342 78, 314 44, 256 42 Z" fill="url(#st-welcome)" /><path d="M 334 162 C 352 232, 350 334, 300 422 C 374 382, 412 306, 412 242 C 412 178, 384 136, 334 162 Z" fill="url(#sr-welcome)" /><path d="M 336 172 C 350 238, 348 334, 302 420" stroke="url(#rc-welcome)" stroke-width="4.5" stroke-linecap="round" fill="none" opacity="0.95" /></g></svg></div>
             <h1 class="welcome-title">Bonjour, <span class="welcome-name" id="welcome-user-name">Mel</span></h1>
             <p class="welcome-sub">Comment puis-je vous aider aujourd'hui ?</p>
-          </div>
-
-          <div class="welcome-suggestions">
-            <button type="button" class="suggestion-tile" data-prompt="Explique-moi un concept complexe de manière simple, imagée et pédagogique.">
-              <div class="tile-icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              </div>
-              <div class="tile-text">
-                <span class="tile-title">Expliquer un concept</span>
-                <span class="tile-desc">Synthèse claire, analogies et vulgarisation accessible</span>
-              </div>
-            </button>
-
-            <button type="button" class="suggestion-tile" data-prompt="Aide-moi à organiser et enrichir mes idées pour structurer un projet ou une réflexion.">
-              <div class="tile-icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
-              </div>
-              <div class="tile-text">
-                <span class="tile-title">Structurer mes idées</span>
-                <span class="tile-desc">Brainstorming, analyse d'options et plan d'action</span>
-              </div>
-            </button>
-
-            <button type="button" class="suggestion-tile" data-prompt="Rédige un message clair, diplomate et percutant adapté à une communication importante.">
-              <div class="tile-icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              </div>
-              <div class="tile-text">
-                <span class="tile-title">Rédiger un message</span>
-                <span class="tile-desc">E-mail, synthèse, proposition ou communication</span>
-              </div>
-            </button>
-
-            <button type="button" class="suggestion-tile" data-prompt="Explore des solutions innovantes et des perspectives originales pour aborder une question délicate.">
-              <div class="tile-icon-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              </div>
-              <div class="tile-text">
-                <span class="tile-title">Perspectives créatives</span>
-                <span class="tile-desc">Solutions inédites, angles morts et visions comparées</span>
-              </div>
-            </button>
           </div>
         </div>
       </div>
@@ -6384,6 +6332,8 @@
 
     // ---- Ajout et affichage des messages ----
     function addMsg(role, text, opts) {
+      var wel = $('msgs') ? $('msgs').querySelector('#welcome-view, .welcome-container, .empty-state, .studio-home') : null;
+      if (wel) wel.remove();
       opts = opts || {};
       var ts = opts.ts || (Date.now() / 1000);
       var wrap = document.createElement('div');
@@ -6643,39 +6593,11 @@
           '    <h1 class="welcome-title">Bonjour, <span class="welcome-name" id="welcome-user-name">' + esc(greetingName) + '</span></h1>' +
           '    <p class="welcome-sub">Comment puis-je vous aider aujourd\'hui ?</p>' +
           '  </div>' +
-          '  <div class="welcome-suggestions">' +
-          '    <button type="button" class="suggestion-tile" data-prompt="Explique-moi un concept complexe de mani\u00e8re simple, imag\u00e9e et p\u00e9dagogique.">' +
-          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>' +
-          '      <div class="tile-text"><span class="tile-title">Expliquer un concept</span><span class="tile-desc">Synth\u00e8se claire, analogies et vulgarisation accessible</span></div>' +
-          '    </button>' +
-          '    <button type="button" class="suggestion-tile" data-prompt="Aide-moi \u00e0 organiser et enrichir mes id\u00e9es pour structurer un projet ou une r\u00e9flexion.">' +
-          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg></div>' +
-          '      <div class="tile-text"><span class="tile-title">Structurer mes id\u00e9es</span><span class="tile-desc">Brainstorming, analyse d\'options et plan d\'action</span></div>' +
-          '    </button>' +
-          '    <button type="button" class="suggestion-tile" data-prompt="R\u00e9dige un message clair, diplomate et percutant adapt\u00e9 \u00e0 une communication importante.">' +
-          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>' +
-          '      <div class="tile-text"><span class="tile-title">R\u00e9diger un message</span><span class="tile-desc">E-mail, synth\u00e8se, proposition ou communication</span></div>' +
-          '    </button>' +
-          '    <button type="button" class="suggestion-tile" data-prompt="Explore des solutions innovantes et des perspectives originales pour aborder une question d\u00e9licate.">' +
-          '      <div class="tile-icon-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>' +
-          '      <div class="tile-text"><span class="tile-title">Perspectives cr\u00e9atives</span><span class="tile-desc">Solutions in\u00e9dites, angles morts et visions compar\u00e9es</span></div>' +
-          '    </button>' +
-          '  </div>' +
           '</div>';
       }
       if (typeof mountAtom === 'function' && !msgs.querySelector('#welcome-emblem svg')) {
         mountAtom('welcome-emblem', 48);
       }
-      document.querySelectorAll('.suggestion-tile').forEach(function (tile) {
-        tile.onclick = function () {
-          var p = this.getAttribute('data-prompt');
-          if (p && $('in')) {
-            $('in').value = p;
-            $('in').focus();
-            if (window.autoResizeInput) window.autoResizeInput();
-          }
-        };
-      });
     }
 
     function renderGroupedSessions(sessions, filter) {
@@ -7174,7 +7096,7 @@
     }
 
     function doSendStream(text, existingWrap, isRegen) {
-      if ($('msgs').querySelector('.empty-state, .studio-home')) $('msgs').innerHTML = '';
+      var wel = $('msgs').querySelector('#welcome-view, .welcome-container, .empty-state, .studio-home'); if (wel) wel.remove();
 
       var aiWrap = existingWrap;
       if (!isRegen) {
@@ -7374,7 +7296,7 @@
       $('in').style.height = 'auto';
 
       if (file) {
-        if ($('msgs').querySelector('.empty-state, .studio-home')) $('msgs').innerHTML = '';
+        var wel = $('msgs').querySelector('#welcome-view, .welcome-container, .empty-state, .studio-home'); if (wel) wel.remove();
         var isAudio = file.type.startsWith('audio/') || /^vocal-|^voice-|^audio-/i.test(file.name) || /\.(mp3|wav|ogg|oga|m4a|aac|flac|opus)$/i.test(file.name);
         var kind = isAudio ? 'audio' : (file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : 'document'));
         addMsg('user', text, {
@@ -7409,6 +7331,13 @@
       }
 
       doSendStream(text, null, false);
+    }
+
+    if ($('send')) {
+      $('send').addEventListener('click', function (e) {
+        e.preventDefault();
+        send($('in').value);
+      });
     }
 
     if ($('f')) $('f').addEventListener('submit', function (e) { e.preventDefault(); send($('in').value); });
