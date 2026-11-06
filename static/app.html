@@ -4355,7 +4355,62 @@
 
   
 
-  </style>
+  
+    /* Centrage Absolu de l'Accueil MEL-IA 2.0 */
+    #list {
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding: 0 20px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      position: relative !important;
+    }
+
+    #msgs {
+      max-width: 800px !important;
+      margin: 0 auto !important;
+      width: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 20px !important;
+      flex: 1 1 auto !important;
+      min-height: 100% !important;
+    }
+
+    .welcome-container {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      width: 100% !important;
+      max-width: 560px !important;
+      margin: auto !important;
+      padding: 24px 16px !important;
+      text-align: center !important;
+      animation: fadeIn .25s ease-out !important;
+      transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .welcome-hero {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 14px !important;
+      margin: 0 !important;
+    }
+
+    /* Repli rel de la barre latrale */
+    body.sidebar-collapsed #sidebar {
+      display: none !important;
+    }
+    body.sidebar-collapsed #menu-toggle {
+      display: inline-flex !important;
+    }
+</style>
 </head>
 
 <body>
@@ -4520,6 +4575,48 @@
       </button>
     </div>
   </dialog>
+  <!-- Dialogue Bibliothque -->
+  <dialog class="settings-dialog" id="library-dialog">
+    <div class="dialog-head">
+      <div class="dialog-title-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
+        <span class="dialog-title">Bibliothque de Documents & Mdia</span>
+      </div>
+      <button class="icon-btn" id="library-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="dialog-body" style="padding:20px;max-width:560px">
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Retrouvez et importez vos fichiers pour analyse approfondie par MEL-IA (images, photos, documents PDF/Word, feuilles de calcul ou code).</p>
+      <div style="display:flex;gap:12px;margin-bottom:20px">
+        <button type="button" class="dialog-btn primary" id="btn-lib-upload" style="flex:1">Importer un document / image</button>
+      </div>
+      <div class="set-card">
+        <div class="set-card-title">Capacits Documentaires & Vision</div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.5">MEL-IA analyse vos pices jointes en haute rsolution (OCR, graphiques, exercices, synthses) et peut exporter n'importe quelle rponse en Word (.docx), PDF (.pdf), PowerPoint (.pptx) ou Excel (.xlsx).</p>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Dialogue Projets -->
+  <dialog class="settings-dialog" id="projects-dialog">
+    <div class="dialog-head">
+      <div class="dialog-title-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        <span class="dialog-title">Espaces & Projets</span>
+      </div>
+      <button class="icon-btn" id="projects-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="dialog-body" style="padding:20px;max-width:560px">
+      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Organisez vos conversations et contextes de travail thmatiques avec MEL-IA.</p>
+      <div class="set-card">
+        <div class="set-card-title">Espace Actuel : Conversation Gnraliste</div>
+        <p style="font-size:13px;color:var(--muted)">Vos changes en cours sont automatiquement sauvegards dans l'historique rcent. Pour sparer vos projets (Rdaction, Affaires, tudes), crez un nouveau chat pour chaque thme.</p>
+      </div>
+      <div style="margin-top:20px;display:flex;justify-content:flex-end">
+        <button type="button" class="dialog-btn secondary" id="btn-projects-new-chat">Dmarrer un nouveau projet</button>
+      </div>
+    </div>
+  </dialog>
+
 
   <!-- Toast container pour notifications discrètes et élégantes -->
   <div id="toast-container"></div>
@@ -4778,12 +4875,7 @@
                   <span>Recherche</span>
                 </button>
 
-                <button type="button" class="mode-toggle tool-pill" id="tg-image" title="Générer une image avec IA" aria-pressed="false">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="4" width="18" height="16" rx="3" /><circle cx="9" cy="10" r="1.8" /><path d="m4 18 5-5 4 4 3-3 4 4" />
-                  </svg>
-                  <span>Image</span>
-                </button>
+                
 
                 <button type="button" class="tool-btn" id="mic" title="Microphone : Parler à MEL-IA (Dictée vocale)" aria-label="Dicter un message">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -7344,7 +7436,45 @@
     if ($('in')) $('in').addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send($('in').value); }
     });
-    if ($('in')) $('in').addEventListener('input', function () {
+    if ($('in')) 
+    // Gestion du dpart immdiat du message d'accueil la frappe
+    function handleWelcomeOnTyping() {
+      var inp = $('in');
+      if (!inp) return;
+      var val = inp.value.trim();
+      var wel = document.getElementById('welcome-view') || (document.getElementById('msgs') ? document.getElementById('msgs').querySelector('.welcome-container') : null);
+      if (val.length > 0) {
+        if (wel) {
+          wel.style.opacity = '0';
+          wel.style.transform = 'translateY(-12px)';
+          wel.style.pointerEvents = 'none';
+          setTimeout(function () {
+            if (wel && wel.parentNode) wel.remove();
+          }, 180);
+        }
+      } else {
+        var msgsEl = document.getElementById('msgs');
+        if (msgsEl && !msgsEl.querySelector('.msg-wrap') && !document.getElementById('welcome-view')) {
+          showEmpty();
+        }
+      }
+    }
+
+    function startNewChatSession() {
+      currentSession = 'sess_' + Math.random().toString(36).substr(2, 8) + Date.now().toString(36);
+      localStorage.setItem('mel_session', currentSession);
+      var msgsEl = $('msgs');
+      if (msgsEl) msgsEl.innerHTML = '';
+      showEmpty();
+      if ($('in')) {
+        $('in').value = '';
+        $('in').style.height = 'auto';
+        $('in').focus();
+      }
+      closeSidebar();
+      loadSessions();
+    }
+$('in').addEventListener('input', function () {
       this.style.height = 'auto';
       this.style.height = Math.min(this.scrollHeight, 150) + 'px';
     });
@@ -8380,7 +8510,76 @@
       });
     }
 
-  </script>
+  
+    // Connexion robuste des actions de la barre latrale
+    if ($('btn-nav-new-chat')) {
+      $('btn-nav-new-chat').onclick = function (e) {
+        e.preventDefault();
+        startNewChatSession();
+      };
+    }
+    if ($('header-new-chat')) {
+      $('header-new-chat').onclick = function (e) {
+        e.preventDefault();
+        startNewChatSession();
+      };
+    }
+
+    if ($('btn-nav-search')) {
+      $('btn-nav-search').onclick = function (e) {
+        e.preventDefault();
+        var sBox = $('sidebar-search-container');
+        if (sBox) {
+          var isHidden = sBox.style.display === 'none' || !sBox.style.display;
+          sBox.style.display = isHidden ? 'flex' : 'none';
+          if (isHidden && $('session-search')) $('session-search').focus();
+        }
+      };
+    }
+
+    if ($('btn-nav-library')) {
+      $('btn-nav-library').onclick = function (e) {
+        e.preventDefault();
+        if ($('library-dialog')) $('library-dialog').showModal();
+      };
+    }
+    if ($('library-dialog-close')) {
+      $('library-dialog-close').onclick = function () {
+        if ($('library-dialog')) $('library-dialog').close();
+      };
+    }
+    if ($('btn-lib-upload')) {
+      $('btn-lib-upload').onclick = function () {
+        if ($('library-dialog')) $('library-dialog').close();
+        if ($('file-doc')) $('file-doc').click();
+      };
+    }
+
+    if ($('btn-nav-projects')) {
+      $('btn-nav-projects').onclick = function (e) {
+        e.preventDefault();
+        if ($('projects-dialog')) $('projects-dialog').showModal();
+      };
+    }
+    if ($('projects-dialog-close')) {
+      $('projects-dialog-close').onclick = function () {
+        if ($('projects-dialog')) $('projects-dialog').close();
+      };
+    }
+    if ($('btn-projects-new-chat')) {
+      $('btn-projects-new-chat').onclick = function () {
+        if ($('projects-dialog')) $('projects-dialog').close();
+        startNewChatSession();
+      };
+    }
+
+    if ($('sidebar-collapse-btn')) {
+      $('sidebar-collapse-btn').onclick = function (e) {
+        e.preventDefault();
+        document.body.classList.toggle('sidebar-collapsed');
+      };
+    }
+</script>
 
 
 </body>
