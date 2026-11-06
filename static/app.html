@@ -3861,20 +3861,45 @@
       }
 
       /* Sidebar Mobile (Tiroir Coulissant avec Isolation Stricte) */
-      .sidebar {
+      .sidebar, #sidebar {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
         bottom: 0 !important;
-        width: min(290px, 80vw) !important;
-        max-width: 300px !important;
+        width: min(300px, 85vw) !important;
+        max-width: 320px !important;
         transform: translateX(-100%) !important;
         box-shadow: 0 0 50px rgba(0, 0, 0, 0.5) !important;
-        z-index: 1000 !important;
+        z-index: 10001 !important;
+        background: var(--bg2) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        transition: transform .28s cubic-bezier(0.16, 1, 0.3, 1) !important;
       }
 
-      .sidebar.open {
+      .sidebar.open, #sidebar.open {
         transform: translateX(0) !important;
+      }
+
+      body.sidebar-collapsed #sidebar {
+        display: flex !important;
+      }
+
+      .sidebar-overlay, #overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.55) !important;
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
+        z-index: 10000 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity .25s ease !important;
+      }
+
+      .sidebar-overlay.open, #overlay.open {
+        opacity: 1 !important;
+        pointer-events: auto !important;
       }
 
       .sidebar-overlay {
@@ -4494,6 +4519,115 @@
       padding: 20px !important;
     }
 
+
+    /* Corrections Visuelles Popover Compte & Mode Invité */
+    .account-menu-popover[hidden] {
+      display: none !important;
+    }
+
+    .guest-banner {
+      width: 100%;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--fg);
+      z-index: 50;
+      animation: fadeIn .2s ease;
+    }
+    .guest-banner-content {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+    .guest-banner-icon {
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .guest-banner-text {
+      flex: 1;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .guest-banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .guest-banner-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: opacity .15s ease;
+    }
+    .guest-banner-btn:hover {
+      opacity: 0.9;
+    }
+    .guest-banner-dismiss {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 2px 6px;
+      line-height: 1;
+    }
+
+    .signup-interests-box {
+      margin: 12px 0 16px;
+      text-align: left;
+    }
+    .interests-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fg-heading);
+      margin-bottom: 8px;
+    }
+    .interests-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .interest-chip {
+      background: var(--bg2);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all .15s ease;
+      user-select: none;
+    }
+    .interest-chip:hover {
+      border-color: var(--accent);
+      color: var(--fg);
+    }
+    .interest-chip.active {
+      background: rgba(20, 184, 166, 0.15);
+      border-color: #14b8a6;
+      color: #14b8a6;
+      font-weight: 600;
+    }
+
+    .theme-btn.active {
+      background: var(--accent) !important;
+      color: #fff !important;
+      border-color: var(--accent) !important;
+    }
 </style>
 </head>
 
@@ -4595,9 +4729,23 @@
           <span>ou par formulaire</span>
         </div>
 
-        <input id="su-email" type="email" autocomplete="email" placeholder="Adresse e-mail (ex: contact@domaine.com)" aria-label="Adresse e-mail" required>
         <input id="su-name" type="text" autocomplete="username" placeholder="Identifiant unique (3 à 30 caractères)" aria-label="Identifiant" required>
+        <input id="su-email" type="email" autocomplete="email" placeholder="Adresse e-mail (ex: contact@domaine.com)" aria-label="Adresse e-mail" required>
         <input id="su-pass" type="password" autocomplete="new-password" placeholder="Mot de passe (6 caractères min.)" aria-label="Mot de passe" required>
+        <input id="su-pass2" type="password" autocomplete="new-password" placeholder="Confirmer le mot de passe" aria-label="Confirmer le mot de passe" required>
+        
+        <div class="signup-interests-box">
+          <label class="interests-label">Centres d'intérêt (optionnel) :</label>
+          <div class="interests-chips" id="signup-interests-chips">
+            <button type="button" class="interest-chip" data-val="Sciences">Sciences</button>
+            <button type="button" class="interest-chip" data-val="Technologie & Code">Technologie & Code</button>
+            <button type="button" class="interest-chip" data-val="Littérature & Rédaction">Littérature & Rédaction</button>
+            <button type="button" class="interest-chip" data-val="Philosophie">Philosophie</button>
+            <button type="button" class="interest-chip" data-val="Langues">Langues</button>
+            <button type="button" class="interest-chip" data-val="Économie">Économie</button>
+          </div>
+          <input type="hidden" id="su-interests-val" value="">
+        </div>
         <div class="form-err" id="su1-err"></div>
         <button class="dialog-btn" type="submit">Créer mon compte</button>
 
@@ -4610,21 +4758,7 @@
       <!-- Inscription étape 2 (Optionnel) -->
       
 
-      <!-- Mode Découverte / Test -->
-      <div class="gate-guest-zone" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--line);text-align:center">
-        <button type="button" class="dialog-btn secondary" id="btn-guest-test" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin:0">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10" />
-            <polygon points="10 8 16 12 10 16 10 8" />
-          </svg>
-          <span>Continuer en tant qu'invité</span>
-        </button>
-        <div class="guest-actions-sub">
-          <span>Accès immédiat sans mot de passe · 20 questions + 3 images offertes par jour</span>
-          <button type="button" id="btn-guest-reset" class="btn-reset-guest" title="Effacer les anciennes conversations du mode test">Effacer l'historique des discussions</button>
-        </div>
       </div>
-    </div>
   </div>
 
   <!-- Dialogue d'aide & configuration Google OAuth -->
@@ -4836,6 +4970,21 @@
       </div>
     </header>
 
+    <div class="guest-banner" id="guest-workspace-banner" style="display:none">
+      <div class="guest-banner-content">
+        <div class="guest-banner-icon">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <div class="guest-banner-text">
+          <span>Connectez-vous ou créez un compte pour étendre votre espace de travail et sauvegarder vos discussions.</span>
+        </div>
+        <div class="guest-banner-actions">
+          <button type="button" class="guest-banner-btn" id="banner-btn-login">Se connecter</button>
+          <button type="button" class="guest-banner-dismiss" id="banner-btn-dismiss" aria-label="Masquer">&times;</button>
+        </div>
+      </div>
+    </div>
+
     <main id="list">
       <div class="col" id="msgs">
         <div class="welcome-container" id="welcome-view">
@@ -5001,217 +5150,186 @@
   </div>
 
   <!-- Paramètres Modal Redessinée & Épurée -->
-  <dialog id="setd" class="modal-settings-redesign">
-    <div class="set-header-bar">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div class="set-icon-glow">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3" />
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-          </svg>
-        </div>
-        <div>
-          <h2 style="margin:0;font-size:18px;font-weight:700">Paramètres & Préférences</h2>
-          <span style="font-size:12px;color:var(--muted)">Contrôlez votre expérience, vos modèles et votre compte</span>
-        </div>
+    <!-- 1. Dialogue Personnalisation MEL-IA -->
+  <dialog class="settings-dialog" id="dialog-persona">
+    <div class="dialog-head">
+      <div class="dialog-title-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m18 15-6-6-6 6"/></svg>
+        <span class="dialog-title">Personnalisation de MEL-IA</span>
       </div>
-      <button type="button" class="icon-btn" id="set-close-x" style="width:34px;height:34px;border-radius:10px" aria-label="Fermer">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-      </button>
+      <button class="icon-btn" id="persona-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
-
-    <!-- Navigation par Onglets -->
-    <div class="tabs set-nav" role="tablist">
-      <button type="button" class="tab on" id="set-tab-general" data-sec="sec-general">Général</button>
-      <button type="button" class="tab" id="set-tab-look" data-sec="sec-look">Apparence</button>
-      <button type="button" class="tab" id="set-tab-persona" data-sec="sec-persona">Personnalisation</button>
-      <button type="button" class="tab" id="set-tab-memory" data-sec="sec-memory">Mémoire</button>
-      <button type="button" class="tab" id="set-tab-quotas" data-sec="sec-quotas">Quotas</button>
-      <button type="button" class="tab" id="set-tab-keys" data-sec="sec-keys">Modèles & Clés API</button>
-      <button type="button" class="tab" id="set-tab-security" data-sec="sec-security">Compte</button>
-    </div>
-
-    <!-- Section 1 : Général -->
-    <div class="set-sec" id="sec-general">
-      <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Langue principale</span>
-        <select id="set-lang-select" class="persona" style="height:40px;padding:8px 12px;margin-bottom:14px">
-          <option value="fr" selected>Français (par défaut)</option>
-          <option value="en">English</option>
+    <div class="dialog-body" style="padding:22px;max-width:540px">
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--fg-heading)">Comment MEL-IA doit vous appeler</label>
+        <input type="text" id="persona-call-name" placeholder="Ex: Mel, Alexandre..." style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;outline:none">
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--fg-heading)">Directives & Instructions personnalis\u00e9es</label>
+        <textarea id="persona-custom-instructions" rows="4" placeholder="Ex: Sois toujours rigoureux et p\u00e9dagogique, privil\u00e9gie les exemples concrets, adopte un ton professionnel..." style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;outline:none;resize:vertical"></textarea>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--fg-heading)">Ton de r\u00e9ponse</label>
+        <select id="persona-tone-select" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;outline:none">
+          <option value="balanced">\u00c9quilibr\u00e9 & Naturel (Standard)</option>
+          <option value="concise">Synth\u00e9tique & Direct</option>
+          <option value="detailed">P\u00e9dagogique & D\u00e9taill\u00e9</option>
+          <option value="creative">Cr\u00e9atif & Nuanc\u00e9</option>
         </select>
-
-        <span class="label-mini">Nom d'affichage</span>
-        <input id="set-user-call-name" type="text" placeholder="Comment MEL-IA doit vous appeler (ex: Mel, Alex, Dr. Martin…)">
-        <p class="settings-note">Ce nom est utilisé pour personnaliser l'accueil et les échanges.</p>
       </div>
-    </div>
-
-    <!-- Section 2 : Apparence -->
-    <div class="set-sec" id="sec-look" style="display:none">
-      <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Thème visuel</span>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">
-          <button type="button" class="dialog-btn secondary" id="theme-btn-dark" style="margin:0;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
-            <span>Mode Sombre</span>
-          </button>
-          <button type="button" class="dialog-btn secondary" id="theme-btn-light" style="margin:0;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /></svg>
-            <span>Mode Clair</span>
-          </button>
-        </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button type="button" class="btn primary" id="persona-save-btn" style="padding:10px 20px;border-radius:10px;font-weight:600">Enregistrer</button>
       </div>
-    </div>
-
-    <!-- Section 3 : Personnalisation (Instructions Personnalisées) -->
-    <div class="set-sec" id="sec-persona" style="display:none">
-      <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Instructions personnalisées</span>
-        <textarea class="persona" id="persona-in" rows="4" placeholder="Que souhaitez-vous que MEL-IA sache sur vous ou prenne en compte dans toutes ses réponses ? (contexte, préférences, objectifs…)"></textarea>
-
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px">
-          <div>
-            <span class="label-mini">Ton de communication</span>
-            <select id="persona-tone-select" class="persona" style="height:40px;padding:8px 12px">
-              <option value="naturel" selected>Naturel & bienveillant</option>
-              <option value="professionnel">Professionnel & rigoureux</option>
-              <option value="direct">Direct & concis</option>
-              <option value="academique">Académique & approfondi</option>
-            </select>
-          </div>
-          <div>
-            <span class="label-mini">Style des réponses</span>
-            <select id="persona-style-select" class="persona" style="height:40px;padding:8px 12px">
-              <option value="equilibre" selected>Équilibré</option>
-              <option value="concis">Concis & synthétique</option>
-              <option value="detaille">Détaillé & exhaustif</option>
-            </select>
-          </div>
-        </div>
-        <p class="settings-note" style="margin-top:12px">Ces préférences orientent les réponses de MEL-IA tout au long de vos conversations.</p>
-      </div>
-    </div>
-
-    <!-- Section 4 : Mémoire -->
-    <div class="set-sec" id="sec-memory" style="display:none">
-      <div class="set-card-panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div>
-            <span style="font-weight:600;font-size:14px">Activer la mémoire</span>
-            <div style="font-size:12px;color:var(--muted)">Permet à MEL-IA de retenir les faits importants au fil des échanges</div>
-          </div>
-          <input type="checkbox" id="memory-toggle-chk" checked style="width:20px;height:20px;accent-color:var(--a1);cursor:pointer">
-        </div>
-        <div class="popover-divider" style="margin:12px 0"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span class="label-mini" style="margin:0">Souvenirs enregistrés</span>
-          <button type="button" class="auth-link" id="btn-clear-all-mem" style="font-size:12px;color:var(--err)">Tout effacer</button>
-        </div>
-        <div id="memory-facts-list" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
-          <div style="color:var(--muted);font-size:13px;padding:12px 0;text-align:center">Chargement des souvenirs…</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Section 5 : Quotas & Utilisation -->
-    <div class="set-sec" id="sec-quotas" style="display:none">
-      <div class="set-card-panel">
-        <div class="qc-metrics" style="margin:0">
-          <div class="qc-metric">
-            <span class="qcm-label">Questions restantes aujourd'hui</span>
-            <div class="qcm-val" id="qc-questions-val">-- / --</div>
-            <div class="qcm-bar-wrap">
-              <div class="qcm-bar" id="qc-questions-bar" style="width:100%"></div>
-            </div>
-          </div>
-          <div class="qc-metric">
-            <span class="qcm-label">Générations d'images restantes</span>
-            <div class="qcm-val" id="qc-images-val">-- / --</div>
-            <div class="qcm-bar-wrap">
-              <div class="qcm-bar" id="qc-images-bar" style="width:100%"></div>
-            </div>
-          </div>
-        </div>
-        <p class="settings-note" style="margin-top:14px">Les quotas se réinitialisent chaque jour à 00:00 UTC. L'ajout d'une clé API Gemini personnelle permet d'utiliser vos propres capacités Google AI Studio.</p>
-      </div>
-    </div>
-
-    <!-- Section 6 : Modèles & Clés API -->
-    <div class="set-sec" id="sec-keys" style="display:none">
-      <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Modèle de langage</span>
-        <select id="model-pref-select" class="persona" style="height:40px;padding:8px 12px;margin-bottom:14px">
-          <option value="auto" selected>Gemini 2.5 Flash (Rapide & Polyvalent - Recommandé)</option>
-          <option value="gemini-2.5-pro">Gemini 2.5 Pro (Raisonnement Complexe & Rigueur)</option>
-        </select>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <span class="label-mini" style="margin:0">Clé API Google Gemini</span>
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" class="scp-link">Google AI Studio ↗</a>
-        </div>
-        <p class="settings-note" style="margin:0 0 10px">Enregistrez votre clé personnelle pour interroger les serveurs Google avec vos propres limites d'utilisation.</p>
-        
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <input id="key-input" type="password" placeholder="AIzaSy…" aria-label="Clé API Gemini" style="flex:1">
-          <button type="button" class="dialog-btn secondary" id="btn-toggle-key-visibility" style="padding:0 12px;margin:0" title="Afficher/Masquer">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-
-        <div id="key-test-feedback" style="display:none;font-size:12.5px;padding:8px 12px;border-radius:8px;margin-bottom:10px"></div>
-
-        <div style="display:flex;gap:8px">
-          <button class="dialog-btn secondary" id="btn-test-key-live" type="button" style="flex:1;margin:0">⚡ Tester la connexion</button>
-          <button class="dialog-btn" id="key-add-btn" type="button" style="flex:1;margin:0">Enregistrer</button>
-          <button class="dialog-btn secondary" id="btn-remove-key" type="button" style="padding:0 14px;margin:0;color:var(--err)" title="Supprimer la clé">Supprimer</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Section 7 : Sécurité & Compte -->
-    <div class="set-sec" id="sec-security" style="display:none">
-      <div class="set-card-panel">
-        <span class="label-mini" style="margin-top:0">Modifier le mot de passe</span>
-        <div class="pwd-box">
-          <input id="pwd-curr" type="password" placeholder="Mot de passe actuel" autocomplete="current-password">
-          <input id="pwd-new" type="password" placeholder="Nouveau mot de passe (6 car. min)" autocomplete="new-password">
-          <input id="pwd-conf" type="password" placeholder="Confirmer le nouveau mot de passe" autocomplete="new-password">
-          <button class="dialog-btn secondary" id="btn-change-pwd" type="button" style="margin-top:6px;width:100%">Mettre à jour le mot de passe</button>
-          <div id="pwd-msg" style="font-size:12.5px;margin-top:6px;display:none;padding:8px 12px;border-radius:8px"></div>
-        </div>
-
-        <div class="popover-divider" style="margin:16px 0"></div>
-        <span class="label-mini">Exportation des données</span>
-        <button class="dialog-btn secondary" id="btn-export-data" type="button" style="width:100%;margin:0">Télécharger mes conversations (.JSON)</button>
-      </div>
-    </div>
-
-    <div style="margin-top:16px;display:flex;gap:10px">
-      <button class="dialog-btn" id="set-save" type="button" style="flex:1;margin:0">Enregistrer les modifications</button>
-      <button class="dialog-btn secondary" id="set-close" type="button" style="flex:1;margin:0">Fermer</button>
     </div>
   </dialog>
 
-  <!-- Mémoire Modal -->
-  <dialog id="memd">
-    <h2>Mémoire</h2>
-    <p style="color:var(--muted);font-size:14px;margin-bottom:14px">Ce que MEL-IA retient de toi.</p>
-    <div id="facts"></div>
-    <p style="color:var(--muted);font-size:12.5px;margin-top:14px">Astuce : écris « retiens que… » dans le chat pour
-      mémoriser un fait.</p>
-    <button class="dialog-btn secondary" id="memclose">Fermer</button>
+  <!-- 2. Dialogue M\u00e9moire & Faits M\u00e9moris\u00e9s -->
+  <dialog class="settings-dialog" id="dialog-memory">
+    <div class="dialog-head">
+      <div class="dialog-title-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8L4.3 10.7l5.8-1.9z"/></svg>
+        <span class="dialog-title">M\u00e9moire de MEL-IA</span>
+      </div>
+      <button class="icon-btn" id="memory-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="dialog-body" style="padding:22px;max-width:540px">
+      <p style="color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:14px">MEL-IA m\u00e9morise les \u00e9l\u00e9ments cl\u00e9s que vous partagez au fil des discussions pour personnaliser vos r\u00e9ponses futures.</p>
+      
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;margin-bottom:16px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--fg-heading)">M\u00e9moire active</div>
+          <div style="font-size:12px;color:var(--muted)">Prendre en compte les souvenirs dans les r\u00e9ponses</div>
+        </div>
+        <input type="checkbox" id="mem-toggle-active" checked style="width:18px;height:18px;cursor:pointer">
+      </div>
+
+      <div style="font-size:12.5px;font-weight:600;margin-bottom:8px;color:var(--fg-heading)">Faits m\u00e9moris\u00e9s</div>
+      <div id="memory-facts-list" style="max-height:180px;overflow-y:auto;margin-bottom:16px;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--surface)">
+        <div style="text-align:center;color:var(--muted);font-size:12.5px;padding:12px">Aucun fait m\u00e9moris\u00e9 pour le moment.</div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <input type="text" id="memory-add-input" placeholder="Ajouter un fait (ex: Je d\u00e9veloppe en Python...)" style="flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;outline:none">
+        <button type="button" class="btn outline" id="memory-add-btn" style="padding:9px 14px;border-radius:10px;font-weight:500">Ajouter</button>
+      </div>
+
+      <p style="font-size:11.5px;color:var(--muted);margin:0">Astuce : \u00e9crivez <em>\u00ab Retiens que... \u00bb</em> dans n'importe quelle discussion pour m\u00e9moriser automatiquement un fait.</p>
+    </div>
+  </dialog>
+
+  <!-- 3. Dialogue Param\u00e8tres & Cl\u00e9s API -->
+  <dialog class="settings-dialog" id="dialog-settings">
+    <div class="dialog-head">
+      <div class="dialog-title-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="dialog-title">Param\u00e8tres G\u00e9n\u00e9raux</span>
+      </div>
+      <button class="icon-btn" id="settings-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="dialog-body" style="padding:22px;max-width:540px">
+      <!-- Th\u00e8me visuel -->
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:8px;color:var(--fg-heading)">Th\u00e8me Visuel</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px" id="settings-theme-switcher">
+          <button type="button" class="btn outline theme-btn" data-theme="dark" style="padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span>Sombre</span>
+          </button>
+          <button type="button" class="btn outline theme-btn" data-theme="light" style="padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <span>Clair</span>
+          </button>
+          <button type="button" class="btn outline theme-btn" data-theme="system" style="padding:10px 12px;border-radius:10px;font-size:12.5px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <span>Syst\u00e8me</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mod\u00e8le d'IA -->
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--fg-heading)">Moteur d'Intelligence Artificielle</label>
+        <div style="padding:12px 14px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-weight:600;font-size:13px;color:var(--fg-heading)">MEL-IA Flash Lite (Ultra-Rapide)</div>
+            <div style="font-size:12px;color:var(--muted)">Latence minimale & flux continu en temps r\u00e9el</div>
+          </div>
+          <span style="font-size:11px;padding:3px 8px;border-radius:6px;background:rgba(20,184,166,0.15);color:#14b8a6;font-weight:600">Actif</span>
+        </div>
+      </div>
+
+      <!-- Cl\u00e9 API Gemini -->
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--fg-heading)">Cl\u00e9 API Google Gemini personnelle (Optionnelle)</label>
+        <div style="display:flex;gap:8px">
+          <input type="password" id="settings-custom-key" placeholder="AIzaSy..." style="flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:13px;outline:none">
+          <button type="button" class="btn primary" id="settings-save-key-btn" style="padding:10px 16px;border-radius:10px;font-weight:500">Enregistrer</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:6px;margin-bottom:0">Renseignez votre cl\u00e9 pour lever tout quota journalier. Votre cl\u00e9 est stock\u00e9e chiffr\u00e9e sur votre profil.</p>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 4. Dialogue Profil Utilisateur -->
+  <dialog class="settings-dialog" id="dialog-profile">
+    <div class="dialog-head">
+      <div class="dialog-title-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+        <span class="dialog-title">Mon Profil</span>
+      </div>
+      <button class="icon-btn" id="profile-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="dialog-body" style="padding:22px;max-width:500px">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:var(--bg2);border:1px solid var(--line);border-radius:12px">
+        <div class="user-avatar" id="profile-avatar-display" style="width:48px;height:48px;font-size:18px;font-weight:700">M</div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:var(--fg-heading)" id="profile-username-display">Invit\u00e9</div>
+          <div style="font-size:12.5px;color:var(--muted)" id="profile-email-display">Non connect\u00e9</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px" id="profile-actions-container">
+        <button type="button" class="btn primary" id="profile-btn-auth" style="padding:11px 18px;border-radius:10px;font-weight:600">Se connecter ou cr\u00e9er un compte</button>
+        <button type="button" class="btn outline" id="profile-btn-logout" style="display:none;padding:11px 18px;border-radius:10px;font-weight:500;color:var(--danger)">Se d\u00e9connecter</button>
+      </div>
+    </div>
   </dialog>
 
   <script src="/static/atom.js"></script>
   <script>
+    window.onerror = function(msg, url, line, col, err) {
+      window.__LAST_ERROR = { msg: String(msg), url: url, line: line, col: col, stack: err ? err.stack : '' };
+      console.error('GLOBAL ERROR:', msg, 'line:', line);
+    };
 
-    
     mountAtom('logo', 28);
 
+    var _memStore = {};
+    var storage = {
+      get: function (k) {
+        try {
+          var v = window.localStorage ? window.storage.get(k) : null;
+          return v !== null ? v : (_memStore[k] || null);
+        } catch (e) {
+          return _memStore[k] || null;
+        }
+      },
+      set: function (k, v) {
+        _memStore[k] = String(v);
+        try {
+          if (window.localStorage) window.storage.set(k, v);
+        } catch (e) {}
+      },
+      remove: function (k) {
+        delete _memStore[k];
+        try {
+          if (window.localStorage) window.storage.remove(k);
+        } catch (e) {}
+      }
+    };
     var $ = function (id) { return document.getElementById(id); };
     var owner = '', speak = false, busy = false;
-    var currentSession = localStorage.getItem('mel_session') || 'default';
-    var token = localStorage.getItem('mel_token') || '';
+    var currentSession = storage.get('mel_session') || 'default';
+    var token = storage.get('mel_token') || '';
     var abortCtrl = null;
 
     // ---- Système de Toast Notifications Toast Premium ----
@@ -5238,7 +5356,7 @@
 
     // ---- Gestionnaire de Thème (Paramètres : Dark OLED / Light Mode) ----
     function initTheme() {
-      var saved = localStorage.getItem('mel_theme');
+      var saved = storage.get('mel_theme');
       if (!saved) {
         saved = 'light';
       }
@@ -5247,7 +5365,7 @@
 
     function applyTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('mel_theme', theme);
+      storage.set('mel_theme', theme);
       var metaTheme = document.querySelector('meta[name="theme-color"]');
       if (metaTheme) {
         metaTheme.setAttribute('content', theme === 'dark' ? '#090d16' : '#f8fafc');
@@ -5279,10 +5397,10 @@
     }
 
     function getGuestId() {
-      var gid = localStorage.getItem('mel_guest_id');
+      var gid = storage.get('mel_guest_id');
       if (!gid) {
         gid = 'guest_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-        localStorage.setItem('mel_guest_id', gid);
+        storage.set('mel_guest_id', gid);
       }
       return gid;
     }
@@ -5304,7 +5422,7 @@
           }
           if (r.status === 401 && token) {
             token = '';
-            localStorage.removeItem('mel_token');
+            storage.remove('mel_token');
             showUserChip('');
             openGate('login');
             throw new Error('Session expirée. Connecte-toi pour continuer.');
@@ -6139,18 +6257,18 @@
             combinedHtml = '<style>\n' + allCss + '\n</style>' + combinedHtml;
           }
         }
-        if (jsFiles.length && combinedHtml.indexOf('<script') === -1) {
+        if (jsFiles.length && combinedHtml.indexOf('<' + 'script') === -1) {
           var allJs = jsFiles.map(function (j) { return j.content; }).join('\n');
           if (combinedHtml.indexOf('</body>') !== -1) {
-            combinedHtml = combinedHtml.replace('</body>', '<script>\n' + allJs + '\n<' + '/script></body>');
+            combinedHtml = combinedHtml.replace('</body>', '<' + 'script>\n' + allJs + '\n<' + '/script></body>');
           } else {
-            combinedHtml += '<script>\n' + allJs + '\n<' + '/script>';
+            combinedHtml += '<' + 'script>\n' + allJs + '\n<' + '/script>';
           }
         }
       } else if (cur.lang === 'css') {
         combinedHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#f8fafc;color:#0f172a}' + cur.content + '</style></head><body><h2>Aperçu CSS</h2><p>Paragraphe de démonstration avec votre style appliqué.</p><button style="margin-top:12px">Bouton interactif</button><div style="margin-top:16px;padding:16px;border:1px solid #e2e8f0;border-radius:12px;background:#fff">Carte avec bordure</div></body></html>';
       } else if (cur.lang === 'js' || cur.lang === 'javascript') {
-        combinedHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#0f172a}#out{margin-top:16px;padding:12px;background:#0f172a;color:#38bdf8;border-radius:8px;font-family:monospace;font-size:13px;white-space:pre-wrap}</style></head><body><h2>Aperçu JavaScript</h2><div id="app"></div><div id="out">Console :</div><script>var _c=document.getElementById("out");var _log=console.log;console.log=function(){_log.apply(console,arguments);var s=Array.from(arguments).map(function(x){return typeof x==="object"?JSON.stringify(x,null,2):String(x);}).join(" ");_c.textContent += "\\n> " + s;};<' + '/script><script>' + cur.content + '<' + '/script></body></html>';
+        combinedHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;padding:24px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#0f172a}#out{margin-top:16px;padding:12px;background:#0f172a;color:#38bdf8;border-radius:8px;font-family:monospace;font-size:13px;white-space:pre-wrap}</style></head><body><h2>Aperçu JavaScript</h2><div id="app"></div><div id="out">Console :</div><' + 'script>var _c=document.getElementById("out");var _log=console.log;console.log=function(){_log.apply(console,arguments);var s=Array.from(arguments).map(function(x){return typeof x==="object"?JSON.stringify(x,null,2):String(x);}).join(" ");_c.textContent += "\\n> " + s;};<' + '/script><' + 'script>' + cur.content + '<' + '/script></body></html>';
       } else if (cur.lang === 'svg' || /<svg[\s\S]*<\/svg>/i.test(cur.content || '')) {
         combinedHtml = '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f8fafc;padding:20px}svg{max-width:100%;height:auto;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.06))}</style></head><body>' + cur.content + '</body></html>';
       } else {
@@ -6920,7 +7038,7 @@
 
     function switchSession(sid) {
       currentSession = sid;
-      localStorage.setItem('mel_session', sid);
+      storage.set('mel_session', sid);
       closeSidebar();
       load();
       loadSessions();
@@ -7319,7 +7437,7 @@
           if (res.status === 401) {
             if (token) {
               token = '';
-              localStorage.removeItem('mel_token');
+              storage.remove('mel_token');
               showUserChip('');
               openGate('login');
               throw new Error('Session expirée ou serveur redémarré. Veuillez vous reconnecter.');
@@ -7547,7 +7665,7 @@
 
     function startNewChatSession() {
       currentSession = 'sess_' + Math.random().toString(36).substr(2, 8) + Date.now().toString(36);
-      localStorage.setItem('mel_session', currentSession);
+      storage.set('mel_session', currentSession);
       var msgsEl = $('msgs');
       if (msgsEl) msgsEl.innerHTML = '';
       showEmpty();
@@ -7569,7 +7687,7 @@ $('in').addEventListener('input', function () {
       if (confirm('Effacer toutes les conversations ?')) {
         api('/api/clear', { method: 'POST' }).then(function () {
           currentSession = 'default';
-          localStorage.setItem('mel_session', 'default');
+          storage.set('mel_session', 'default');
           load();
           loadSessions();
         });
@@ -7595,7 +7713,7 @@ $('in').addEventListener('input', function () {
         $('memd').showModal();
       }).catch(function () { });
     };
-    $('memclose').onclick = function () { $('memd').close(); };
+    if ($('memclose') && $('memd')) { $('memclose').onclick = function () { $('memd').close(); }; }
 
     // ---- Synthèse vocale TTS & Reconnaissance vocale ----
     function say(t) {
@@ -7651,7 +7769,7 @@ $('in').addEventListener('input', function () {
       $('tab-signup').classList.toggle('on', m === 'signup');
       if ($('glf')) $('glf').hidden = m !== 'login';
       if ($('gsf1')) $('gsf1').hidden = m !== 'signup';
-      if ($('gsf2')) $('gsf2').hidden = true;
+      if ($('gsf2')) if ($('gsf2')) $('gsf2').hidden = true;
       if ($('gff')) $('gff').hidden = true;
       if ($('gff-step-1')) $('gff-step-1').style.display = 'block';
       if ($('gff-step-2')) $('gff-step-2').style.display = 'none';
@@ -7673,7 +7791,7 @@ $('in').addEventListener('input', function () {
 
     if ($('su-back')) $('su-back').addEventListener('click', function () {
       if ($('gsf1')) $('gsf1').hidden = false;
-      if ($('gsf2')) $('gsf2').hidden = true;
+      if ($('gsf2')) if ($('gsf2')) $('gsf2').hidden = true;
     });
 
     function showUserChip(username, userObj) {
@@ -7708,12 +7826,12 @@ $('in').addEventListener('input', function () {
 
     function afterAuth(j) {
       token = j.token;
-      localStorage.setItem('mel_token', token);
-      localStorage.removeItem('mel_guest');
+      storage.set('mel_token', token);
+      storage.remove('mel_guest');
       window.currentUser = j;
       showUserChip(j.username, j);
       currentSession = 'default';
-      localStorage.setItem('mel_session', 'default');
+      storage.set('mel_session', 'default');
       closeGate();
       loadSessions();
       load();
@@ -7779,7 +7897,7 @@ $('in').addEventListener('input', function () {
       if ($('btn-show-forgot')) $('btn-show-forgot').addEventListener('click', function () {
         $('glf').hidden = true;
         $('gsf1').hidden = true;
-        $('gsf2').hidden = true;
+        if ($('gsf2')) $('gsf2').hidden = true;
         if ($('gff')) {
           $('gff').hidden = false;
           if ($('gff-step-1')) $('gff-step-1').style.display = 'block';
@@ -7937,10 +8055,10 @@ $('in').addEventListener('input', function () {
         var gid = getGuestId();
         api('/api/guest/reset', { method: 'POST', headers: { 'X-Guest-Id': gid } }).then(function (res) {
           if (res.guest_id) {
-            localStorage.setItem('mel_guest_id', res.guest_id);
+            storage.set('mel_guest_id', res.guest_id);
           }
           currentSession = 'default';
-          localStorage.setItem('mel_session', 'default');
+          storage.set('mel_session', 'default');
           $('msgs').innerHTML = '';
           showEmpty();
           loadSessions();
@@ -7956,10 +8074,10 @@ $('in').addEventListener('input', function () {
     if ($('logout')) $('logout').addEventListener('click', function () {
       api('/api/auth/logout', { method: 'POST' }).catch(function () { });
       token = '';
-      localStorage.removeItem('mel_token');
+      storage.remove('mel_token');
       showUserChip('');
       currentSession = 'default';
-      localStorage.setItem('mel_session', 'default');
+      storage.set('mel_session', 'default');
       loadSessions();
       load();
       showToast('Vous êtes déconnecté', 'info');
@@ -8253,11 +8371,11 @@ $('in').addEventListener('input', function () {
 
     if ($('btn-guest-test')) {
       if ($('btn-guest-test')) $('btn-guest-test').addEventListener('click', function () {
-        localStorage.setItem('mel_guest', '1');
+        storage.set('mel_guest', '1');
         token = '';
-        localStorage.removeItem('mel_token');
+        storage.remove('mel_token');
         currentSession = 'default';
-        localStorage.setItem('mel_session', 'default');
+        storage.set('mel_session', 'default');
         closeGate();
         showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
         updateQuotaUI();
@@ -8281,7 +8399,7 @@ $('in').addEventListener('input', function () {
     var urlParams = new URLSearchParams(window.location.search);
     var isTestParam = urlParams.get('mode') === 'test';
     if (isTestParam) {
-      localStorage.setItem('mel_guest', '1');
+      storage.set('mel_guest', '1');
     }
 
     if (token) {
@@ -8291,18 +8409,18 @@ $('in').addEventListener('input', function () {
           updateQuotaUI();
         } else {
           token = '';
-          localStorage.removeItem('mel_token');
-          localStorage.setItem('mel_guest', '1');
+          storage.remove('mel_token');
+          storage.set('mel_guest', '1');
           showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
           updateQuotaUI();
         }
       }).catch(function () {
-        localStorage.setItem('mel_guest', '1');
+        storage.set('mel_guest', '1');
         showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
         updateQuotaUI();
       });
     } else {
-      localStorage.setItem('mel_guest', '1');
+      storage.set('mel_guest', '1');
       showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
       updateQuotaUI();
     }
@@ -8391,218 +8509,415 @@ $('in').addEventListener('input', function () {
       });
     });
 
-    // Actions du Popover de compte
-    if ($('pop-profil')) {
-      if ($('pop-profil')) $('pop-profil').addEventListener('click', function () {
-        if (accountPopover) accountPopover.hidden = true;
-        switchSettingsTab('set-tab-general', 'sec-general');
-        if ($('setd')) $('setd').showModal();
+    // ============================================================
+    // GESTIONNAIRE UNIFIÉ DES DIALOGUES ET MODALES MEL-IA 2.0
+    // ============================================================
+    function bindModalClose(dialogId, closeBtnId) {
+      var dlg = document.getElementById(dialogId);
+      if (!dlg) return;
+      var closeBtn = document.getElementById(closeBtnId);
+      if (closeBtn) {
+        closeBtn.onclick = function (e) {
+          e.stopPropagation();
+          dlg.close();
+        };
+      }
+      dlg.addEventListener('click', function (e) {
+        var rect = dlg.getBoundingClientRect();
+        var isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
+                          rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
+        if (!isInDialog) dlg.close();
       });
     }
 
-    if ($('pop-custom')) {
-      if ($('pop-custom')) $('pop-custom').addEventListener('click', function () {
-        if (accountPopover) accountPopover.hidden = true;
-        switchSettingsTab('set-tab-persona', 'sec-persona');
-        if ($('setd')) $('setd').showModal();
-      });
+    // Association de la fermeture pour chaque dialogue
+    bindModalClose('library-dialog', 'library-dialog-close');
+    bindModalClose('projects-dialog', 'projects-dialog-close');
+    bindModalClose('dialog-persona', 'persona-dialog-close');
+    bindModalClose('dialog-memory', 'memory-dialog-close');
+    bindModalClose('dialog-settings', 'settings-dialog-close');
+    bindModalClose('dialog-profile', 'profile-dialog-close');
+    bindModalClose('google-config-dialog', 'google-dialog-close');
+
+    // Boutons d'action dans Bibliothèque et Projets
+    if ($('btn-lib-upload')) {
+      $('btn-lib-upload').onclick = function () {
+        if ($('library-dialog')) $('library-dialog').close();
+        if ($('file-input')) $('file-input').click();
+      };
+    }
+    if ($('btn-projects-new-chat')) {
+      $('btn-projects-new-chat').onclick = function () {
+        if ($('projects-dialog')) $('projects-dialog').close();
+        newChat();
+        if ($('in')) $('in').focus();
+      };
     }
 
-    if ($('pop-mem')) {
-      if ($('pop-mem')) $('pop-mem').addEventListener('click', function () {
-        if (accountPopover) accountPopover.hidden = true;
-        switchSettingsTab('set-tab-memory', 'sec-memory');
-        loadMemoryFacts();
-        if ($('setd')) $('setd').showModal();
-      });
-    }
+    // Gestion du menu Popover du compte
+    var accountPopover = document.getElementById('account-menu-popover');
+    var accountBar = document.getElementById('user-account-bar');
 
-    if ($('pop-settings')) {
-      if ($('pop-settings')) $('pop-settings').addEventListener('click', function () {
-        if (accountPopover) accountPopover.hidden = true;
-        switchSettingsTab('set-tab-general', 'sec-general');
-        if ($('setd')) $('setd').showModal();
-      });
-    }
+    if (accountBar && accountPopover) {
+      accountBar.onclick = function (e) {
+        e.stopPropagation();
+        accountPopover.hidden = !accountPopover.hidden;
+      };
 
-    if ($('pop-plan')) {
-      if ($('pop-plan')) $('pop-plan').addEventListener('click', function () {
-        if (accountPopover) accountPopover.hidden = true;
-        switchSettingsTab('set-tab-quotas', 'sec-quotas');
-        if (typeof updateQuotaUI === 'function') updateQuotaUI();
-        if ($('setd')) $('setd').showModal();
-      });
-    }
-
-    if ($('pop-auth-action')) {
-      if ($('pop-auth-action')) $('pop-auth-action').addEventListener('click', function () {
-        if (accountPopover) accountPopover.hidden = true;
-        if (token) {
-          // Déconnexion réelle
-          api('/api/auth/logout', { method: 'POST' }).finally(function () {
-            token = '';
-            window.currentUser = null;
-            localStorage.removeItem('mel_token');
-            showUserChip('');
-            showToast('Vous êtes à présent déconnecté.', 'info');
-            loadSessions();
-            showEmpty();
-          });
-        } else {
-          openGate('login');
+      document.addEventListener('click', function (e) {
+        if (!accountBar.contains(e.target) && !accountPopover.contains(e.target)) {
+          accountPopover.hidden = true;
         }
       });
     }
 
-    // 3. Mémoire : Chargement, Ajout, Suppression
+    // Actions des items du Popover
+    if ($('pop-profil')) {
+      $('pop-profil').onclick = function () {
+        if (accountPopover) accountPopover.hidden = true;
+        if (token) {
+          updateProfileDisplay();
+          if ($('dialog-profile')) $('dialog-profile').showModal();
+        } else {
+          openGate('login');
+        }
+      };
+    }
+
+    if ($('pop-custom')) {
+      $('pop-custom').onclick = function () {
+        if (accountPopover) accountPopover.hidden = true;
+        loadPersonaSettings();
+        if ($('dialog-persona')) $('dialog-persona').showModal();
+      };
+    }
+
+    if ($('pop-mem')) {
+      $('pop-mem').onclick = function () {
+        if (accountPopover) accountPopover.hidden = true;
+        loadMemoryFacts();
+        if ($('dialog-memory')) $('dialog-memory').showModal();
+      };
+    }
+
+    if ($('pop-settings')) {
+      $('pop-settings').onclick = function () {
+        if (accountPopover) accountPopover.hidden = true;
+        updateSettingsThemeButtons();
+        if ($('dialog-settings')) $('dialog-settings').showModal();
+      };
+    }
+
+    if ($('pop-plan')) {
+      $('pop-plan').onclick = function () {
+        if (accountPopover) accountPopover.hidden = true;
+        updateSettingsThemeButtons();
+        if ($('dialog-settings')) $('dialog-settings').showModal();
+      };
+    }
+
+    if ($('pop-auth-action')) {
+      $('pop-auth-action').onclick = function () {
+        if (accountPopover) accountPopover.hidden = true;
+        if (token) {
+          logoutUser();
+        } else {
+          openGate('login');
+        }
+      };
+    }
+
+    function logoutUser() {
+      api('/api/auth/logout', { method: 'POST' }).finally(function () {
+        token = '';
+        window.currentUser = null;
+        storage.remove('mel_token');
+        showUserChip('');
+        showToast('Vous êtes à présent déconnecté.', 'info');
+        updateGuestBanner();
+        loadSessions();
+        showEmpty();
+      });
+    }
+
+    // 1. Dialogue Personnalisation
+    function loadPersonaSettings() {
+      var callName = storage.get('mel_persona_call_name') || '';
+      var customInst = storage.get('mel_persona_instructions') || '';
+      var tone = storage.get('mel_persona_tone') || 'balanced';
+      if (window.currentUser) {
+        callName = window.currentUser.persona_name || window.currentUser.username || callName;
+        customInst = window.currentUser.persona || customInst;
+      }
+      if ($('persona-call-name')) $('persona-call-name').value = callName;
+      if ($('persona-custom-instructions')) $('persona-custom-instructions').value = customInst;
+      if ($('persona-tone-select')) $('persona-tone-select').value = tone;
+    }
+
+    if ($('persona-save-btn')) {
+      $('persona-save-btn').onclick = function () {
+        var callName = ($('persona-call-name') ? $('persona-call-name').value.trim() : '');
+        var customInst = ($('persona-custom-instructions') ? $('persona-custom-instructions').value.trim() : '');
+        var tone = ($('persona-tone-select') ? $('persona-tone-select').value : 'balanced');
+        storage.set('mel_persona_call_name', callName);
+        storage.set('mel_persona_instructions', customInst);
+        storage.set('mel_persona_tone', tone);
+
+        if (token) {
+          api('/api/auth/profile', {
+            method: 'POST',
+            body: JSON.stringify({
+              persona: customInst,
+              interests: tone
+            })
+          }).then(function () {
+            showToast('Personnalisation enregistrée !', 'success');
+            if ($('dialog-persona')) $('dialog-persona').close();
+            showEmpty();
+          }).catch(function (err) {
+            showToast('Enregistré localement.', 'info');
+            if ($('dialog-persona')) $('dialog-persona').close();
+          });
+        } else {
+          showToast('Personnalisation enregistrée (Mode Invité).', 'success');
+          if ($('dialog-persona')) $('dialog-persona').close();
+          showEmpty();
+        }
+      };
+    }
+
+    // 2. Dialogue Mémoire
     function loadMemoryFacts() {
       var listEl = $('memory-facts-list');
       if (!listEl) return;
-      listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0;text-align:center">Chargement…</div>';
+      listEl.innerHTML = '<div style="color:var(--muted);font-size:12.5px;padding:12px;text-align:center">Chargement des souvenirs...</div>';
       api('/api/facts').then(function (data) {
         var facts = data.facts || [];
         if (!facts.length) {
-          listEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:14px;text-align:center;background:var(--bg2);border-radius:8px">Aucun souvenir enregistré pour le moment.</div>';
+          listEl.innerHTML = '<div style="color:var(--muted);font-size:12.5px;padding:14px;text-align:center">Aucun souvenir enregistré pour le moment.</div>';
           return;
         }
         var html = '';
         facts.forEach(function (f) {
-          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface-hover);border-radius:8px;font-size:13px">' +
-                  '<span style="flex:1;margin-right:8px">' + esc(f.text) + '</span>' +
-                  '<button type="button" class="icon-btn del-fact-btn" data-fid="' + f.id + '" style="width:28px;height:28px;color:var(--err)" title="Supprimer">' +
-                  '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
+          html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg2);border-radius:8px;margin-bottom:6px;font-size:12.5px">' +
+                  '<span style="flex:1;margin-right:8px;color:var(--fg)">' + esc(f.text) + '</span>' +
+                  '<button type="button" class="icon-btn del-fact-btn" data-fid="' + f.id + '" style="width:24px;height:24px;color:var(--danger)" title="Supprimer">' +
+                  '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>' +
                   '</button></div>';
         });
         listEl.innerHTML = html;
         listEl.querySelectorAll('.del-fact-btn').forEach(function (btn) {
-          btn.addEventListener('click', function () {
+          btn.onclick = function () {
             var fid = this.getAttribute('data-fid');
             api('/api/facts/' + fid, { method: 'DELETE' }).then(function () {
               loadMemoryFacts();
               showToast('Souvenir supprimé.', 'info');
             });
-          });
+          };
         });
       }).catch(function () {
-        listEl.innerHTML = '<div style="color:var(--err);font-size:13px;padding:12px 0;text-align:center">Impossible de charger la mémoire.</div>';
+        listEl.innerHTML = '<div style="color:var(--muted);font-size:12.5px;padding:12px;text-align:center">Mémoire active sur vos conversations en cours.</div>';
       });
     }
 
-    if ($('btn-clear-all-mem')) {
-      if ($('btn-clear-all-mem')) $('btn-clear-all-mem').addEventListener('click', function () {
-        if (!confirm('Voulez-vous vraiment effacer tous les souvenirs enregistrés ?')) return;
-        api('/api/facts', { method: 'DELETE' }).then(function () {
+    if ($('memory-add-btn')) {
+      $('memory-add-btn').onclick = function () {
+        var input = $('memory-add-input');
+        if (!input) return;
+        var val = input.value.trim();
+        if (!val) return;
+        api('/api/facts', {
+          method: 'POST',
+          body: JSON.stringify({ text: val })
+        }).then(function () {
+          input.value = '';
           loadMemoryFacts();
-          showToast('Tous les souvenirs ont été effacés.', 'info');
+          showToast('Souvenir ajouté avec succès !', 'success');
+        }).catch(function (err) {
+          showToast(err.message || 'Erreur lors de l\'ajout', 'err');
         });
+      };
+    }
+
+    // 3. Dialogue Paramètres & Thèmes
+    function updateSettingsThemeButtons() {
+      var currentTheme = storage.get('mel_theme') || 'system';
+      document.querySelectorAll('#settings-theme-switcher .theme-btn').forEach(function (btn) {
+        if (btn.getAttribute('data-theme') === currentTheme) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
       });
     }
 
-    // 4. Test en Direct de la Clé API Gemini
-    if ($('btn-test-key-live')) {
-      if ($('btn-test-key-live')) $('btn-test-key-live').addEventListener('click', function () {
-        var k = ($('key-input').value || '').trim();
-        var fb = $('key-test-feedback');
-        if (!k) {
-          if (fb) {
-            fb.style.display = 'block';
-            fb.style.background = 'var(--err-bg)';
-            fb.style.color = 'var(--err)';
-            fb.textContent = 'Veuillez saisir une clé API à tester.';
-          }
+    document.querySelectorAll('#settings-theme-switcher .theme-btn').forEach(function (btn) {
+      btn.onclick = function () {
+        var t = this.getAttribute('data-theme');
+        setTheme(t);
+        updateSettingsThemeButtons();
+      };
+    });
+
+    if ($('settings-save-key-btn')) {
+      $('settings-save-key-btn').onclick = function () {
+        var key = ($('settings-custom-key') ? $('settings-custom-key').value.trim() : '');
+        if (!key) {
+          showToast('Veuillez renseigner une clé API Gemini.', 'err');
           return;
         }
-        if (fb) {
-          fb.style.display = 'block';
-          fb.style.background = 'var(--surface-hover)';
-          fb.style.color = 'var(--fg)';
-          fb.textContent = 'Test de connexion aux serveurs Google…';
+        if (token) {
+          api('/api/auth/profile', {
+            method: 'POST',
+            body: JSON.stringify({ api_key: key })
+          }).then(function () {
+            showToast('Clé API Gemini enregistrée avec succès !', 'success');
+            if ($('dialog-settings')) $('dialog-settings').close();
+          }).catch(function (err) {
+            showToast(err.message || 'Erreur lors de l\'enregistrement', 'err');
+          });
+        } else {
+          storage.set('mel_custom_gemini_key', key);
+          showToast('Clé API enregistrée localement.', 'success');
+          if ($('dialog-settings')) $('dialog-settings').close();
         }
-        fetch('/api/user/test-key', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ api_key: k })
-        }).then(function (r) { return r.json(); }).then(function (res) {
-          if (fb) {
-            fb.style.display = 'block';
-            if (res.ok && res.valid) {
-              fb.style.background = 'var(--success-bg)';
-              fb.style.color = 'var(--success)';
-              fb.textContent = '✓ ' + (res.message || 'Clé API valide et opérationnelle !');
-            } else {
-              fb.style.background = 'var(--err-bg)';
-              fb.style.color = 'var(--err)';
-              fb.textContent = '✗ ' + (res.error || 'Clé API refusée par Google.');
-            }
-          }
-        }).catch(function (err) {
-          if (fb) {
-            fb.style.display = 'block';
-            fb.style.background = 'var(--err-bg)';
-            fb.style.color = 'var(--err)';
-            fb.textContent = '✗ Erreur réseau : ' + (err.message || 'Serveur indisponible');
-          }
-        });
-      });
+      };
     }
 
-    if ($('btn-toggle-key-visibility')) {
-      if ($('btn-toggle-key-visibility')) $('btn-toggle-key-visibility').addEventListener('click', function () {
-        var ki = $('key-input');
-        if (ki) {
-          ki.type = (ki.type === 'password') ? 'text' : 'password';
+    // 4. Dialogue Profil
+    function updateProfileDisplay() {
+      if (token && window.currentUser) {
+        var uname = window.currentUser.username || 'Utilisateur';
+        var uemail = window.currentUser.email || 'Compte personnel';
+        if ($('profile-username-display')) $('profile-username-display').textContent = uname;
+        if ($('profile-email-display')) $('profile-email-display').textContent = uemail;
+        if ($('profile-avatar-display')) $('profile-avatar-display').textContent = uname.charAt(0).toUpperCase();
+        if ($('profile-btn-auth')) $('profile-btn-auth').style.display = 'none';
+        if ($('profile-btn-logout')) $('profile-btn-logout').style.display = 'block';
+      } else {
+        if ($('profile-username-display')) $('profile-username-display').textContent = 'Invité';
+        if ($('profile-email-display')) $('profile-email-display').textContent = 'Espace temporaire non connecté';
+        if ($('profile-avatar-display')) $('profile-avatar-display').textContent = 'I';
+        if ($('profile-btn-auth')) $('profile-btn-auth').style.display = 'block';
+        if ($('profile-btn-logout')) $('profile-btn-logout').style.display = 'none';
+      }
+    }
+
+    if ($('profile-btn-auth')) {
+      $('profile-btn-auth').onclick = function () {
+        if ($('dialog-profile')) $('dialog-profile').close();
+        openGate('login');
+      };
+    }
+    if ($('profile-btn-logout')) {
+      $('profile-btn-logout').onclick = function () {
+        if ($('dialog-profile')) $('dialog-profile').close();
+        logoutUser();
+      };
+    }
+
+    // 5. Bannière Discrète Mode Invité
+    function updateGuestBanner() {
+      var banner = $('guest-workspace-banner');
+      if (!banner) return;
+      var dismissed = storage.get('mel_guest_banner_dismissed');
+      if (!token && !dismissed) {
+        banner.style.display = 'block';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    if ($('banner-btn-login')) {
+      $('banner-btn-login').onclick = function () {
+        openGate('login');
+      };
+    }
+    if ($('banner-btn-dismiss')) {
+      $('banner-btn-dismiss').onclick = function () {
+        storage.set('mel_guest_banner_dismissed', '1');
+        var banner = $('guest-workspace-banner');
+        if (banner) banner.style.display = 'none';
+      };
+    }
+
+    // Initialisation immédiate de la bannière invité
+    updateGuestBanner();
+
+    // 6. Centres d'intérêt sur le formulaire d'inscription
+    document.querySelectorAll('#signup-interests-chips .interest-chip').forEach(function (chip) {
+      chip.onclick = function () {
+        this.classList.toggle('active');
+        var selected = [];
+        document.querySelectorAll('#signup-interests-chips .interest-chip.active').forEach(function (c) {
+          selected.push(c.getAttribute('data-val'));
+        });
+        if ($('su-interests-val')) $('su-interests-val').value = selected.join(', ');
+      };
+    });
+
+    // Validation du mot de passe à l'inscription
+    if ($('gsf1')) {
+      var originalGsf1Submit = $('gsf1').onsubmit;
+      $('gsf1').onsubmit = function (e) {
+        var p1 = $('su-pass') ? $('su-pass').value : '';
+        var p2 = $('su-pass2') ? $('su-pass2').value : '';
+        if (p1 && p2 && p1 !== p2) {
+          e.preventDefault();
+          e.stopPropagation();
+          showErr('su1-err', 'Les mots de passe ne correspondent pas.');
+          return false;
         }
-      });
+        if (typeof originalGsf1Submit === 'function') {
+          return originalGsf1Submit.call(this, e);
+        }
+      };
     }
 
-    if ($('btn-remove-key')) {
-      if ($('btn-remove-key')) $('btn-remove-key').addEventListener('click', function () {
-        if (!confirm('Voulez-vous retirer votre clé API Gemini personnelle ?')) return;
-        api('/api/auth/profile', {
-          method: 'POST',
-          body: JSON.stringify({ api_key: '' })
-        }).then(function () {
-          if ($('key-input')) $('key-input').value = '';
-          var fb = $('key-test-feedback');
-          if (fb) { fb.style.display = 'none'; }
-          showToast('Clé API retirée avec succès.', 'info');
-        });
-      });
+    // 7. Navigation Mobile Fluide
+    if ($('menu-toggle')) {
+      $('menu-toggle').onclick = function (e) {
+        e.stopPropagation();
+        document.body.classList.remove('sidebar-collapsed');
+        var sb = $('sidebar'), ov = $('overlay');
+        if (sb) sb.classList.toggle('open');
+        if (ov) ov.classList.toggle('open');
+      };
     }
 
-    // 5. Sauvegarde Complète des Préférences & Personnalisation
-    if ($('set-save')) {
-      if ($('set-save')) $('set-save').addEventListener('click', function () {
-        var payload = {
-          user_call_name: ($('set-user-call-name') ? $('set-user-call-name').value : ''),
-          persona: ($('persona-in') ? $('persona-in').value : ''),
-          custom_instructions: ($('persona-in') ? $('persona-in').value : ''),
-          communication_tone: ($('persona-tone-select') ? $('persona-tone-select').value : 'naturel'),
-          response_style: ($('persona-style-select') ? $('persona-style-select').value : 'equilibre'),
-          memory_enabled: ($('memory-toggle-chk') ? $('memory-toggle-chk').checked : true),
-          model_pref: ($('model-pref-select') ? $('model-pref-select').value : 'auto')
-        };
-        api('/api/auth/profile', {
-          method: 'POST',
-          body: JSON.stringify(payload)
-        }).then(function () {
-          showToast('Préférences enregistrées avec succès !', 'success');
-          if (window.currentUser) {
-            Object.assign(window.currentUser, payload);
-          }
-          if ($('setd')) $('setd').close();
-          // Rafraîchir l'accueil si aucune discussion active
-          if (!currentSession || currentSession === 'default') {
-            showEmpty();
-          }
-        }).catch(function (err) {
-          showToast(err.message || 'Erreur lors de l\'enregistrement', 'err');
-        });
-      });
+    if ($('overlay')) {
+      $('overlay').onclick = function () {
+        closeSidebar();
+      };
     }
 
-  
-</script>
+    // 8. Détection du Callback Google OAuth 2.0
+    (function checkGoogleOAuthRedirect() {
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var authTok = params.get('auth_token');
+        var authErr = params.get('auth_error');
+        if (authErr) {
+          showToast('Erreur Google Auth : ' + decodeURIComponent(authErr), 'err');
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (authTok) {
+          token = authTok;
+          storage.set('mel_token', authTok);
+          window.history.replaceState({}, document.title, window.location.pathname);
+          api('/api/auth/me').then(function (u) {
+            afterAuth({ token: authTok, user: u, username: u.username, email: u.email });
+            showToast('Connecté avec succès via Google !', 'success');
+            updateGuestBanner();
+          }).catch(function () {
+            showToast('Session Google active.', 'success');
+            updateGuestBanner();
+          });
+        }
+      } catch (ex) {
+        console.warn('OAuth check error:', ex);
+      }
+    })();
+  </script>
 
 
 </body>

@@ -26,14 +26,18 @@ else:
     DATA_DIR = BASE / "data"
     load_dotenv(BASE / ".env")
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile, Request
+import urllib.parse
+from fastapi.responses import FileResponse, StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from database import db, init_db, DBIntegrityError, IS_POSTGRES
 
 DB_PATH = DATA_DIR / "mel_ia.db"
+
+# Stockage 100% en RAM pour les sessions invites (AUCUNE persistance en base de donnees)
+GUEST_SESSIONS: dict[str, list[dict]] = {}
 DB_PATH.parent.mkdir(exist_ok=True)
 MEDIA_DIR = DATA_DIR / "media"
 MEDIA_DIR.mkdir(exist_ok=True)
@@ -239,7 +243,7 @@ def get_user_quota_info(user: dict | None, guest_id: str | None) -> dict:
         }
 
     is_logged = bool(user and user.get("id"))
-    q_limit = 30 if is_logged else 20
+    q_limit = 200 if is_logged else 100
     im_limit = 3
     mode_str = "user" if is_logged else "guest"
     mode_label = "Compte standard" if is_logged else "Accès Invité"
@@ -526,6 +530,112 @@ class GoogleAuthRequest(BaseModel):
     name: str = ""
     picture: str = ""
 
+
+
+@app.get("/api/auth/google/login")
+def google_oauth_login(request: Request):
+    """Redirection vers Google OAuth 2.0 officiel."""
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(400, "GOOGLE_CLIENT_ID n'est pas encore configuré dans votre fichier .env.")
+    redirect_uri = str(request.url_for("google_oauth_callback"))
+    scope = "openid email profile"
+    state = secrets.token_urlsafe(16)
+    google_url = (
+        f"https://accounts.google.com/o/oauth2/v2/auth?"
+        f"client_id={GOOGLE_CLIENT_ID}&"
+        f"redirect_uri={urllib.parse.quote(redirect_uri)}&"
+        f"response_type=code&"
+        f"scope={urllib.parse.quote(scope)}&"
+        f"state={state}&"
+        f"access_type=offline&"
+        f"prompt=select_account"
+    )
+    return RedirectResponse(google_url)
+
+
+@app.get("/api/auth/google/callback")
+async def google_oauth_callback(request: Request, code: str | None = None, error: str | None = None):
+    """Callback OAuth 2.0 Google : échange le code, crée la session et redirige vers /app."""
+    if error or not code:
+        return RedirectResponse(f"/app?auth_error={urllib.parse.quote(error or 'Consentement annulé')}")
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        return RedirectResponse("/app?auth_error=OAuth_non_configure")
+
+    redirect_uri = str(request.url_for("google_oauth_callback"))
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            token_resp = await client.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "code": code,
+                    "client_id": GOOGLE_CLIENT_ID,
+                    "client_secret": GOOGLE_CLIENT_SECRET,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+            )
+            if token_resp.status_code != 200:
+                logger.error(f"Google token exchange failed: {token_resp.text}")
+                return RedirectResponse("/app?auth_error=echange_token_echoue")
+
+            tokens = token_resp.json()
+            id_token = tokens.get("id_token")
+            access_token = tokens.get("access_token")
+
+            # Récupération du profil
+            userinfo_resp = await client.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {access_token}"},
+            )
+            if userinfo_resp.status_code != 200:
+                return RedirectResponse("/app?auth_error=profil_introuvable")
+
+            info = userinfo_resp.json()
+            email = (info.get("email") or "").strip().lower()
+            name = (info.get("name") or "").strip()
+            picture = (info.get("picture") or "").strip()
+            google_id = info.get("sub") or ""
+
+            if not email:
+                return RedirectResponse("/app?auth_error=email_manquant")
+
+            auth_token = secrets.token_hex(24)
+            with db() as c:
+                row = c.execute(
+                    "SELECT * FROM users WHERE (google_id != '' AND google_id = ?) OR (email != '' AND email = ?)",
+                    (google_id, email)
+                ).fetchone()
+
+                if row:
+                    uid = row["id"]
+                    c.execute(
+                        "UPDATE users SET google_id = COALESCE(NULLIF(google_id, ''), ?), avatar_url = COALESCE(NULLIF(avatar_url, ''), ?), email_verified = 1 WHERE id = ?",
+                        (google_id, picture, uid)
+                    )
+                else:
+                    base_user = re.sub(r"[^a-z0-9._-]", "", email.split("@")[0].lower())[:20] or "user"
+                    username = base_user
+                    idx = 1
+                    while c.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone():
+                        username = f"{base_user}{secrets.randbelow(9999):04d}"
+                        idx += 1
+                        if idx > 10:
+                            username = f"user_{secrets.token_hex(4)}"
+                            break
+
+                    salt = secrets.token_hex(16)
+                    cur = c.execute(
+                        "INSERT INTO users(username, pass_hash, salt, api_key, model_pref, persona, interests, email, email_verified, google_id, avatar_url, auth_provider, created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                        (username, "", salt, "", "auto", "", "", email, 1, google_id, picture, "google", time.time())
+                    )
+                    uid = cur.lastrowid
+
+                c.execute("INSERT INTO auth_tokens(token, user_id, created_at) VALUES(?,?,?)", (auth_token, uid, time.time()))
+
+            return RedirectResponse(f"/app?auth_token={auth_token}")
+    except Exception as e:
+        logger.error(f"Google OAuth Exception: {e}")
+        return RedirectResponse(f"/app?auth_error={urllib.parse.quote(str(e))}")
 
 @app.get("/api/auth/google/config")
 def google_auth_config():
@@ -1328,19 +1438,15 @@ class CreateSessionRequest(BaseModel):
 @app.get("/api/sessions")
 def get_sessions(x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
-    uid = user["id"] if user else None
-    gid = (x_guest_id or "").strip()
+    if not user:
+        # En mode invité : aucun historique n'est stocké ou retourné depuis la base
+        return {"sessions": []}
+    uid = user["id"]
     with db() as c:
-        if uid is not None:
-            rows = c.execute(
-                "SELECT id, title, created_at, updated_at, project_id FROM sessions WHERE user_id = ? ORDER BY updated_at DESC",
-                (uid,),
-            ).fetchall()
-        else:
-            rows = c.execute(
-                "SELECT id, title, created_at, updated_at, project_id FROM sessions WHERE user_id IS NULL AND guest_id = ? ORDER BY updated_at DESC",
-                (gid,),
-            ).fetchall()
+        rows = c.execute(
+            "SELECT id, title, created_at, updated_at, project_id FROM sessions WHERE user_id = ? ORDER BY updated_at DESC",
+            (uid,),
+        ).fetchall()
         res = [dict(r) for r in rows]
         if not res:
             res = [{"id": "default", "title": "Discussion principale", "created_at": time.time(), "updated_at": time.time(), "project_id": None}]
@@ -1356,13 +1462,16 @@ def create_session(
     user = current_user(x_auth_token)
     sid = secrets.token_hex(6)
     now = time.time()
-    uid = user["id"] if user else None
-    gid = (x_guest_id or "").strip() if not uid else None
     pid = req.project_id if req else None
+    if not user:
+        # Mode invité : session stockée temporairement en RAM uniquement
+        GUEST_SESSIONS[sid] = []
+        return {"session_id": sid, "title": "Nouvelle conversation", "project_id": pid}
+    uid = user["id"]
     with db() as c:
         c.execute(
-            "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id, project_id) VALUES (?, 'Nouvelle conversation', ?, ?, ?, ?, ?)",
-            (sid, now, now, uid, gid, pid),
+            "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id, project_id) VALUES (?, 'Nouvelle conversation', ?, ?, ?, NULL, ?)",
+            (sid, now, now, uid, pid),
         )
     return {"session_id": sid, "title": "Nouvelle conversation", "project_id": pid}
 
@@ -1370,23 +1479,17 @@ def create_session(
 @app.delete("/api/sessions/{session_id}")
 def delete_session(session_id: str, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
-    uid = user["id"] if user else None
-    gid = (x_guest_id or "").strip()
+    if not user:
+        GUEST_SESSIONS.pop(session_id, None)
+        return {"ok": True}
+    uid = user["id"]
     with db() as c:
-        if uid is not None:
-            if session_id == "default":
-                c.execute("DELETE FROM messages WHERE session_id = 'default' AND user_id = ?", (uid,))
-                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id = ?", (time.time(), uid))
-            else:
-                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id = ?", (session_id, uid))
-                c.execute("DELETE FROM sessions WHERE id = ? AND user_id = ?", (session_id, uid))
+        if session_id == "default":
+            c.execute("DELETE FROM messages WHERE session_id = 'default' AND user_id = ?", (uid,))
+            c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id = ?", (time.time(), uid))
         else:
-            if session_id == "default":
-                c.execute("DELETE FROM messages WHERE session_id = 'default' AND user_id IS NULL AND guest_id = ?", (gid,))
-                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id IS NULL AND guest_id = ?", (time.time(), gid))
-            else:
-                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ?", (session_id, gid))
-                c.execute("DELETE FROM sessions WHERE id = ? AND user_id IS NULL AND guest_id = ?", (session_id, gid))
+            c.execute("DELETE FROM messages WHERE session_id = ? AND user_id = ?", (session_id, uid))
+            c.execute("DELETE FROM sessions WHERE id = ? AND user_id = ?", (session_id, uid))
     return {"ok": True}
 
 
@@ -1447,62 +1550,52 @@ def chat(body: ChatIn, x_auth_token: str | None = Header(None), x_guest_id: str 
             )
             raise HTTPException(429, msg)
 
-    db_gid = gid if not uid else None
-
-    with db() as c:
-        if uid is not None:
+    if uid is not None:
+        with db() as c:
             s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id = ?", (sid, uid)).fetchone()
-        else:
-            s_row = c.execute("SELECT title FROM sessions WHERE id = ? AND user_id IS NULL AND guest_id = ?", (sid, db_gid)).fetchone()
-        title_text = text[:40] + ("…" if len(text) > 40 else "")
-        if not s_row:
-            c.execute(
-                "INSERT INTO sessions (id, title, created_at, updated_at, user_id, guest_id) VALUES (?, ?, ?, ?, ?, ?)",
-                (sid, title_text, now, now, uid, db_gid),
-            )
-        else:
-            if s_row["title"] in ("Nouvelle conversation", "Discussion principale"):
-                if uid is not None:
+            title_text = text[:40] + ("…" if len(text) > 40 else "")
+            if not s_row:
+                c.execute(
+                    "INSERT INTO sessions (id, title, created_at, updated_at, user_id) VALUES (?, ?, ?, ?, ?)",
+                    (sid, title_text, now, now, uid),
+                )
+            else:
+                if s_row["title"] in ("Nouvelle conversation", "Discussion principale"):
                     c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id = ?", (title_text, now, sid, uid))
                 else:
-                    c.execute("UPDATE sessions SET title = ?, updated_at = ? WHERE id = ? AND user_id IS NULL AND guest_id = ?", (title_text, now, sid, db_gid))
-            else:
-                if uid is not None:
                     c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id = ?", (now, sid, uid))
-                else:
-                    c.execute("UPDATE sessions SET updated_at = ? WHERE id = ? AND user_id IS NULL AND guest_id = ?", (now, sid, db_gid))
 
-        if body.replace_last:
-            if uid is not None:
+            if body.replace_last:
                 c.execute(
                     "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id = ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
                     (sid, uid),
                 )
             else:
+                m = FACT_RE.match(text)
+                if m:
+                    c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
                 c.execute(
-                    "DELETE FROM messages WHERE id = (SELECT id FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? AND role = 'assistant' ORDER BY id DESC LIMIT 1)",
-                    (sid, db_gid),
+                    "INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('user',?,?,?,?)",
+                    (text, now, sid, uid),
                 )
-        else:
-            m = FACT_RE.match(text)
-            if m:
-                c.execute("INSERT INTO facts(text, ts, user_id) VALUES(?,?,?)", (m.group(1).strip(), now, uid))
-            c.execute(
-                "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id) VALUES('user',?,?,?,?,?)",
-                (text, now, sid, uid, db_gid),
-            )
 
-        if uid is not None:
-            rows = c.execute(
-                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 40",
-                (sid, uid),
-            ).fetchall()[::-1]
+            rows = [
+                dict(r)
+                for r in c.execute(
+                    "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 40",
+                    (sid, uid),
+                ).fetchall()[::-1]
+            ]
+            facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id = ? ORDER BY id", (uid,)).fetchall()]
+    else:
+        # Stockage 100% en RAM pour les invités (AUCUNE écriture en base de données)
+        guest_history = GUEST_SESSIONS.setdefault(sid, [])
+        if body.replace_last and guest_history and guest_history[-1].get("role") == "assistant":
+            guest_history.pop()
         else:
-            rows = c.execute(
-                "SELECT role, content, media_kind, media_path, media_mime FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? ORDER BY id DESC LIMIT 40",
-                (sid, db_gid),
-            ).fetchall()[::-1]
-        facts = [r["text"] for r in c.execute("SELECT text FROM facts WHERE user_id IS ? ORDER BY id", (uid,)).fetchall()]
+            guest_history.append({"role": "user", "content": text, "ts": now})
+        rows = guest_history[-40:]
+        facts = []
 
     resp: dict = {"session_id": sid}
 
@@ -1831,17 +1924,26 @@ async def chat_stream(body: ChatIn, x_auth_token: str | None = Header(None), x_g
         if do_search and full_reply:
             images = fetch_images(text)
 
-        with db() as c:
-            if media_url:
-                c.execute(
-                    "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?,?)",
-                    (full_reply, time.time(), sid, uid, db_gid, "image", Path(media_url).name, "image/jpeg"),
-                )
-            else:
-                c.execute(
-                    "INSERT INTO messages(role, content, ts, session_id, user_id, guest_id) VALUES('assistant',?,?,?,?,?)",
-                    (full_reply, time.time(), sid, uid, db_gid),
-                )
+        if uid is not None:
+            with db() as c:
+                if media_url:
+                    c.execute(
+                        "INSERT INTO messages(role, content, ts, session_id, user_id, media_kind, media_path, media_mime) VALUES('assistant',?,?,?,?,?,?,?)",
+                        (full_reply, time.time(), sid, uid, "image", Path(media_url).name, "image/jpeg"),
+                    )
+                else:
+                    c.execute(
+                        "INSERT INTO messages(role, content, ts, session_id, user_id) VALUES('assistant',?,?,?,?)",
+                        (full_reply, time.time(), sid, uid),
+                    )
+        else:
+            GUEST_SESSIONS.setdefault(sid, []).append({
+                "role": "assistant",
+                "content": full_reply,
+                "ts": time.time(),
+                "media_kind": "image" if media_url else None,
+                "media_url": media_url or None,
+            })
 
         yield f"data: {json.dumps({'done': True, 'reply': full_reply, 'media_url': media_url, 'sources': sources, 'images': images, 'model': 'MEL-IA', 'quota': get_user_quota_info(user, gid), 'session_id': sid, 'ts': time.time()})}\n\n"
 
@@ -2124,19 +2226,15 @@ def del_key(kid: int, x_auth_token: str | None = Header(None)):
 @app.get("/api/history")
 def history(session_id: str = "default", x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
-    uid = user["id"] if user else None
-    gid = (x_guest_id or "").strip()
+    if not user:
+        msgs = GUEST_SESSIONS.get(session_id, [])
+        return {"messages": msgs, "name": NAME, "owner": OWNER, "session_id": session_id, "username": ""}
+    uid = user["id"]
     with db() as c:
-        if uid is not None:
-            rows = c.execute(
-                "SELECT role, content, media_kind, media_path, media_mime, ts FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 60",
-                (session_id, uid),
-            ).fetchall()[::-1]
-        else:
-            rows = c.execute(
-                "SELECT role, content, media_kind, media_path, media_mime, ts FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ? ORDER BY id DESC LIMIT 60",
-                (session_id, gid),
-            ).fetchall()[::-1]
+        rows = c.execute(
+            "SELECT role, content, media_kind, media_path, media_mime, ts FROM messages WHERE session_id = ? AND user_id = ? ORDER BY id DESC LIMIT 60",
+            (session_id, uid),
+        ).fetchall()[::-1]
     msgs = []
     for r in rows:
         m = dict(r)
@@ -2144,29 +2242,24 @@ def history(session_id: str = "default", x_auth_token: str | None = Header(None)
             m["media_url"] = f"/api/media/{m['media_path']}"
         msgs.append(m)
     return {"messages": msgs, "name": NAME, "owner": OWNER, "session_id": session_id,
-            "username": user["username"] if user else ""}
+            "username": user["username"]}
 
 
 @app.post("/api/clear")
 def clear(session_id: str | None = None, x_auth_token: str | None = Header(None), x_guest_id: str | None = Header(None)):
     user = current_user(x_auth_token)
-    uid = user["id"] if user else None
-    gid = (x_guest_id or "").strip()
-    with db() as c:
-        if uid is not None:
-            if session_id:
-                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id = ?", (session_id, uid))
-            else:
-                c.execute("DELETE FROM messages WHERE user_id = ?", (uid,))
-                c.execute("DELETE FROM sessions WHERE id != 'default' AND user_id = ?", (uid,))
-                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id = ?", (time.time(), uid))
+    if not user:
+        if session_id:
+            GUEST_SESSIONS.pop(session_id, None)
         else:
-            if session_id:
-                c.execute("DELETE FROM messages WHERE session_id = ? AND user_id IS NULL AND guest_id = ?", (session_id, gid))
-            else:
-                c.execute("DELETE FROM messages WHERE user_id IS NULL AND guest_id = ?", (gid,))
-                c.execute("DELETE FROM sessions WHERE id != 'default' AND user_id IS NULL AND guest_id = ?", (gid,))
-                c.execute("UPDATE sessions SET title = 'Discussion principale', updated_at = ? WHERE id = 'default' AND user_id IS NULL AND guest_id = ?", (time.time(), gid))
+            GUEST_SESSIONS.clear()
+        return {"ok": True}
+    uid = user["id"]
+    with db() as c:
+        if session_id:
+            c.execute("DELETE FROM messages WHERE session_id = ? AND user_id = ?", (session_id, uid))
+        else:
+            c.execute("DELETE FROM messages WHERE user_id = ?", (uid,))
     return {"ok": True}
 
 
