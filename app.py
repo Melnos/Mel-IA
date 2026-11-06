@@ -242,7 +242,7 @@ def get_user_quota_info(user: dict | None, guest_id: str | None) -> dict:
     q_limit = 30 if is_logged else 20
     im_limit = 3
     mode_str = "user" if is_logged else "guest"
-    mode_label = "Compte standard" if is_logged else "Mode Test (Invité)"
+    mode_label = "Compte standard" if is_logged else "Accès Invité"
 
     tracker = f"u_{user['id']}" if is_logged else f"g_{guest_id or 'anon'}"
     today = datetime.utcnow().strftime("%Y-%m-%d")
@@ -616,7 +616,7 @@ def reset_guest_history(x_guest_id: str | None = Header(None)):
             c.execute("DELETE FROM messages WHERE user_id IS NULL AND guest_id = ?", (gid,))
             c.execute("DELETE FROM sessions WHERE user_id IS NULL AND guest_id = ?", (gid,))
     new_gid = f"guest_{secrets.token_hex(8)}"
-    return {"ok": True, "guest_id": new_gid, "message": "Discussions du mode test effacées avec succès."}
+    return {"ok": True, "guest_id": new_gid, "message": "Historique effacé avec succès."}
 
 
 @app.post("/api/auth/logout")

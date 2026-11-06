@@ -17,14 +17,14 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap"
     rel="stylesheet">
   <!-- Marked.js pour le Markdown complet (tableaux, listes, etc.) et Highlight.js pour la coloration -->
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <!-- jsPDF, PptxGenJS, JSZip & SheetJS pour documents réels PDF, PPTX, Excel, Word et ZIP -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 
   <style>
@@ -472,6 +472,7 @@
     }
 
     .sidebar-bottom {
+      position: relative;
       padding: 12px 14px;
       border-top: 1px solid var(--line);
       display: flex;
@@ -4278,17 +4279,21 @@
     /* Popover Menu Déroulant du Compte */
     .account-menu-popover {
       position: absolute;
-      bottom: 60px;
+      bottom: calc(100% + 8px);
       left: 10px;
       right: 10px;
       background: var(--surface);
       border: 1px solid var(--line-strong);
       border-radius: 14px;
-      box-shadow: var(--shadow-lg);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
       padding: 6px;
-      z-index: 1000;
-      backdrop-filter: blur(16px);
-      animation: popoverFadeIn 0.15s ease-out;
+      z-index: 9999;
+      backdrop-filter: blur(20px);
+      opacity: 1 !important;
+      display: block;
+    }
+    .account-menu-popover[hidden] {
+      display: none !important;
     }
 
     @keyframes popoverFadeIn {
@@ -4410,6 +4415,85 @@
     body.sidebar-collapsed #menu-toggle {
       display: inline-flex !important;
     }
+
+    /* Barre de recherche moderne dans la barre latérale */
+    .sidebar-search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
+      margin: 6px 12px 10px 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .sidebar-search-box:focus-within {
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
+    }
+    .sidebar-search-box svg {
+      width: 14px !important;
+      height: 14px !important;
+      min-width: 14px !important;
+      min-height: 14px !important;
+      max-width: 14px !important;
+      max-height: 14px !important;
+      flex-shrink: 0;
+      stroke: var(--muted);
+    }
+    .sidebar-search-box input {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--fg);
+      font-size: 12.5px;
+      outline: none;
+    }
+
+
+    /* Dialogues Modernes Bibliothèque & Projets */
+    .settings-dialog {
+      border: 1px solid var(--line-strong) !important;
+      border-radius: 20px !important;
+      background: var(--surface) !important;
+      color: var(--fg) !important;
+      padding: 0 !important;
+      max-width: 540px !important;
+      width: calc(100vw - 32px) !important;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35) !important;
+      overflow: hidden !important;
+      margin: auto !important;
+    }
+    .settings-dialog::backdrop {
+      background: rgba(0, 0, 0, 0.6) !important;
+      backdrop-filter: blur(8px) !important;
+    }
+    .dialog-head {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 16px 20px !important;
+      border-bottom: 1px solid var(--line) !important;
+      background: var(--bg2) !important;
+    }
+    .dialog-title-wrap {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      color: var(--fg-heading) !important;
+    }
+    .dialog-title-wrap svg {
+      color: var(--primary) !important;
+      flex-shrink: 0;
+    }
+    .dialog-body {
+      padding: 20px !important;
+    }
+
 </style>
 </head>
 
@@ -4537,7 +4621,7 @@
         </button>
         <div class="guest-actions-sub">
           <span>Accès immédiat sans mot de passe · 20 questions + 3 images offertes par jour</span>
-          <button type="button" id="btn-guest-reset" class="btn-reset-guest" title="Effacer les anciennes conversations du mode test">Effacer l'historique du mode test</button>
+          <button type="button" id="btn-guest-reset" class="btn-reset-guest" title="Effacer les anciennes conversations du mode test">Effacer l'historique des discussions</button>
         </div>
       </div>
     </div>
@@ -4576,22 +4660,23 @@
     </div>
   </dialog>
   <!-- Dialogue Bibliothque -->
+    <!-- Dialogue Bibliothèque -->
   <dialog class="settings-dialog" id="library-dialog">
     <div class="dialog-head">
       <div class="dialog-title-wrap">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/></svg>
-        <span class="dialog-title">Bibliothque de Documents & Mdia</span>
+        <span class="dialog-title">Bibliothèque de Documents & Médias</span>
       </div>
       <button class="icon-btn" id="library-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="dialog-body" style="padding:20px;max-width:560px">
-      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Retrouvez et importez vos fichiers pour analyse approfondie par MEL-IA (images, photos, documents PDF/Word, feuilles de calcul ou code).</p>
+      <p style="color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:16px">Retrouvez et importez vos fichiers pour analyse approfondie par MEL-IA (images, photos, documents PDF/Word, feuilles de calcul ou code).</p>
       <div style="display:flex;gap:12px;margin-bottom:20px">
-        <button type="button" class="dialog-btn primary" id="btn-lib-upload" style="flex:1">Importer un document / image</button>
+        <button type="button" class="btn primary" id="btn-lib-upload" style="flex:1;padding:10px 16px;border-radius:10px;font-weight:500">Importer un document / image</button>
       </div>
-      <div class="set-card">
-        <div class="set-card-title">Capacits Documentaires & Vision</div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.5">MEL-IA analyse vos pices jointes en haute rsolution (OCR, graphiques, exercices, synthses) et peut exporter n'importe quelle rponse en Word (.docx), PDF (.pdf), PowerPoint (.pptx) ou Excel (.xlsx).</p>
+      <div style="padding:14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line)">
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px;color:var(--fg-heading)">Capacités Documentaires & Vision</div>
+        <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:0">MEL-IA analyse vos pièces jointes en haute résolution (OCR, graphiques, exercices, synthèses) et peut exporter n'importe quelle réponse en Word (.docx), PDF (.pdf), PowerPoint (.pptx) ou Excel (.xlsx).</p>
       </div>
     </div>
   </dialog>
@@ -4606,13 +4691,13 @@
       <button class="icon-btn" id="projects-dialog-close" aria-label="Fermer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
     </div>
     <div class="dialog-body" style="padding:20px;max-width:560px">
-      <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Organisez vos conversations et contextes de travail thmatiques avec MEL-IA.</p>
-      <div class="set-card">
-        <div class="set-card-title">Espace Actuel : Conversation Gnraliste</div>
-        <p style="font-size:13px;color:var(--muted)">Vos changes en cours sont automatiquement sauvegards dans l'historique rcent. Pour sparer vos projets (Rdaction, Affaires, tudes), crez un nouveau chat pour chaque thme.</p>
+      <p style="color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:16px">Organisez vos conversations et contextes de travail thématiques avec MEL-IA.</p>
+      <div style="padding:14px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);margin-bottom:18px">
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px;color:var(--fg-heading)">Espace Actuel : Conversation Généraliste</div>
+        <p style="font-size:12.5px;color:var(--muted);line-height:1.5;margin:0">Vos échanges en cours sont automatiquement sauvegardés dans l'historique récent. Pour séparer vos projets (Rédaction, Affaires, Études), créez un nouveau chat pour chaque thème.</p>
       </div>
-      <div style="margin-top:20px;display:flex;justify-content:flex-end">
-        <button type="button" class="dialog-btn secondary" id="btn-projects-new-chat">Dmarrer un nouveau projet</button>
+      <div style="display:flex;justify-content:flex-end">
+        <button type="button" class="btn outline" id="btn-projects-new-chat" style="padding:10px 18px;border-radius:10px;font-weight:500">Démarrer un nouveau projet</button>
       </div>
     </div>
   </dialog>
@@ -7023,7 +7108,7 @@
       forceSearch = !forceSearch;
       this.classList.toggle('on', forceSearch);
       this.setAttribute('aria-pressed', forceSearch);
-      if (forceSearch && forceImage) { forceImage = false; $('tg-image').classList.remove('on'); $('tg-image').setAttribute('aria-pressed', false); }
+      if (forceSearch && forceImage) { forceImage = false; if ($('tg-image')) { $('tg-image').classList.remove('on'); $('tg-image').setAttribute('aria-pressed', false); } }
     });
     if ($('tg-image')) $('tg-image').addEventListener('click', function () {
       forceImage = !forceImage;
@@ -7209,7 +7294,7 @@
       var searchParam = forceSearch;
       var imageParam = forceImage;
       if (forceSearch) { forceSearch = false; $('tg-search').classList.remove('on'); $('tg-search').setAttribute('aria-pressed', false); }
-      if (forceImage) { forceImage = false; $('tg-image').classList.remove('on'); $('tg-image').setAttribute('aria-pressed', false); }
+      if (forceImage) { forceImage = false; if ($('tg-image')) { $('tg-image').classList.remove('on'); $('tg-image').setAttribute('aria-pressed', false); } }
 
       optimisticallyDecrementQuota(!!imageParam);
 
@@ -7480,7 +7565,7 @@ $('in').addEventListener('input', function () {
     });
 
     // ---- Effacer les discussions ----
-    $('clear').onclick = function () {
+    if ($('clear')) $('clear').onclick = function () {
       if (confirm('Effacer toutes les conversations ?')) {
         api('/api/clear', { method: 'POST' }).then(function () {
           currentSession = 'default';
@@ -7492,7 +7577,7 @@ $('in').addEventListener('input', function () {
     };
 
     // ---- Dialogue Mémoire ----
-    $('mem').onclick = function () {
+    if ($('mem')) $('mem').onclick = function () {
       closeSidebar();
       api('/api/facts').then(function (j) {
         $('facts').innerHTML = j.facts.length
@@ -7564,9 +7649,9 @@ $('in').addEventListener('input', function () {
       authMode = m;
       $('tab-login').classList.toggle('on', m === 'login');
       $('tab-signup').classList.toggle('on', m === 'signup');
-      $('glf').hidden = m !== 'login';
-      $('gsf1').hidden = m !== 'signup';
-      $('gsf2').hidden = true;
+      if ($('glf')) $('glf').hidden = m !== 'login';
+      if ($('gsf1')) $('gsf1').hidden = m !== 'signup';
+      if ($('gsf2')) $('gsf2').hidden = true;
       if ($('gff')) $('gff').hidden = true;
       if ($('gff-step-1')) $('gff-step-1').style.display = 'block';
       if ($('gff-step-2')) $('gff-step-2').style.display = 'none';
@@ -7587,8 +7672,8 @@ $('in').addEventListener('input', function () {
     }
 
     if ($('su-back')) $('su-back').addEventListener('click', function () {
-      $('gsf1').hidden = false;
-      $('gsf2').hidden = true;
+      if ($('gsf1')) $('gsf1').hidden = false;
+      if ($('gsf2')) $('gsf2').hidden = true;
     });
 
     function showUserChip(username, userObj) {
@@ -7658,21 +7743,21 @@ $('in').addEventListener('input', function () {
       if (!/^[a-z0-9._-]{3,30}$/i.test(name)) { $('su1-err').textContent = 'Identifiant : 3 à 30 caractères.'; return; }
       if (pw.length < 6) { $('su1-err').textContent = 'Mot de passe : 6 caractères min.'; return; }
       pendingSignup = { username: name, password: pw, email: email };
-      $('gsf1').hidden = true;
-      $('gsf2').hidden = false;
+      if ($('gsf1')) $('gsf1').hidden = true;
+      if ($('gsf2')) $('gsf2').hidden = false;
     });
 
     function collectInterests() {
       var picked = [];
       document.querySelectorAll('#int-chips .gchip.on').forEach(function (c) { picked.push(c.textContent.trim()); });
-      var extra = $('su-int').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+      var extra = $('su-int') ? $('su-int').value.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [];
       return picked.concat(extra).join(', ');
     }
 
     if ($('gsf2')) $('gsf2').addEventListener('submit', function (e) {
       e.preventDefault();
-      $('su2-err').textContent = '';
-      var key = $('su-key').value.trim();
+      if ($('su2-err')) $('su2-err').textContent = '';
+      var key = $('su-key') ? $('su-key').value.trim() : '';
       var body = {
         username: pendingSignup.username,
         email: pendingSignup.email || '',
@@ -7682,7 +7767,7 @@ $('in').addEventListener('input', function () {
       };
       api('/api/auth/register', { method: 'POST', body: JSON.stringify(body) })
         .then(afterAuth)
-        .catch(function (err) { $('su2-err').textContent = err.message; });
+        .catch(function (err) { if ($('su2-err')) $('su2-err').textContent = err.message; });
     });
 
     document.querySelectorAll('#int-chips .gchip').forEach(function (c) {
@@ -7859,7 +7944,7 @@ $('in').addEventListener('input', function () {
           $('msgs').innerHTML = '';
           showEmpty();
           loadSessions();
-          showToast('Historique du mode test effacé ! Session propre prête.', 'success');
+          showToast('Historique effacé avec succès.', 'success');
         }).catch(function (er) {
           showToast(er.message || 'Erreur lors de l\'effacement.', 'err');
         });
@@ -7928,7 +8013,7 @@ $('in').addEventListener('input', function () {
     });
 
     if ($('set-save')) $('set-save').addEventListener('click', function () {
-      var payload = { model_pref: $('model-sel').value, persona: $('persona-in').value, interests: $('int-in').value };
+      var payload = { model_pref: $('model-sel') ? $('model-sel').value : 'auto', persona: $('persona-in') ? $('persona-in').value : '', interests: $('int-in') ? $('int-in').value : '' };
       api('/api/auth/profile', { method: 'POST', body: JSON.stringify(payload) })
         .then(function () {
           $('set-save').textContent = 'Enregistré';
@@ -8086,12 +8171,12 @@ $('in').addEventListener('input', function () {
         } else {
           var remG = q.questions_remaining != null ? q.questions_remaining : Math.max(0, q.questions_limit - q.questions_used);
           var remGI = q.images_remaining != null ? q.images_remaining : Math.max(0, q.images_limit - q.images_used);
-          pillText.textContent = 'Mode Test : ' + remG + '/' + q.questions_limit + ' req • ' + remGI + '/' + q.images_limit + ' img';
+          pillText.textContent = 'Invité : ' + remG + '/' + q.questions_limit + ' req • ' + remGI + '/' + q.images_limit + ' img';
           pill.className = 'quota-pill' + (remG <= 0 && remGI <= 0 ? ' exhausted' : (remG <= 5 ? ' warning' : ''));
         }
       }
       if ($('qc-mode-title')) {
-        $('qc-mode-title').textContent = q.mode_label || (q.mode === 'personal' ? 'Clé Personnelle (Illimité)' : (q.mode === 'user' ? 'Compte Standard' : 'Mode Test (Invité)'));
+        $('qc-mode-title').textContent = q.mode_label || (q.mode === 'personal' ? 'Clé Personnelle (Illimité)' : (q.mode === 'user' ? 'Compte Standard' : 'Accès Invité'));
       }
       if ($('qc-questions-val')) {
         if (q.is_unlimited) {
@@ -8174,7 +8259,7 @@ $('in').addEventListener('input', function () {
         currentSession = 'default';
         localStorage.setItem('mel_session', 'default');
         closeGate();
-        showUserChip('Invité (Mode Test)');
+        showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
         updateQuotaUI();
         loadSessions();
         load();
@@ -8208,17 +8293,17 @@ $('in').addEventListener('input', function () {
           token = '';
           localStorage.removeItem('mel_token');
           localStorage.setItem('mel_guest', '1');
-          showUserChip('Invité (Mode Test)');
+          showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
           updateQuotaUI();
         }
       }).catch(function () {
         localStorage.setItem('mel_guest', '1');
-        showUserChip('Invité (Mode Test)');
+        showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
         updateQuotaUI();
       });
     } else {
       localStorage.setItem('mel_guest', '1');
-      showUserChip('Invité (Mode Test)');
+      showUserChip('Invité', {user_call_name: 'Invité', email: 'Accès immédiat'});
       updateQuotaUI();
     }
   
@@ -8226,57 +8311,63 @@ $('in').addEventListener('input', function () {
     // MEL-IA 2.0 — NAVIGATION, COMPTE, PERSONNALISATION, MÉMOIRE & CLÉS API
     // ==========================================================================
 
-    // 1. Navigation Principale Barre Latérale
-    if ($('btn-nav-new-chat')) {
-      if ($('btn-nav-new-chat')) $('btn-nav-new-chat').addEventListener('click', function () {
-        if (typeof newChat === 'function') newChat();
-      });
+    // 1. Navigation Principale Barre Latérale (Single Clean Handlers)
+    function setupNavHandler(id, fn) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.onclick = function (e) {
+          if (e) e.preventDefault();
+          fn(e);
+        };
+      }
     }
 
-    if ($('header-new-chat')) {
-      if ($('header-new-chat')) $('header-new-chat').addEventListener('click', function () {
-        if (typeof newChat === 'function') newChat();
-      });
-    }
+    setupNavHandler('btn-nav-new-chat', function () { startNewChatSession(); });
+    setupNavHandler('header-new-chat', function () { startNewChatSession(); });
 
-    if ($('btn-nav-search')) {
-      if ($('btn-nav-search')) $('btn-nav-search').addEventListener('click', function () {
-        var sBox = $('sidebar-search-container');
-        if (sBox) {
-          var isHidden = sBox.style.display === 'none';
-          sBox.style.display = isHidden ? 'flex' : 'none';
-          if (isHidden && $('session-search')) $('session-search').focus();
+    setupNavHandler('btn-nav-search', function () {
+      var sBox = document.getElementById('sidebar-search-container');
+      if (sBox) {
+        var isHidden = sBox.style.display === 'none' || !sBox.style.display;
+        sBox.style.display = isHidden ? 'flex' : 'none';
+        if (isHidden) {
+          var input = document.getElementById('session-search');
+          if (input) input.focus();
         }
-      });
-    }
+      }
+    });
 
-    if ($('btn-nav-library')) {
-      if ($('btn-nav-library')) $('btn-nav-library').addEventListener('click', function () {
+    setupNavHandler('btn-nav-library', function () {
+      var dlg = document.getElementById('library-dialog');
+      if (dlg) {
+        try { dlg.showModal(); } catch (err) { dlg.setAttribute('open', ''); }
+      } else {
         showToast('Bibliothèque : vos documents et fichiers joints sont synchronisés.', 'info');
-      });
-    }
+      }
+    });
 
-    if ($('btn-nav-projects')) {
-      if ($('btn-nav-projects')) $('btn-nav-projects').addEventListener('click', function () {
+    setupNavHandler('btn-nav-projects', function () {
+      var dlg = document.getElementById('projects-dialog');
+      if (dlg) {
+        try { dlg.showModal(); } catch (err) { dlg.setAttribute('open', ''); }
+      } else {
         showToast('Espaces & Projets : organisez vos contextes de travail.', 'info');
-      });
-    }
+      }
+    });
 
-    if ($('sidebar-collapse-btn')) {
-      if ($('sidebar-collapse-btn')) $('sidebar-collapse-btn').addEventListener('click', function () {
-        document.body.classList.toggle('sidebar-collapsed');
-      });
-    }
+    setupNavHandler('sidebar-collapse-btn', function () {
+      document.body.classList.toggle('sidebar-collapsed');
+    });
 
-    // 2. Menu Déroulant du Compte (Popover Style ChatGPT)
-    var accountPopover = $('account-menu-popover');
-    var accountBar = $('user-account-bar');
+    // 2. Menu Déroulant du Compte (Popover Style ChatGPT / Claude)
+    var accountPopover = document.getElementById('account-menu-popover');
+    var accountBar = document.getElementById('user-account-bar');
 
     if (accountBar && accountPopover) {
-      accountBar.addEventListener('click', function (e) {
+      accountBar.onclick = function (e) {
         e.stopPropagation();
         accountPopover.hidden = !accountPopover.hidden;
-      });
+      };
 
       document.addEventListener('click', function (e) {
         if (!accountBar.contains(e.target) && !accountPopover.contains(e.target)) {
@@ -8511,74 +8602,6 @@ $('in').addEventListener('input', function () {
     }
 
   
-    // Connexion robuste des actions de la barre latrale
-    if ($('btn-nav-new-chat')) {
-      $('btn-nav-new-chat').onclick = function (e) {
-        e.preventDefault();
-        startNewChatSession();
-      };
-    }
-    if ($('header-new-chat')) {
-      $('header-new-chat').onclick = function (e) {
-        e.preventDefault();
-        startNewChatSession();
-      };
-    }
-
-    if ($('btn-nav-search')) {
-      $('btn-nav-search').onclick = function (e) {
-        e.preventDefault();
-        var sBox = $('sidebar-search-container');
-        if (sBox) {
-          var isHidden = sBox.style.display === 'none' || !sBox.style.display;
-          sBox.style.display = isHidden ? 'flex' : 'none';
-          if (isHidden && $('session-search')) $('session-search').focus();
-        }
-      };
-    }
-
-    if ($('btn-nav-library')) {
-      $('btn-nav-library').onclick = function (e) {
-        e.preventDefault();
-        if ($('library-dialog')) $('library-dialog').showModal();
-      };
-    }
-    if ($('library-dialog-close')) {
-      $('library-dialog-close').onclick = function () {
-        if ($('library-dialog')) $('library-dialog').close();
-      };
-    }
-    if ($('btn-lib-upload')) {
-      $('btn-lib-upload').onclick = function () {
-        if ($('library-dialog')) $('library-dialog').close();
-        if ($('file-doc')) $('file-doc').click();
-      };
-    }
-
-    if ($('btn-nav-projects')) {
-      $('btn-nav-projects').onclick = function (e) {
-        e.preventDefault();
-        if ($('projects-dialog')) $('projects-dialog').showModal();
-      };
-    }
-    if ($('projects-dialog-close')) {
-      $('projects-dialog-close').onclick = function () {
-        if ($('projects-dialog')) $('projects-dialog').close();
-      };
-    }
-    if ($('btn-projects-new-chat')) {
-      $('btn-projects-new-chat').onclick = function () {
-        if ($('projects-dialog')) $('projects-dialog').close();
-        startNewChatSession();
-      };
-    }
-
-    if ($('sidebar-collapse-btn')) {
-      $('sidebar-collapse-btn').onclick = function (e) {
-        e.preventDefault();
-        document.body.classList.toggle('sidebar-collapsed');
-      };
-    }
 </script>
 
 
